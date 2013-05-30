@@ -1,0 +1,131 @@
+<szg_config>
+
+<comment> Definitions of global graphics parameters. </comment>
+
+<param>
+  <name> camera_default </name>
+  <value>
+    <szg_camera type="vr">
+      <szg_screen>
+        <center x="0" y="0" z="-5" />
+        <normal x="0" y="0" z="-1" />
+        <up x="0" y="1" z="0" />
+        <dim width="10" height="10" />
+        <headmounted value="true" />
+      </szg_screen>
+    </szg_camera>
+  </value>
+</param>
+
+
+<comment> A crosseyed-stereo display. </comment>
+<param>
+  <name> display_crosseyed </name>
+  <value>
+    <szg_display framelock="none" threaded="false">
+      <szg_window>
+        <size width="800" height="400" />
+        <position x="0" y="40" />
+        <decorate value="false" />
+        <fullscreen value="false" />
+        <cursor value="none" />
+        <stereo value="false" />
+        <zorder value="top" />
+        <szg_viewport_list viewmode="crosseyed">
+          <szg_camera usenamed="camera_default" />
+        </szg_viewport_list>
+      </szg_window>
+    </szg_display>
+  </value>
+</param>
+
+<comment> An anaglyph (red/cyan) display.
+          Note that this will work best with a scene
+          rendered entirely in grayscale, though it should
+          be somewhat usable with many colorful scenes...</comment>
+<param>
+  <name> display_anaglyph </name>
+  <value>
+    <szg_display framelock="none" threaded="false">
+      <szg_window>
+        <size width="500" height="500" />
+        <position x="0" y="40" />
+        <decorate value="false" />
+        <fullscreen value="false" />
+        <cursor value="none" />
+        <stereo value="false" />
+        <zorder value="top" />
+        <szg_viewport_list viewmode="anaglyph">
+          <szg_camera usenamed="camera_default" />
+        </szg_viewport_list>
+      </szg_window>
+    </szg_display>
+  </value>
+</param>
+
+<comment> An active-stereo display. 
+          WARNING! If you use this display with a graphics card that
+          does not support active (e.g. CrystalEyes) stereo, THINGS WILL CRASH!
+</comment>
+<param>
+  <name> display_activestereo </name>
+  <value>
+    <szg_display framelock="none" threaded="false">
+      <szg_window>
+        <size width="400" height="400" />
+        <position x="0" y="0" />
+        <decorate value="false" />
+        <fullscreen value="true" />
+        <cursor value="none" />
+        <stereo value="true" />
+        <zorder value="topmost" />
+        <szg_viewport_list viewmode="normal">
+          <szg_camera usenamed="camera_default" />
+        </szg_viewport_list>
+      </szg_window>
+    </szg_display>
+  </value>
+</param>
+
+
+<comment> End of global parameter definitions. </comment>
+
+<comment>
+Local parameters of computer NULL.
+Description: A computer.
+</comment>
+
+<comment>Displays defined for computer NULL</comment>
+<assign>
+  NULL SZG_DISPLAY0 name display_crosseyed
+</assign>
+
+<comment>Exec and data paths for computer NULL</comment>
+<comment> Note that we aren't actually going to define these here,
+          because Aszgard has set environment variables for us
+          (in config/aszgardcustom.py, of course) that do the same
+          thing. You'll need to set these if you move to a
+          non-Aszgard environment.
+</comment>
+<comment>
+  NULL SZG_DATA     path              NULL
+  NULL SZG_RENDER   texture_path      NULL
+  NULL SZG_RENDER   text_path         NULL
+  NULL SZG_SOUND    path              NULL
+</comment>
+
+<comment>Head and inputsimulator parameters for computer NULL.
+         Note mouse buttons default to 0 and 2 (left and right).
+         If your mouse has a middle button, change
+         SZG_INPUTSIM/mouse_buttons to 0/1/2. Or just
+         click the middle button after starting an application.</comment>
+<assign>
+  NULL SZG_HEAD     eye_spacing       0.5
+  NULL SZG_HEAD     mid_eye_offset    0.0/0.0/0.0
+  NULL SZG_INPUTSIM mouse_buttons     0/2
+</assign>
+
+<comment> End of local parameters for computer NULL </comment>
+
+</szg_config>
+
