@@ -124,6 +124,7 @@ char* filename;
 bool doTimeCompressed = false;
 bool isTouchingVertex = false;
 bool isGrabbingVertex = false;
+arVector3 vertexOffset;
 //string bufferLine;  
 
 //PRE_PICKED COLOR ARRAYS
@@ -404,23 +405,14 @@ arVector3 intersectCylinder(arVector3 rayOrigin, arVector3 ray, float radius, fl
 	plug in t for x and y coords
 	fin
 	*/
-
-	//do check if we're starting outside the cylinder.  If we are, this algorithm will break, so just return 0,0,0
-	if(abs(rayOrigin[0]) >= radius || abs(rayOrigin[1]) >= radius || abs(rayOrigin[2]) >= height/2){
-		arVector3 returnVector;
-		returnVector[0] = 0;
-		returnVector[1] = 0;
-		returnVector[2] = 0;
-		return returnVector;
-	}
-	
 	
 	float a = pow(ray[0],2)+pow(ray[1],2);
 	float b = 2*rayOrigin[0]*ray[0] + 2*rayOrigin[1]*ray[1];
 	float c = pow(rayOrigin[0],2) + pow(rayOrigin[1],2) - pow(radius,2);
 	float radical = pow(b,2) - 4 * a * c;
+	arVector3 point;
 	if(radical < 0){
-		return 0;  //we should never get here, this is the case where there is no intersection
+		return point;  //we should never get here, this is the case where there is no intersection
 	}
 	float t = (-b + sqrt(radical))/(2*a);  //quadratic formula
 	/*
@@ -430,7 +422,7 @@ arVector3 intersectCylinder(arVector3 rayOrigin, arVector3 ray, float radius, fl
 	*/
 	//here we should have a value of t
 	//so extrapolate that and find our point on hte cylinder
-	arVector3 point = t*ray;  //this is relative to the vertexPosition
+	point = t*ray;  //this is relative to the vertexPosition
 
 	rayOrigin[2] = rayOrigin[2]-height/2.;  //here, vertex position is stored ranging from 0 - 40 (eg, bottom of the cylinder is at 0), whereas the stored geometry at this point puts the bottom at -20 and top at 20.  Changing it before would mess up calculations, so change it here (and only temporarily)
 	arVector3 finalPoint = point + rayOrigin;  //this is the actual point of contact with the cylinder
@@ -444,7 +436,6 @@ arVector3 intersectCylinder(arVector3 rayOrigin, arVector3 ray, float radius, fl
 		point = t * ray;
 	}
 	return point;
-
 }
 
 //method to draw everything in the scene
@@ -487,6 +478,35 @@ void drawScene(arMasterSlaveFramework& framework)
 	gluQuadricDrawStyle(quadObj, GLU_FILL);
 	drawDots();
 
+	
+	//transform to "grabber" position
+	glPushMatrix();
+		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
+		double navX = myPosMatrix[12];
+		double navY = myPosMatrix[13];
+		double navZ = myPosMatrix[14];
+		navY += 20;
+		double holder = navY;
+		navY = navZ;
+		navZ = holder;
+		//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
+		
+		arMatrix4 myHandMatrix = framework.getMatrix(1);
+		double handPosX = myHandMatrix[12];  //this is hand position
+		double handPosY = myHandMatrix[13];
+		double handPosZ = myHandMatrix[14];
+		
+		double handDirX = myHandMatrix[8];
+		double handDirY = myHandMatrix[9];
+		double handDirZ = myHandMatrix[10];
+		
+		glTranslatef(-navX, -navY, navZ);
+		glTranslatef(handPosX, handPosZ, -handPosY);
+		glTranslatef(-2*handDirX, -2*handDirZ, 2*handDirY);
+		glColor3f(1,1,1);
+		glutSolidSphere(.25,50,50);
+	glPopMatrix();
+	
 	//do cherenkov cones
 	if(!doTimeCompressed){  //only do the cherenkov cones themselves if we're not doing time compressed mode (would be too costly)
 		glPushMatrix(); //place particle and cherenkov cone
@@ -1448,13 +1468,18 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		}
 		if(fw.getOnButton(4)){  //on joystick button press (todo:  joystick compressed + left/right will autoplay)
 		}
+		if(!fw.getButton(5)){
+			isGrabbingVertex = false;
+		}
+		if(fw.getButton(5) && isTouchingVertex){
+			isGrabbingVertex = true;
+			doMenu = false;
+		}
+		else
 		if(fw.getOnButton(5)){  //this is the master control button.  It turns on the menu, and selects menu items
-			if(isTouchingVertex){ // touching vertex has higher priority than in menu.  If you are near vertex then menu will not open.
-				isGrabbingVertex = true;
-			}
-			else if(!doMenu){
+			if(!doMenu && !isTouchingVertex){
 				doMenu = true;
-			}else{  //the menu is on, here write code to toggle menu items
+			}else if(doMenu && !isTouchingVertex){  //the menu is on, here write code to toggle menu items
 				if(doMainMenu){ //main menu
 					if(menuIndex == -2){
 						if(index > 0){
@@ -1550,20 +1575,36 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		}
 		
 		//figure out if we're touching the vertex
-		arMatrix4 myHandMatrix = fw.getMatrix(1).v;
-		double handPosX = myHandMatrix[12];
+		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
+		double navX = myPosMatrix[12];
+		double navY = myPosMatrix[13];
+		double navZ = myPosMatrix[14];
+		navY += 20;
+		double holder = navY;
+		navY = navZ;
+		navZ = holder;
+		//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
+		
+		arMatrix4 myHandMatrix = fw.getMatrix(1);
+		double handPosX = myHandMatrix[12];  //this is hand position
 		double handPosY = myHandMatrix[13];
 		double handPosZ = myHandMatrix[14];
-		//subtract 20 from y
-		handPosY+= 20;
-		//rotate around x axis...by swapping z and y, and inverting z
-		double holder = handPosY;
-		handPosY = handPosZ;
-		handPosZ = holder;
-		if(	abs(handPosX - currentDots.vertexPosition[0]) < 20
-			&& abs(handPosY - currentDots.vertexPosition[1]) < 20
-			&& abs(handPosZ - currentDots.vertexPosition[2]) < 20){
+		
+		double handDirX = myHandMatrix[8];
+		double handDirY = myHandMatrix[9];
+		double handDirZ = myHandMatrix[10];
+		
+		double finalX = -navX + handPosX + -2*handDirX;
+		double finalY = -navY + handPosZ + -2*handDirZ;
+		double finalZ = navZ + -handPosY + 2*handDirY;
+		
+		if(	abs(finalX- currentDots.vertexPosition[0]) < 3
+			&& abs(finalY - currentDots.vertexPosition[1]) < 3
+			&& abs(finalZ - currentDots.vertexPosition[2]) < 3){
 				isTouchingVertex = true;
+				vertexOffset[0] = finalX - currentDots.vertexPosition[0];
+				vertexOffset[1] = finalY - currentDots.vertexPosition[1];
+				vertexOffset[2] = finalZ - currentDots.vertexPosition[2];
 		}
 		else{
 			isTouchingVertex = false;
@@ -1630,25 +1671,49 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		}
 	}
 	//handle vertex motion
-	if(isGrabbingVertex){  //need to test / fine tune this in the DIVE
-		cout << "Moving vertex \n";
-		arMatrix4 myHandMatrix = fw.getMatrix(1).v;
-		double handPosX = myHandMatrix[12];
+	if(isGrabbingVertex){ 
+		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
+		double navX = myPosMatrix[12];
+		double navY = myPosMatrix[13];
+		double navZ = myPosMatrix[14];
+		navY += 20;
+		double holder = navY;
+		navY = navZ;
+		navZ = holder;
+		//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
+		
+		arMatrix4 myHandMatrix = fw.getMatrix(1);
+		double handPosX = myHandMatrix[12];  //this is hand position
 		double handPosY = myHandMatrix[13];
 		double handPosZ = myHandMatrix[14];
-		//subtract 20 from y
-		handPosY+= 20;
-		//rotate around x axis...by swapping z and y
-		double holder = handPosY;
-		handPosY = handPosZ;
-		handPosZ = -1*holder;
+		
+		double handDirX = myHandMatrix[8];
+		double handDirY = myHandMatrix[9];
+		double handDirZ = myHandMatrix[10];
+		
+		double finalX = -navX + handPosX + -2*handDirX;
+		double finalY = -navY + handPosZ + -2*handDirZ;
+		double finalZ = navZ + -handPosY + 2*handDirY;
+		
 		//set vertex position to hand position
-		currentDots.vertexPosition[0] = handPosX;
-		currentDots.vertexPosition[1] = handPosY;
-		currentDots.vertexPosition[2] = handPosZ;
-		dotVectors[index].vertexPosition[0] = handPosX;
-		dotVectors[index].vertexPosition[1] = handPosY;
-		dotVectors[index].vertexPosition[2] = handPosZ;
+		currentDots.vertexPosition[0] = finalX;
+		currentDots.vertexPosition[1] = finalY;
+		currentDots.vertexPosition[2] = finalZ;
+		dotVectors[index].vertexPosition[0] = finalX;
+		dotVectors[index].vertexPosition[1] = finalY;
+		dotVectors[index].vertexPosition[2] = finalZ;
+		
+		//now change cone direction
+		float dirX = -handDirX;
+		float dirY = -handDirZ;
+		float dirZ = handDirY;
+		
+		currentDots.coneDirection[0][0] = dirX;
+		currentDots.coneDirection[0][1] = dirY;
+		currentDots.coneDirection[0][2] = dirZ;
+		dotVectors[index].coneDirection[0][0] = dirX;
+		dotVectors[index].coneDirection[0][1] = dirY;
+		dotVectors[index].coneDirection[0][2] = dirZ;
 	}
 	modifiedCherenkovConeIndex = -1;
 }
@@ -1675,6 +1740,11 @@ void keypress( arMasterSlaveFramework& fw, arGUIKeyInfo* keyInfo ) {
 	arGUIState state = keyInfo->getState();
 	if (state == AR_KEY_DOWN) {
 		stateString = "DOWN";
+		if(keyInfo->getKey() == 107){
+			if(isTouchingVertex){
+				isGrabbingVertex = true;
+			}
+		}
 	} else if (state == AR_KEY_UP) {
 		if(keyInfo->getKey() == 112){  //p
 			autoPlay = 1;
@@ -1821,11 +1891,6 @@ void keypress( arMasterSlaveFramework& fw, arGUIKeyInfo* keyInfo ) {
 		}
 		stateString = "UP";
 	} else if (state == AR_KEY_REPEAT) {
-		if(keyInfo->getKey() == 107){
-			if(isTouchingVertex){
-				isGrabbingVertex = true;
-			}
-		}
 		stateString = "REPEAT";
 	} else {
 		stateString = "UNKNOWN";
