@@ -124,6 +124,7 @@ char* filename;
 bool doTimeCompressed = false;
 bool isTouchingVertex = false;
 bool isGrabbingVertex = false;
+int itemTouching = 0;  //0 corresponds to vertex, else subtract 1 and is index of cone
 arVector3 vertexOffset;
 //string bufferLine;  
 
@@ -144,6 +145,19 @@ void debugText(string s){
 
 
 //helper functions written for arVector3s
+
+arVector3 subtract(arVector3 a, arVector3 b){
+		return arVector3( a[0]-b[0], a[1]-b[1], a[2]-b[2]);
+}
+
+arVector3 add(arVector3 a, arVector3 b){
+	return arVector3(a[0]+b[0], a[1]+b[1], a[2]+b[2]);
+}
+
+float magnitude(arVector3 a){
+	return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+	}
+
 double dotProduct(arVector3 a, arVector3 b){
 	return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
 }
@@ -480,6 +494,7 @@ void drawScene(arMasterSlaveFramework& framework)
 
 	
 	//transform to "grabber" position
+	/*
 	glPushMatrix();
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
 		double navX = myPosMatrix[12];
@@ -504,28 +519,59 @@ void drawScene(arMasterSlaveFramework& framework)
 		glTranslatef(handPosX, handPosZ, -handPosY);
 		glTranslatef(-2*handDirX, -2*handDirZ, 2*handDirY);
 		glColor3f(1,1,1);
-		glutSolidSphere(.25,50,50);
+		glutSolidSphere(.05,50,50);
 	glPopMatrix();
-	
+	*/
 	//do cherenkov cones
 	if(!doTimeCompressed){  //only do the cherenkov cones themselves if we're not doing time compressed mode (would be too costly)
 		glPushMatrix(); //place particle and cherenkov cone
 			//enable transparency and lighting for a less flat / awkward looking particle and cone that won't be too obnoxious
 			glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);  
-			glColor4f(1.f,1.f,.69f,1.f); 
+			if (isGrabbingVertex && itemTouching == 0)
+				glColor4f(.1f, .9f, .1f, 1.f);
+			else if(isTouchingVertex && itemTouching == 0)
+				glColor4f(.1f, .7f, .1f, 1.f);
+			else
+				glColor4f(1.f,1.f,.69f,1.f); 
 			glTranslatef(currentDots.vertexPosition[0],currentDots.vertexPosition[1],currentDots.vertexPosition[2]);
 			glutSolidSphere(.25,50,50);  //this is the particle itself
+			glColor4f(1.f,1.f,.69f,1.f); 
 			
+/*
 			//add a wireframe if hand is "touching" particle
 			if(isTouchingVertex){
 				glutWireCube(1);
-			}
+			} //*/
 			
 			//place cones! 
 			for(int i = 0; i < currentDots.particleType.size();i++){  //for each final state particle we have stored / will generate cone data
 				if(!(currentDots.doDisplay[i])){
 					continue;
 				}
+				
+				//add line in direction of cone
+				glPushMatrix();
+					if (isGrabbingVertex && itemTouching == i+1)
+						glColor4f(.1f, .9f, .1f, 1.f);
+					else if(isTouchingVertex && itemTouching == i+1)
+						glColor4f(.1f, .7f, .1f, 1.f);
+					else
+						glColor4f(1.f,1.f,.69f,1.f); 
+					glLineWidth(3.0);
+					glBegin(GL_LINES);
+						glVertex3f(0,0,0);
+						glVertex3f(currentDots.coneDirection[i][0], currentDots.coneDirection[i][1], currentDots.coneDirection[i][2]);
+					glEnd();
+					glTranslatef(currentDots.coneDirection[i][0], currentDots.coneDirection[i][1], currentDots.coneDirection[i][2]);
+					arVector3 direction = normalize(currentDots.coneDirection[i]);
+					arVector3 currentRotation(0,0,1);
+					arVector3 perpAxis = crossProduct(currentRotation, direction);
+					float dotResult = dotProduct(currentRotation, direction);
+					float angle = acos(dotResult);
+					glRotatef(angle*180./PI, perpAxis[0], perpAxis[1], perpAxis[2]);
+					gluCylinder(quadObj, .2, 0, .5, 50, 30); //inner cylinder wireframe
+				glPopMatrix();
+				
 				glColor4f(1.,1.,.69,.4);
 
 				//raycasted cone
@@ -1147,6 +1193,25 @@ void RodEffector::draw(arMasterSlaveFramework& framework) const {
 	glutWireCube(1.01); //black wireframe, makes it easier to see
 	glTranslatef(0,.1,0);
 	glutSolidCube(.9);  //screen (black surface)
+	
+	//making a pincer-style addition at the top to point to the center of our "grabber"
+	glPushMatrix();
+		glTranslatef(.33,-.1,-.55);
+		glColor3f(.5,.5,.5);
+		glScalef(1,3,1);
+		glutSolidCube(.25);
+		glColor3f(0,0,0);
+		glutWireCube(.26);
+	glPopMatrix();
+	glPushMatrix();
+		glTranslatef(-.33,-.1,-.55);
+		glColor3f(.5,.5,.5);
+		glScalef(1,3,1);
+		glutSolidCube(.25);
+		glColor3f(0,0,0);
+		glutWireCube(.26);
+	glPopMatrix();
+	
 
 
 	//HERE WE DO THE TABLET DISPLAY
@@ -1338,6 +1403,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("modifiedCherenkovConeItem",&modifiedCherenkovConeIndex,AR_INT,1);	
 	framework.addTransferField("isTouchingVertex",&isTouchingVertex,AR_INT,1);
 	framework.addTransferField("isGrabbingVertex",&isGrabbingVertex,AR_INT,1);
+	framework.addTransferField("itemTouching",&itemTouching ,AR_INT,1);
 
 
 
@@ -1598,17 +1664,26 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		double finalY = -navY + handPosZ + -2*handDirZ;
 		double finalZ = navZ + -handPosY + 2*handDirY;
 		
-		if(	abs(finalX- currentDots.vertexPosition[0]) < 3
-			&& abs(finalY - currentDots.vertexPosition[1]) < 3
-			&& abs(finalZ - currentDots.vertexPosition[2]) < 3){
-				isTouchingVertex = true;
-				vertexOffset[0] = finalX - currentDots.vertexPosition[0];
-				vertexOffset[1] = finalY - currentDots.vertexPosition[1];
-				vertexOffset[2] = finalZ - currentDots.vertexPosition[2];
+		//figure out which item we're grabbing ... go for closest one
+		arVector3 handPos = arVector3(finalX, finalY, finalZ);
+		arVector3 vertexPos = arVector3(currentDots.vertexPosition[0], currentDots.vertexPosition[1], currentDots.vertexPosition[2]);
+		float minDist = magnitude( subtract(vertexPos, handPos));
+		itemTouching = 0;
+		for(int i = 0; i < currentDots.coneDirection.size(); i++){
+			arVector3 myNewPos = add(vertexPos, currentDots.coneDirection[i]);
+			float newDist = magnitude(subtract( myNewPos, handPos));
+			if( newDist < minDist){
+				minDist = newDist;
+				itemTouching = i+1;
+			}
 		}
-		else{
+		
+		if(minDist < .5)
+			isTouchingVertex = true;
+		else
 			isTouchingVertex = false;
-		}
+			
+
 
 		//in load stage we'll go ahead and write the START TIMES and END TIMES of all events, and precalculate the EVENT LENGTH
 		//which multiplied by TimeScaleFactor will be the waitTime for each frame
@@ -1671,7 +1746,7 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		}
 	}
 	//handle vertex motion
-	if(isGrabbingVertex){ 
+	if(isGrabbingVertex){
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
 		double navX = myPosMatrix[12];
 		double navY = myPosMatrix[13];
@@ -1694,26 +1769,42 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		double finalX = -navX + handPosX + -2*handDirX;
 		double finalY = -navY + handPosZ + -2*handDirZ;
 		double finalZ = navZ + -handPosY + 2*handDirY;
-		
-		//set vertex position to hand position
-		currentDots.vertexPosition[0] = finalX;
-		currentDots.vertexPosition[1] = finalY;
-		currentDots.vertexPosition[2] = finalZ;
-		dotVectors[index].vertexPosition[0] = finalX;
-		dotVectors[index].vertexPosition[1] = finalY;
-		dotVectors[index].vertexPosition[2] = finalZ;
-		
-		//now change cone direction
-		float dirX = -handDirX;
-		float dirY = -handDirZ;
-		float dirZ = handDirY;
-		
-		currentDots.coneDirection[0][0] = dirX;
-		currentDots.coneDirection[0][1] = dirY;
-		currentDots.coneDirection[0][2] = dirZ;
-		dotVectors[index].coneDirection[0][0] = dirX;
-		dotVectors[index].coneDirection[0][1] = dirY;
-		dotVectors[index].coneDirection[0][2] = dirZ;
+			
+		if(itemTouching == 0){
+			//set vertex position to hand position
+			currentDots.vertexPosition[0] = finalX;
+			currentDots.vertexPosition[1] = finalY;
+			currentDots.vertexPosition[2] = finalZ;
+			dotVectors[index].vertexPosition[0] = finalX;
+			dotVectors[index].vertexPosition[1] = finalY;
+			dotVectors[index].vertexPosition[2] = finalZ;
+			
+			/*
+			//now change cone direction
+			float dirX = -handDirX;
+			float dirY = -handDirZ;
+			float dirZ = handDirY;
+			
+			currentDots.coneDirection[0][0] = dirX;
+			currentDots.coneDirection[0][1] = dirY;
+			currentDots.coneDirection[0][2] = dirZ;
+			dotVectors[index].coneDirection[0][0] = dirX;
+			dotVectors[index].coneDirection[0][1] = dirY;
+			dotVectors[index].coneDirection[0][2] = dirZ;
+			//*/
+		}
+		else { //touching a cone controller .. now we'll instead drag around the point representing cone direction
+			//we want to make it so currentDots.coneDirection[itemtouching-1]+currentDots.vertexPosition = out hand position
+			arVector3 vertexPos = arVector3(currentDots.vertexPosition[0],currentDots.vertexPosition[1], currentDots.vertexPosition[2]);
+			arVector3 newDirection = subtract(arVector3(finalX, finalY, finalZ) , vertexPos);
+			currentDots.coneDirection[itemTouching-1][0] = newDirection[0];
+			currentDots.coneDirection[itemTouching-1][1] = newDirection[1];
+			currentDots.coneDirection[itemTouching-1][2] = newDirection[2];
+			dotVectors[index].coneDirection[itemTouching-1][0] = newDirection[0];
+			dotVectors[index].coneDirection[itemTouching-1][1] = newDirection[1];
+			dotVectors[index].coneDirection[itemTouching-1][2] = newDirection[2];
+			
+		}
 	}
 	modifiedCherenkovConeIndex = -1;
 }
