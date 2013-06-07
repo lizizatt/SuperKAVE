@@ -53,7 +53,7 @@ public:
 	double vertexPosition[3];
 	vector<bool> haveRingPoints;
 	vector<bool> doDisplay;
-	vector<ringPointHolder> ringPoints;
+	vector<vector<ringPointHolder> > ringPoints;
 	vector<float> momentum;  //momentum (in MeV ? )
 	vector<float> energy; //in the case of time-compression (supernova file), each consecutive 3 entries in this will be vertex positions ... else, energy in MeV
 	vector<dot> dots;  //holds the inner cylinder
@@ -75,6 +75,7 @@ bool doMainMenu = true;
 bool doOptionsMenu = false;
 bool doLoadMenu = false;
 bool doCherenkovConeMenu = false;
+bool triggerDepressed = false;
 int cherenkovConeMenuIndex = 0;  //there will be (num charenkov cones) / 3 submenus if the number of cherenkov cones is greated than 4
 int menuIndex = 0;  //current index in the menu, defaults to 0 .. can be -2,-1,0,1,2 for 5 windows
 bool doColorKey = false;  //window next to the primary tablet with information for charge or time display ... not currently implemented
@@ -583,46 +584,62 @@ void drawScene(arMasterSlaveFramework& framework)
 				//draw ring points, if they are memoized already
 				if(currentDots.haveRingPoints[i]){//this trades memory for processing...we only generate the points on the first frame of an event, then save them.
 					//and, if we come back to the event, we still don't need to redo it!  unless we tell it to by changing haveRingPoints to false
-					for(int k = 0; k < currentDots.ringPoints[i].ringPoints.size();k++){
-						arVector3 currentPoint = currentDots.ringPoints[i].ringPoints[k];
-						if(doCherenkovCone){
-							glBegin(GL_LINES);
-							glVertex3f(0,0,0);
-							glVertex3f(currentPoint[0],currentPoint[1],currentPoint[2]);
-							glEnd();
+					for(int c = 0; c < 2; c++){
+						glPushMatrix();
+						if(c == 1)
+							glTranslatef(currentDots.coneDirection[i][0], currentDots.coneDirection[i][1], currentDots.coneDirection[i][2]);
+						for(int k = 0; k < currentDots.ringPoints[i][c].ringPoints.size();k++){
+							arVector3 currentPoint = currentDots.ringPoints[i][c].ringPoints[k];
+							if(doCherenkovCone){
+								glBegin(GL_LINES);
+								glVertex3f(0,0,0);
+								glVertex3f(currentPoint[0],currentPoint[1],currentPoint[2]);
+								glEnd();
+							}
 						}
+						glPopMatrix();
 					}
 				}
 				else{  //we need to generate our ring points.  We'll do <slices> number of interations and intersect a bunch of rays rotated around our cone direction with the cylinder, and store the points in a big vector so they can be quickly drawn in the future.
-					currentDots.ringPoints[i].ringPoints.clear();
-					//generate our main vectors outside of for loop to save a little computation
-					arVector3 lastPoint;  //this will save us computation
-					arVector3 vertexPosition = arVector3(currentDots.vertexPosition[0],currentDots.vertexPosition[1],currentDots.vertexPosition[2]);
-					arVector3 coneDirection = normalize(arVector3(currentDots.coneDirection[i][0],currentDots.coneDirection[i][1],currentDots.coneDirection[i][2]));
-					arVector3 arbitraryDirection = arVector3(0,0,1); //this may cause problems one day, but hopefully it's very unlikely
-					arVector3 perpendicularComponent = normalize(crossProduct(coneDirection,arbitraryDirection));
-					arVector3 rayDirection = coneDirection + tan(currentDots.coneAngle[i]*PI/180)*perpendicularComponent;  //coneDirection should be normalized too
-					//set up a cone intersection algorithm
-					lastPoint = intersectCylinder(vertexPosition,normalize(rayDirection),RADIUS,HEIGHT);
-					arVector3 newPoint;
-					for(int a = 360/slices; a <= 360; a+=360./slices){
-						arbitraryDirection = arVector3(sin(a*PI/180.),0,cos(a*PI/180.)); //rotating around y axis
-						perpendicularComponent = normalize(crossProduct(coneDirection,arbitraryDirection));
-						rayDirection = coneDirection + tan(currentDots.coneAngle[i]*PI/180)*perpendicularComponent;  //coneDirection should be normalized too
-						newPoint = intersectCylinder(vertexPosition,normalize(rayDirection),RADIUS,HEIGHT);
-						if(doCherenkovCone){
-							glBegin(GL_LINES);
-							glVertex3f(0,0,0);
-							glVertex3f(lastPoint[0],lastPoint[1],lastPoint[2]);
-							glVertex3f(newPoint[0],newPoint[1],newPoint[2]);
-							glVertex3f(0,0,0);
-							glEnd();
+					for(int c = 0; c < 2; c++){
+						glPushMatrix();
+						if(c == 1)
+							glTranslatef(currentDots.coneDirection[i][0], currentDots.coneDirection[i][1], currentDots.coneDirection[i][2]);
+						currentDots.ringPoints[i][c].ringPoints.clear();
+						//generate our main vectors outside of for loop to save a little computation
+						arVector3 lastPoint;  //this will save us computation
+						arVector3 vertexPosition = arVector3(currentDots.vertexPosition[0],currentDots.vertexPosition[1],currentDots.vertexPosition[2]);
+						if(c == 1){
+							vertexPosition = add(vertexPosition, currentDots.coneDirection[i]);
 						}
+						arVector3 coneDirection = normalize(arVector3(currentDots.coneDirection[i][0],currentDots.coneDirection[i][1],currentDots.coneDirection[i][2]));
+						arVector3 arbitraryDirection = arVector3(0,0,1); 
+						arVector3 perpCompX = normalize(crossProduct(coneDirection, arbitraryDirection));
+						arVector3 perpCompY = normalize(crossProduct(coneDirection, perpCompX));
+						arVector3 perpendicularComponent = perpCompX;
+						arVector3 rayDirection = coneDirection + tan(currentDots.coneAngle[i]*PI/180)*perpendicularComponent;  //coneDirection should be normalized too
+						//set up a cone intersection algorithm
+						lastPoint = intersectCylinder(vertexPosition,normalize(rayDirection),RADIUS,HEIGHT);
+						arVector3 newPoint;
+						for(int a = 360/slices; a <= 360; a+=360./slices){
+							perpendicularComponent = normalize( add( cos(a*PI/180.) * perpCompX, sin(a*PI/180) * perpCompY));
+							rayDirection = coneDirection + tan(currentDots.coneAngle[i]*PI/180)*perpendicularComponent;  //coneDirection should be normalized too
+							newPoint = intersectCylinder(vertexPosition,normalize(rayDirection),RADIUS,HEIGHT);
+							if(doCherenkovCone){
+								glBegin(GL_LINES);
+								glVertex3f(0,0,0);
+								glVertex3f(lastPoint[0],lastPoint[1],lastPoint[2]);
+								glVertex3f(newPoint[0],newPoint[1],newPoint[2]);
+								glVertex3f(0,0,0);
+								glEnd();
+							}
 
-						currentDots.ringPoints[i].ringPoints.push_back(newPoint);
-						lastPoint = newPoint;
+							currentDots.ringPoints[i][c].ringPoints.push_back(newPoint);
+							lastPoint = newPoint;
+						}
+						currentDots.haveRingPoints[i] = true;
+						glPopMatrix();
 					}
-					currentDots.haveRingPoints[i] = true;
 				}
 
 				//go ahead and connect all the points we have generated by now
@@ -637,16 +654,25 @@ void drawScene(arMasterSlaveFramework& framework)
 					glColor4f(1,0,0,1);
 				}
 				glLineWidth(5.0);
-				arVector3 lastPointHolder = currentDots.ringPoints[i].ringPoints[currentDots.ringPoints[i].ringPoints.size()-1];
-				for(int k = 0; k < currentDots.ringPoints[i].ringPoints.size();k++){
-					arVector3 lastPoint = currentDots.ringPoints[i].ringPoints[k];
-					glBegin(GL_LINES);
-					glVertex3f(lastPoint[0],lastPoint[1],lastPoint[2]);
-					glVertex3f(lastPointHolder[0],lastPointHolder[1],lastPointHolder[2]);
-					glEnd();
-					lastPointHolder = lastPoint;
+				for(int c = 0; c < 2; c++){
+					glPushMatrix();
+					if(c == 1)
+							glTranslatef(currentDots.coneDirection[i][0], currentDots.coneDirection[i][1], currentDots.coneDirection[i][2]);
+					arVector3 lastPointHolder = currentDots.ringPoints[i][c].ringPoints[currentDots.ringPoints[i][c].ringPoints.size()-1];
+					for(int k = 0; k < currentDots.ringPoints[i][c].ringPoints.size();k++){
+						arVector3 lastPoint = currentDots.ringPoints[i][c].ringPoints[k];
+						glBegin(GL_LINES);
+						glVertex3f(lastPoint[0],lastPoint[1],lastPoint[2]);
+						glVertex3f(lastPointHolder[0],lastPointHolder[1],lastPointHolder[2]);
+						glEnd();
+						lastPointHolder = lastPoint;
+					}
+					glPopMatrix();
 				}
 				glLineWidth(1.0);
+			
+			
+				
 			}
 
 			glDisable(GL_BLEND);
@@ -774,8 +800,11 @@ void loadNextEvent(void) {
 					currentDots.momentum.push_back(momentum[i]);
 					currentDots.energy.push_back(energy);
 					//and start an empty ringPoints class to be filled later
-					ringPointHolder me;
-					currentDots.ringPoints.push_back(me);  //put in some empty vectors to be filled later
+					vector<ringPointHolder> me;
+					ringPointHolder me2;
+					me.push_back(me2);
+					me.push_back(me2);
+					currentDots.ringPoints.push_back(me);
 					currentDots.haveRingPoints.push_back(false); //since we haven't generated any ring points, fill this with false
 					currentDots.doDisplay.push_back(false); //turn off all displays, in the next step we'll go ahead and turn on only the highest momentum particle
 					//set haveRingPoints to false, this will have them be generated on the first frame
@@ -967,7 +996,11 @@ void drawDisplay(int index, bool highlighted, char * content[10],int numLines, i
 	if(highlighted){
 		glPushMatrix();
 		glColor4f(0,1,0,.5);
-		glScalef(1.1,1.1,.5);
+		if(triggerDepressed){
+			glScalef(1.2,1.2,.5);
+		}else{
+			glScalef(1.1,1.1,.5);
+		}
 		glutSolidCube(1);
 		glColor3f(0,0,0);
 		glutWireCube(1.001);
@@ -1404,7 +1437,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("isTouchingVertex",&isTouchingVertex,AR_INT,1);
 	framework.addTransferField("isGrabbingVertex",&isGrabbingVertex,AR_INT,1);
 	framework.addTransferField("itemTouching",&itemTouching ,AR_INT,1);
-
+	framework.addTransferField("starttransfer", &triggerDepressed, AR_INT, 1);
 
 
 	// Setup navigation, so we can drive around with the joystick
@@ -1684,6 +1717,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 			isTouchingVertex = false;
 			
 
+		triggerDepressed = fw.getButton(5);
 
 		//in load stage we'll go ahead and write the START TIMES and END TIMES of all events, and precalculate the EVENT LENGTH
 		//which multiplied by TimeScaleFactor will be the waitTime for each frame
