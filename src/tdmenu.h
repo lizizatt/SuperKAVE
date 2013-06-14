@@ -14,13 +14,17 @@ class tdPanel
 {
 public:
 	tdPanel(arVector3 center = arVector3(0,0,0), float width = 0, float height = 0);
+	virtual void tilt(arMatrix4 matrix);	//rotates the panel after it is positioned
+	virtual void add(tdObject o);	//adds an object
+	//TODO: implement tilt function
 	virtual void draw();
 	virtual void update(double time);
 	virtual void open();
 	virtual void close();
-	virtual bool isActive();
-	virtual bool isOpen();
+	virtual bool isActive();	//checks if panel is active at all (opening, closing, or open)
+	virtual bool isOpen();	//checks if panel is in open state
 protected:
+	arMatrix4 tmat;	//used to tilt the panel
 	vector<tdObject> objects;	//the objects appearing on this menu panel
 	arVector3 center;	//the center of the panel (relative to menu center)
 	float panew;	//the width and height of the "working pane"
@@ -53,8 +57,10 @@ public:
 class tdMenu
 {
 public:
-	tdMenu(vector<tdPanel> panels = vector<tdPanel>(), vector<tdWandPanel> wandPanels = vector<tdWandPanel>());
-	virtual void draw();
+	tdMenu();
+	virtual void addPanel(tdPanel p);
+	virtual void addWandPanel(tdWandPanel p);
+	virtual void draw(arMatrix4 menualign, arMatrix4 wandalign);
 	virtual void update(double time);
 	virtual void open();
 	virtual void close();

@@ -17,8 +17,6 @@
 
 #include "arGlut.h"
 
-#include "tdmenucontroller.h"
-
 // OOPified skeleton.cpp. Subclasses arMasterSlaveFramework and overrides its
 // on...() methods (as opposed to installing callback functions).
 
@@ -30,13 +28,6 @@ const float FEET_TO_LOCAL_UNITS = 1.;
 // Near & far clipping planes.
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
-
-// JEDIT
-tdPanel jvpanel = tdPanel(arVector3(0,5,-5),10,15);
-tdPanel j1panel = tdPanel(arVector3(10,10,-4),5,5);
-tdPanel j2panel = tdPanel(arVector3(-10,10,-3),5,5);
-int ctr = 0;
-// ENDJEDIT
   
 void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
   glPushMatrix();
@@ -59,31 +50,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 void RodEffectorIce::draw() const {
   glPushMatrix();
-
-  //JEDIT
-  
-  //float* q = getBaseMatrix().v;
-  arMatrix4 q = getBaseMatrix();
-  q = q * ar_translationMatrix(0,0,-5);
-  arVector3 v = ar_extractEulerAngles(q,AR_YXZ);
-  arMatrix4 r = ar_rotationMatrix(arVector3(0,0,1),-v.v[2]);
-  arMatrix4 p = ar_rotationMatrix(arVector3(1,0,0),-v.v[1]);
-  
-  arMatrix4 s = q * r * p;
-  
-  //glMultMatrixf(q.v);
-  //glMultMatrixf(r.v);
-  //glMultMatrixf(p.v);
-  glMultMatrixf(s.v);
-  glPushMatrix();
-
-  glMultMatrixf(ar_translationMatrix(0,1,1).v);
-  glutSolidCube(1);
-
-  glPopMatrix();
-  //*/
-   //glMultMatrixf( getCenterMatrix().v );
-  //ENDJEDIT
+  glMultMatrixf(getCenterMatrix().v);
     // draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. );
     glColor3f( .5,.5,.5 );
@@ -112,6 +79,10 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
   addTransferField("squareHighlighted", &_squareHighlightedTransfer, AR_INT, 1);
   addTransferField("squareMatrix", _squareMatrixTransfer.v, AR_FLOAT, 16);
+
+  //JEDIT
+  ct = tdMenuController(&_effector);
+  //ENDJEDIT
 
   // Setup navigation, so we can drive around with the joystick
   //
@@ -165,29 +136,8 @@ void IceCubeFramework::onPreExchange() {
   _squareMatrixTransfer = _square.getMatrix();
 
   //JEDIT
-  if(!jvpanel.isActive() && !j1panel.isActive() && !j2panel.isActive())
-  {
-	  ctr++;
-	  if(ctr >= 300)
-	  {
-	  jvpanel.open();
-	  j1panel.open();
-	  j2panel.open();
-	  }
-  }
-  if(jvpanel.isOpen() && j1panel.isOpen() && j2panel.isOpen())
-  {
-	  ctr--;
-	  if(ctr <= 0)
-	  {
-	  //jvpanel.close();
-	  //j1panel.close();
-	  //j2panel.close();
-	  }
-  }
-  jvpanel.update(0.1);
-  j1panel.update(0.1);
-  j2panel.update(0.1);
+  ct.update(0.1);
+  ct.handleEvents("");
   //ENDJEDIT
 }
 
@@ -200,10 +150,11 @@ void IceCubeFramework::onPostExchange() {
     // Update effector's input state. On the slaves we only need the matrix
     // to be updated, for rendering purposes.
     _effector.updateState( getInputState() );
-
+	
     // Unpack our transfer variables.
     _square.setHighlight( (bool)_squareHighlightedTransfer );
     _square.setMatrix( _squareMatrixTransfer.v );
+	
   }
 }
 
@@ -213,9 +164,7 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   // Draw stuff.
   _square.draw();
   _effector.draw();
-  jvpanel.draw();
-  j1panel.draw();
-  j2panel.draw();
+  ct.draw();
 }
 
 // Catch key events.

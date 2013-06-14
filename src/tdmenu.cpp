@@ -28,17 +28,29 @@ tdPanel::tdPanel(arVector3 center, float width, float height)
 	this->phase = 0;
 	this->cwidth = 0;
 	this->cheight = 0;
+	this->tmat = ar_identityMatrix();
+}
+
+void tdPanel::tilt(arMatrix4 matrix)
+{
+	this->tmat = matrix;
+}
+
+void tdPanel::add(tdObject o)
+{
+	//TODO
 }
 
 void tdPanel::draw()
 {
 	if(phase != 0)	//only display panel if it's actually active
 	{
-		//glEnable(GL_CULL_FACE);
+		//glEnable(GL_CULL_FACE); dunno if want this, guess I'll see
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glPushMatrix();	//move to panel position
 		glMultMatrixf(ar_translationMatrix(center).v);
+		glMultMatrixf(tmat.v);
 		glPushMatrix();	//draw the panel
 		glMultMatrixf(ar_scaleMatrix(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS).v);
 		glMultMatrixf(ar_translationMatrix(0,0,-0.5).v);
@@ -153,20 +165,51 @@ bool tdPanel::isOpen()
 //TDMENU METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdMenu::tdMenu(vector<tdPanel> panels, vector<tdWandPanel> wandPanels)
+tdMenu::tdMenu()
 {
-	this->panels = panels;
-	this->wandPanels = wandPanels;
+	this->panels = vector<tdPanel>();
+	this->wandPanels = vector<tdWandPanel>();
 }
 
-void tdMenu::draw()
+void tdMenu::addPanel(tdPanel p)
+{
+	panels.push_back(p);
+}
+
+void tdMenu::addWandPanel(tdWandPanel p)
 {
 	//TODO
+}
+
+void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
+{
+	glPushMatrix();
+	glMultMatrixf(menualign.v);
+	for(int i = 0; i < panels.size(); i++)
+	{
+		panels[i].draw();
+	}
+	glPopMatrix();
+	glPushMatrix();	//align to wand and draw
+	glMultMatrixf(wandalign.v);
+	for(int i = 0; i < wandPanels.size(); i++)
+	{
+		//wandPanels[i].draw();
+	}
+	glutSolidCube(1);
+	glPopMatrix();
 }
 
 void tdMenu::update(double time)
 {
-	//TODO
+	for(int i = 0; i < panels.size(); i++)
+	{
+		panels[i].update(time);
+	}
+	for(int i = 0; i < wandPanels.size(); i++)
+	{
+		//wandPanels[i].update(time);
+	}
 }
 
 void tdMenu::open()
