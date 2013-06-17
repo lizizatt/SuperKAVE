@@ -17,6 +17,8 @@
 
 #include "arGlut.h"
 
+#include "icecubeGeometryInput.h"
+#include "icecubeDataInput.h"
 
 // OOPified skeleton.cpp. Subclasses arMasterSlaveFramework and overrides its
 // on...() methods (as opposed to installing callback functions).
@@ -24,13 +26,23 @@
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 // factor is 12*2.54*20.
-const float FEET_TO_LOCAL_UNITS = 1.;
+const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
 
 // Near & far clipping planes.
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
+
+GeometryInput geometryData;
+DataInput event2Data;
+//GLUquadricObj * qObj; 
   
 void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
+
+	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_LIGHTING);
+
+	//glScalef(3.281f, 3.281f, 3.281f);
+	
   glPushMatrix();
     glMultMatrixf( getMatrix().v );
     // set one of two colors depending on if this object has been selected for interaction
@@ -46,6 +58,56 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
       glVertex3f( 1,1,0 );
       glVertex3f( 1,-1,0 );
     glEnd();
+	glPopMatrix();
+	glPushMatrix();
+	
+	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
+	glColor3f(1.0f, 0.25f, 0.25f);
+	glTranslatef(0,20,0);
+	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
+
+
+	glScalef(3.281f, 3.281f, 3.281f);
+	//inner cyliner:
+	//gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 6, 30); //inner cylinder wireframe  //now hexagonal
+	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
+
+	//glTranslatef(0,0,40);
+	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
+	//glTranslatef(0,0,-40);
+
+	float fDownScale = 1.f;//10.f;
+
+	for(int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
+		glColor3f(0.0f, 1.0f, 0.0f);
+		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
+		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
+		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+		glutSolidSphere(0.25f, 4, 4);
+		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+		}
+		else{
+		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+		glutSolidSphere(0.35f, 4, 4);
+		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+		glBegin(GL_LINES);
+		if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
+			glColor3f(1.0f, 1.0f, 0.0f);
+			if(geometryData.icecubeGeometry.modules[i] == 60){
+				glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
+				glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+			}
+			else{
+				glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+				glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+			}
+		}
+		glEnd();
+		
+		}
+	}
+
+
   glPopMatrix();
 }
 
@@ -60,7 +122,6 @@ void RodEffectorIce::draw() const {
     glColor3f(0,0,0);
     glutWireCube(1.03);
   glPopMatrix();
-
 }
 
 // End of classes
@@ -68,6 +129,7 @@ void RodEffectorIce::draw() const {
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
   _squareHighlightedTransfer(0) {
+	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
 }
 
 
@@ -81,6 +143,10 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
   addTransferField("squareHighlighted", &_squareHighlightedTransfer, AR_INT, 1);
   addTransferField("squareMatrix", _squareMatrixTransfer.v, AR_FLOAT, 16);
+
+  //JEDIT
+  ct = tdMenuController(&_effector);
+  //ENDJEDIT
 
   // Setup navigation, so we can drive around with the joystick
   //
@@ -108,6 +174,42 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
 void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   // OpenGL initialization
   glClearColor(0,0,0,0);
+
+ // qObj = gluNewQuadric();
+
+  geometryData.getText();
+  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
+
+  GLfloat fogDensity = 0.01f; 
+	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
+	
+	//GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
+	GLfloat mat_shininess[] = { 3.0 };
+
+	//glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
+
+	glEnable (GL_FOG); //enable the fog
+
+	glFogi (GL_FOG_MODE, GL_EXP2); 
+
+	glFogfv (GL_FOG_COLOR, fogColor); 
+
+	glFogf (GL_FOG_DENSITY, fogDensity);
+
+	glHint (GL_FOG_HINT, GL_NICEST);
+
+	GLfloat light_position[] = { 0.0, 0.0, 500.0, 0.0 };
+	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glShadeModel (GL_SMOOTH);
+
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+	
 }
 
 
@@ -132,6 +234,11 @@ void IceCubeFramework::onPreExchange() {
   // (bools transfer as ints).
   _squareHighlightedTransfer = (int)_square.getHighlight();
   _squareMatrixTransfer = _square.getMatrix();
+
+  //JEDIT
+  ct.update(0.1);
+  ct.handleEvents("");
+  //ENDJEDIT
 }
 
 // Method called after transfer of data from master to slaves. Mostly used to
@@ -156,6 +263,7 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   // Draw stuff.
   _square.draw();
   _effector.draw();
+  ct.draw();
 }
 
 // Catch key events.

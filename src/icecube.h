@@ -3,6 +3,7 @@
 
 #include "arMasterSlaveFramework.h"
 #include "arInteractableThing.h"
+#include "tdmenucontroller.h"
 
 // Class definitions & imlpementations. We'll have just one one class, a 2-ft colored square that
 // can be grabbed & dragged around. We'll also have an effector class for doing the grabbing
@@ -67,6 +68,9 @@ class IceCubeFramework : public arMasterSlaveFramework {
     // Our single object and effector
     ColoredSquareIce _square;
     RodEffectorIce _effector;
+	//JEDIT
+	tdMenuController ct;
+	//ENDJEDIT
 
     // Master-slave transfer variables
     // All we need to explicity transfer in this program is the square's placement matrix and

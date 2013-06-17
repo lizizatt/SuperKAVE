@@ -636,6 +636,18 @@
     <ClCompile Include="src\icecube.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\icecubeDataInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icecubeGeometryInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenucontroller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\barrier\arBarrierCalling.h">
@@ -1296,6 +1308,18 @@
       <Filter>Syzygy\Sound</Filter>
     </ClInclude>
     <ClInclude Include="src\icecube.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecubeDataInput.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecubeGeometryInput.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tdmenu.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tdmenucontroller.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

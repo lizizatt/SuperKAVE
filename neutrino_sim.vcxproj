@@ -43,7 +43,7 @@
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\..\external\win32\glut-3.7-vc\include;..\barrier;..\drivers;..\framework;..\graphics;..\interaction;..\language;..\math;..\model;..\phleet;..\sound;..\utilities</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>arPrecompiled.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>arPrecompiled.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
@@ -68,7 +68,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\..\external\win32\glut-3.7-vc\include;..\barrier;..\drivers;..\framework;..\graphics;..\interaction;..\language;..\math;..\model;..\phleet;..\sound;..\utilities</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>arPrecompiled.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>arPrecompiled.pch</PrecompiledHeaderOutputFile>
     </ClCompile>
@@ -235,10 +235,10 @@
     <ClCompile Include="..\language\arLightFloatBuffer.cpp" />
     <ClCompile Include="..\language\arLogStream.cpp" />
     <ClCompile Include="..\language\arPrecompiled.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">arPrecompiled.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">arPrecompiled.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\language\arQueuedData.cpp" />
     <ClCompile Include="..\language\arRS232Port.cpp" />
@@ -285,7 +285,11 @@
     <ClCompile Include="..\sound\arStreamNode.cpp" />
     <ClCompile Include="..\sound\arTTS.cpp" />
     <ClCompile Include="src\icecube.cpp" />
+    <ClCompile Include="src\icecubeDataInput.cpp" />
+    <ClCompile Include="src\icecubeGeometryInput.cpp" />
     <ClCompile Include="src\neutrinos.cpp" />
+    <ClCompile Include="src\tdmenu.cpp" />
+    <ClCompile Include="src\tdmenucontroller.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\barrier\arBarrierCalling.h" />
@@ -508,6 +512,10 @@
     <ClInclude Include="..\sound\arTTS.h" />
     <ClInclude Include="..\sound\fmodStub.h" />
     <ClInclude Include="src\icecube.h" />
+    <ClInclude Include="src\icecubeDataInput.h" />
+    <ClInclude Include="src\icecubeGeometryInput.h" />
+    <ClInclude Include="src\tdmenu.h" />
+    <ClInclude Include="src\tdmenucontroller.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\language\arPrecompiled.pch" />
