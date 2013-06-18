@@ -88,3 +88,6 @@ $RECYCLE.BIN/
 
 # Mac crap
 .DS_Store
+src/neutrinos-backup.cpp
+src/neutrinos.cpp.rej
+src/tdmenucontroller.h.rej
