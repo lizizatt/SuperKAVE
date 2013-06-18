@@ -20,6 +20,8 @@
 #include "icecubeGeometryInput.h"
 #include "icecubeDataInput.h"
 
+#include "glslUtils.h"
+
 // OOPified skeleton.cpp. Subclasses arMasterSlaveFramework and overrides its
 // on...() methods (as opposed to installing callback functions).
 
@@ -76,9 +78,9 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
 	//glTranslatef(0,0,-40);
 
-	float fDownScale = 1.f;//10.f;
+	float fDownScale = 10.f;
 
-	for(int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
+	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
 		glColor3f(0.0f, 1.0f, 0.0f);
 		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
 		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
@@ -128,7 +130,7 @@ void RodEffectorIce::draw() const {
 
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
-  _squareHighlightedTransfer(0) {
+  _squareHighlightedTransfer(0), m_shaderProgram(-1) {
 	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
 }
 
@@ -172,6 +174,28 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
 // Method to initialize each window (because now a Syzygy app can
 // have more than one).
 void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
+
+  GLenum err = glewInit();
+
+  if(err != GLEW_OK)
+  {
+	  fprintf(stderr, "Error initializing GLEW!\n");
+	  exit(1);
+  }
+
+  fprintf(stderr, "Glew Initialization Complete!\n");
+  fprintf(stderr, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+  //std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\simple.vert");
+  //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\red.frag");
+  std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_billboard.vert");
+  //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_bwprint.frag");
+  //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_cheerio.frag");
+  std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_glshovel.frag");
+  //std::string vshader = std::string(commonVShader());
+  //std::string fshader = coinFShader(PLASTICY,PHONG,false);
+  m_shaderProgram = loadProgramFiles(vshader,fshader,true);
+
   // OpenGL initialization
   glClearColor(0,0,0,0);
 
@@ -236,7 +260,7 @@ void IceCubeFramework::onPreExchange() {
   _squareMatrixTransfer = _square.getMatrix();
 
   //JEDIT
-  ct.update(0.1);
+  ct.update(getTime());
   ct.handleEvents("");
   //ENDJEDIT
 }
@@ -252,7 +276,7 @@ void IceCubeFramework::onPostExchange() {
     _effector.updateState( getInputState() );
 
     // Unpack our transfer variables.
-    _square.setHighlight( (bool)_squareHighlightedTransfer );
+    _square.setHighlight( (bool)(_squareHighlightedTransfer==0) );
     _square.setMatrix( _squareMatrixTransfer.v );
   }
 }
@@ -261,9 +285,11 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   // Load the navigation matrix.
   loadNavMatrix();
   // Draw stuff.
+  //glUseProgram(m_shaderProgram);
   _square.draw();
   _effector.draw();
   ct.draw();
+  //glUseProgram(0);
 }
 
 // Catch key events.
