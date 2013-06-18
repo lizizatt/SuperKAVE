@@ -136,7 +136,7 @@ void IceCubeFramework::onPreExchange() {
   _squareMatrixTransfer = _square.getMatrix();
 
   //JEDIT
-  ct.update(0.1);
+  ct.update(getTime());
   ct.handleEvents("");
   //ENDJEDIT
 }
