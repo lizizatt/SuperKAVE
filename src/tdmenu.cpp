@@ -10,6 +10,132 @@ const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pe
 void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.6);}
 void colorText()	{glColor4f(1.0, 1.0, 1.0, 1.0);}
 
+//Code adapted from MESA implementation of GLU library
+arMatrix4 invert(arMatrix4 m)
+{
+    float inv[16], invOut[16], det;
+    int i;
+    inv[0] = m.v[5]  * m.v[10] * m.v[15] - 
+             m.v[5]  * m.v[11] * m.v[14] - 
+             m.v[9]  * m.v[6]  * m.v[15] + 
+             m.v[9]  * m.v[7]  * m.v[14] +
+             m.v[13] * m.v[6]  * m.v[11] - 
+             m.v[13] * m.v[7]  * m.v[10];
+
+    inv[4] = -m.v[4]  * m.v[10] * m.v[15] + 
+              m.v[4]  * m.v[11] * m.v[14] + 
+              m.v[8]  * m.v[6]  * m.v[15] - 
+              m.v[8]  * m.v[7]  * m.v[14] - 
+              m.v[12] * m.v[6]  * m.v[11] + 
+              m.v[12] * m.v[7]  * m.v[10];
+
+    inv[8] = m.v[4]  * m.v[9]  * m.v[15] - 
+             m.v[4]  * m.v[11] * m.v[13] - 
+             m.v[8]  * m.v[5]  * m.v[15] + 
+             m.v[8]  * m.v[7]  * m.v[13] + 
+             m.v[12] * m.v[5]  * m.v[11] - 
+             m.v[12] * m.v[7]  * m.v[9];
+
+    inv[12] = -m.v[4]  * m.v[9]  * m.v[14] + 
+               m.v[4]  * m.v[10] * m.v[13] +
+               m.v[8]  * m.v[5]  * m.v[14] - 
+               m.v[8]  * m.v[6]  * m.v[13] - 
+               m.v[12] * m.v[5]  * m.v[10] + 
+               m.v[12] * m.v[6]  * m.v[9];
+
+    inv[1] = -m.v[1]  * m.v[10] * m.v[15] + 
+              m.v[1]  * m.v[11] * m.v[14] + 
+              m.v[9]  * m.v[2]  * m.v[15] - 
+              m.v[9]  * m.v[3]  * m.v[14] - 
+              m.v[13] * m.v[2]  * m.v[11] + 
+              m.v[13] * m.v[3]  * m.v[10];
+
+    inv[5] = m.v[0]  * m.v[10] * m.v[15] - 
+             m.v[0]  * m.v[11] * m.v[14] - 
+             m.v[8]  * m.v[2]  * m.v[15] + 
+             m.v[8]  * m.v[3]  * m.v[14] + 
+             m.v[12] * m.v[2]  * m.v[11] - 
+             m.v[12] * m.v[3]  * m.v[10];
+
+    inv[9] = -m.v[0]  * m.v[9]  * m.v[15] + 
+              m.v[0]  * m.v[11] * m.v[13] + 
+              m.v[8]  * m.v[1]  * m.v[15] - 
+              m.v[8]  * m.v[3]  * m.v[13] - 
+              m.v[12] * m.v[1]  * m.v[11] + 
+              m.v[12] * m.v[3]  * m.v[9];
+
+    inv[13] = m.v[0]  * m.v[9]  * m.v[14] - 
+              m.v[0]  * m.v[10] * m.v[13] - 
+              m.v[8]  * m.v[1]  * m.v[14] + 
+              m.v[8]  * m.v[2]  * m.v[13] + 
+              m.v[12] * m.v[1]  * m.v[10] - 
+              m.v[12] * m.v[2]  * m.v[9];
+
+    inv[2] = m.v[1]  * m.v[6] * m.v[15] - 
+             m.v[1]  * m.v[7] * m.v[14] - 
+             m.v[5]  * m.v[2] * m.v[15] + 
+             m.v[5]  * m.v[3] * m.v[14] + 
+             m.v[13] * m.v[2] * m.v[7] - 
+             m.v[13] * m.v[3] * m.v[6];
+
+    inv[6] = -m.v[0]  * m.v[6] * m.v[15] + 
+              m.v[0]  * m.v[7] * m.v[14] + 
+              m.v[4]  * m.v[2] * m.v[15] - 
+              m.v[4]  * m.v[3] * m.v[14] - 
+              m.v[12] * m.v[2] * m.v[7] + 
+              m.v[12] * m.v[3] * m.v[6];
+
+    inv[10] = m.v[0]  * m.v[5] * m.v[15] - 
+              m.v[0]  * m.v[7] * m.v[13] - 
+              m.v[4]  * m.v[1] * m.v[15] + 
+              m.v[4]  * m.v[3] * m.v[13] + 
+              m.v[12] * m.v[1] * m.v[7] - 
+              m.v[12] * m.v[3] * m.v[5];
+
+    inv[14] = -m.v[0]  * m.v[5] * m.v[14] + 
+               m.v[0]  * m.v[6] * m.v[13] + 
+               m.v[4]  * m.v[1] * m.v[14] - 
+               m.v[4]  * m.v[2] * m.v[13] - 
+               m.v[12] * m.v[1] * m.v[6] + 
+               m.v[12] * m.v[2] * m.v[5];
+
+    inv[3] = -m.v[1] * m.v[6] * m.v[11] + 
+              m.v[1] * m.v[7] * m.v[10] + 
+              m.v[5] * m.v[2] * m.v[11] - 
+              m.v[5] * m.v[3] * m.v[10] - 
+              m.v[9] * m.v[2] * m.v[7] + 
+              m.v[9] * m.v[3] * m.v[6];
+
+    inv[7] = m.v[0] * m.v[6] * m.v[11] - 
+             m.v[0] * m.v[7] * m.v[10] - 
+             m.v[4] * m.v[2] * m.v[11] + 
+             m.v[4] * m.v[3] * m.v[10] + 
+             m.v[8] * m.v[2] * m.v[7] - 
+             m.v[8] * m.v[3] * m.v[6];
+
+    inv[11] = -m.v[0] * m.v[5] * m.v[11] + 
+               m.v[0] * m.v[7] * m.v[9] + 
+               m.v[4] * m.v[1] * m.v[11] - 
+               m.v[4] * m.v[3] * m.v[9] - 
+               m.v[8] * m.v[1] * m.v[7] + 
+               m.v[8] * m.v[3] * m.v[5];
+
+    inv[15] = m.v[0] * m.v[5] * m.v[10] - 
+              m.v[0] * m.v[6] * m.v[9] - 
+              m.v[4] * m.v[1] * m.v[10] + 
+              m.v[4] * m.v[2] * m.v[9] + 
+              m.v[8] * m.v[1] * m.v[6] - 
+              m.v[8] * m.v[2] * m.v[5];
+
+    det = m.v[0] * inv[0] + m.v[1] * inv[4] + m.v[2] * inv[8] + m.v[3] * inv[12];
+    if (det == 0)
+        return ar_identityMatrix();
+    det = 1.0 / det;
+    for (i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+    return arMatrix4(invOut);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //TDOBJECT METHODS
 ////////////////////////////////////////////////////////////////////////////////
@@ -28,6 +154,7 @@ tdPanel::tdPanel(arVector3 center, float width, float height)
 	this->phase = 0;
 	this->cwidth = 0;
 	this->cheight = 0;
+	this->cmat = ar_translationMatrix(center);
 	this->tmat = ar_identityMatrix();
 }
 
@@ -49,7 +176,7 @@ void tdPanel::draw()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glPushMatrix();	//move to panel position
-		glMultMatrixf(ar_translationMatrix(center).v);
+		glMultMatrixf(cmat.v);
 		glMultMatrixf(tmat.v);
 		glPushMatrix();	//draw the panel
 		glMultMatrixf(ar_scaleMatrix(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS).v);
@@ -141,6 +268,31 @@ bool tdPanel::isActive()
 bool tdPanel::isOpen()
 {
 	return (phase == 3);
+}
+
+arVector3 tdPanel::handlePointer(arVector3 start, arVector3 unit)
+{
+	arVector3 nstart = start;
+	nstart = invert(cmat) * nstart;
+	nstart = invert(tmat) * nstart;
+	arVector3 nunit = unit;
+	nunit = invert(cmat) * nunit;
+	nunit = invert(tmat) * nunit;
+	arVector3 endpt = arVector3();
+	arVector3 dir = nunit - nstart;
+	if(dir.v[2] < 0 && nstart.v[2] > 0)	//check if pointer is in front of menu panel and not pointing backwards/sideways
+	{
+		float mag = nstart.v[2] / -dir.v[2];
+		endpt = arVector3(nstart.v[0]+dir.v[0]*mag, nstart.v[1]+dir.v[1]*mag, nstart.v[2]+dir.v[2]*mag);
+		if(abs(endpt.v[0]) < (PANEL_THICKNESS + cwidth) / 2 && abs(endpt.v[1]) < (PANEL_THICKNESS + cheight) / 2)
+		{
+			//TODO: put object handling stuff here
+			endpt = tmat * endpt;
+			endpt = cmat * endpt;
+			return endpt;
+		}
+	}
+	return arVector3(0,0,9001);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -259,6 +411,22 @@ bool tdMenu::isOpen()
 		//if(!wandPanels[i].isOpen()) return false;
 	}
 	return false;
+}
+
+arVector3 tdMenu::handlePointer(arVector3 start, arVector3 unit)
+{
+	arVector3 nstart = start;
+	arVector3 nunit = unit;
+	arVector3 endpt = arVector3();
+	for(int i = 0; i < panels.size(); i++)
+	{
+		endpt = panels[i].handlePointer(nstart, nunit);
+		if(endpt != arVector3(0,0,9001))
+		{
+			return endpt;
+		}
+	}
+	return arVector3(0,0,9001);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

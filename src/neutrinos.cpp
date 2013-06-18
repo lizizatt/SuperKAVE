@@ -9,7 +9,11 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
-//#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+
+#ifdef ICECUBE
+#include "icecube.h"
+#endif
 
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
@@ -23,10 +27,6 @@
 
 #ifdef WINNEUTRINO
 #include <time.h>
-#endif
-
-#ifdef ICECUBE
-#include "icecube.h"
 #endif
 
 // The class containing all the relevant information about each dot
@@ -485,26 +485,23 @@ void drawScene(arMasterSlaveFramework& framework)
 	gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 50, 30); //inner cylinder wireframe
 
 	//wireframe caps:
+	glColor3f(1.0f,1.0f,1.0f);
+	glBegin(GL_LINES);
 	for(int i = 0; i < 2; i++){
-		glColor3f(1.0f,1.0f,1.0f);
 		int num_verticies = 50;
 		for(double j = PI/num_verticies; j < PI; j+=(2*PI/num_verticies)){
-			glBegin(GL_LINES);
 			glVertex3f(RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
 			glVertex3f(RADIUS*cos(j),-RADIUS*sin(j),i*HEIGHT-0.1);
-			glEnd();    
 		}
 	}
 	for(int i = 0; i < 2; i++){
-		glColor3f(1.0f,1.0f,1.0f);
 		int num_verticies = 50;
 		for(double j = PI/num_verticies; j < 2*PI; j+=(2*PI/num_verticies)){
-			glBegin(GL_LINES);
 			glVertex3f(RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
 			glVertex3f(-RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
-			glEnd();   
 		} 
 	}
+	glEnd();
 
 	//draw the dots
 	gluQuadricDrawStyle(quadObj, GLU_FILL);
@@ -598,7 +595,7 @@ void drawScene(arMasterSlaveFramework& framework)
 
 				glEnable (GL_BLEND); 
 				glLineWidth(3.0);
-				//draw ring points, if they are memoized already
+				//draw ring points, if they are memorized already
 				if(currentDots.haveRingPoints[i]){//this trades memory for processing...we only generate the points on the first frame of an event, then save them.
 					//and, if we come back to the event, we still don't need to redo it!  unless we tell it to by changing haveRingPoints to false
 					for(int c = 0; c < 2; c++){

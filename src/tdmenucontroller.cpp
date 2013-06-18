@@ -55,6 +55,21 @@ tdMenuController::tdMenuController(arEffector * wand)
 
 void tdMenuController::draw()
 {
+	//draw menu
+	menus[activeMenu].draw(align,wand->getBaseMatrix());
+	//draw pointer
+	arVector3 ptr = handlePointer();
+	if(ptr != arVector3(0,0,0))
+	{
+		glPushMatrix();
+		glMultMatrixf(wand->getBaseMatrix().v);
+		glColor4f(1,1,1,1);
+		glBegin(GL_LINES);
+		glVertex3f(0,0,0);
+		glVertex3f(ptr.v[0],ptr.v[1],ptr.v[2]);
+		glEnd();
+		glPopMatrix();
+	}
 	menus[activeMenu].draw(align,wand->getBaseMatrix());
 }
 
@@ -81,6 +96,24 @@ void tdMenuController::sync()
 	arMatrix4 roll = ar_rotationMatrix(arVector3(0,0,1),-v.v[2]);	//removes roll from menu
 	arMatrix4 pitch = ar_rotationMatrix(arVector3(1,0,0),-v.v[1]);	//removes tilt from menu
 	align = base * roll * pitch;
+}
+
+arVector3 tdMenuController::handlePointer()
+{
+	arVector3 start = arVector3(0,0,0);	//origin of wand
+	arVector3 unit = arVector3(0,0,-1);	//unit vector in wand direction
+	start = wand->getBaseMatrix() * start;
+	start = invert(align) * start;
+	unit = wand->getBaseMatrix() * unit;
+	unit = invert(align) * unit;
+	arVector3 end = menus[activeMenu].handlePointer(start, unit);
+	if(end != arVector3(0,0,9001))
+	{
+		end = align * end;
+		end = invert(wand->getBaseMatrix()) * end;
+		return end;
+	}
+	return arVector3(0,0,0);
 }
 
 void tdMenuController::handleEvents(string ext)
