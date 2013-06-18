@@ -213,7 +213,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 	//float fDownScale = 10.f;//10.f;
 	float scaleDownSphere = 20.0f;
-	fDownScale = 10.f;
+	//fDownScale = 10.f;
 
 	//Draws the Icecube detector grid
 	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
