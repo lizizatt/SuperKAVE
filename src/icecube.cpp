@@ -188,21 +188,11 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 		}
 	}
 	cout << "time = " << timeCounter << endl;
-	
-
-
-
-
-
-
 
 
 	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
 	glColor3f(1.0f, 0.25f, 0.25f);
-	
 
-
-	
 	//inner cyliner:
 	//gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 6, 30); //inner cylinder wireframe  //now hexagonal
 	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
@@ -213,10 +203,9 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 	//float fDownScale = 10.f;//10.f;
 	float scaleDownSphere = 20.0f;
-	float fDownScale = 10.f;
+	fDownScale = 10.f;
 
 	//Draws the Icecube detector grid
-	for(int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
 	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
 		glColor3f(0.25f, 0.25f, 0.25f);
 		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
