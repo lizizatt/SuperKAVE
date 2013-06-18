@@ -35,6 +35,99 @@ const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
 GeometryInput geometryData;
 DataInput event2Data;
 //GLUquadricObj * qObj; 
+
+int startTime = 999999;
+int timeCounter = 0;
+float playSpeed = 1.0f;
+int endTime = 0;
+int timeSpan = endTime - startTime;
+bool playForward = true;
+struct color{
+float red, green, blue;
+};
+
+vector<color> eventColors;
+
+void findExtremeEventTimes(){
+	//Find extreme times
+	
+	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+		if(event2Data.icecubeData.time[i] > endTime){
+			endTime = (int)(event2Data.icecubeData.time[i]);
+		}
+		else if(event2Data.icecubeData.time[i] < startTime){
+			startTime = (int)(event2Data.icecubeData.time[i]);
+		}
+	}
+
+	timeSpan = endTime - startTime;
+	if(timeSpan < 0.1){timeSpan = 1;}
+	timeCounter = startTime;
+	
+	color red;
+	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+		red.red=0.5f;red.green=0.0f;red.blue=1.0f;
+		
+		if(event2Data.icecubeData.time[i] <= startTime+timeSpan/4){
+			red.red=1.0f;red.green=4*(event2Data.icecubeData.time[i]-startTime)/timeSpan;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+timeSpan/4){
+			red.red=1-(event2Data.icecubeData.time[i]-(startTime + timeSpan/4))/(timeSpan/4);red.green=1.0f;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+timeSpan/2){
+			float y = (event2Data.icecubeData.time[i]-(startTime + timeSpan/2))/(timeSpan/4);;
+			red.red=0.0f;red.green=1.0f-y;red.blue=y;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+0.75*timeSpan){
+			red.red=0;red.green=(event2Data.icecubeData.time[i]-(startTime + 0.75*timeSpan))/(timeSpan/3);red.blue=1.0f;
+		}
+
+	/*red.red=0.5f;red.green=0.0f;red.blue=1.0f;
+		int subdivisions = 14; // = Number of if statements (or coefficient for timeSpan) plus 1
+		if(event2Data.icecubeData.time[i] > startTime+timeSpan/subdivisions){
+			red.red=0.35f;red.green=0.12f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+2*timeSpan/subdivisions){
+			red.red=0.25f;red.green=0.25f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+3*timeSpan/subdivisions){
+			red.red=0.35f;red.green=0.35f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+4*timeSpan/subdivisions){
+			red.red=0.5f;red.green=0.5f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+5*timeSpan/subdivisions){
+			red.red=0.25f;red.green=0.75f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+6*timeSpan/subdivisions){
+			red.red=0.0f;red.green=1.0f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+7*timeSpan/subdivisions){
+			red.red=0.0f;red.green=1.0f;red.blue=0.5f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+8*timeSpan/subdivisions){
+			red.red=0.5f;red.green=1.0f;red.blue=1.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+9*timeSpan/subdivisions){
+			red.red=0.0f;red.green=1.0f;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+10*timeSpan/subdivisions){
+			red.red=1.0f;red.green=1.0f;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+11*timeSpan/subdivisions){
+			red.red=1.0f;red.green=0.75f;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+12*timeSpan/subdivisions){
+			red.red=1.0f;red.green=0.5f;red.blue=0.0f;
+		}
+		if(event2Data.icecubeData.time[i] > startTime+13*timeSpan/subdivisions){
+			red.red=1.0f;red.green=0.0f;red.blue=0.0f;
+		}*/
+		eventColors.push_back(red);
+
+	}
+}
+
   
 void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
@@ -61,13 +154,53 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glPopMatrix();
 	glPushMatrix();
 	
-	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
-	glColor3f(1.0f, 0.25f, 0.25f);
 	glTranslatef(0,20,0);
 	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
 
-
 	glScalef(3.281f, 3.281f, 3.281f);
+
+	float fDownScale = 100.f;
+	float scaleDownEventSphere = 10.f;
+
+	int numDrawn = 0;
+	
+	//Draws the event data
+	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+		if(timeCounter > event2Data.icecubeData.time[i]){
+			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);
+			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
+			glutSolidSphere(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere, 4, 4);
+			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
+		}
+	}
+
+	//Time increments for forward and backward animation
+	if(playForward){
+		if(timeCounter < endTime){
+			timeCounter+=10/playSpeed;
+		}
+	}
+	else{
+		if(timeCounter > startTime){
+			timeCounter-=10/playSpeed;
+		}
+	}
+	cout << "time = " << timeCounter << endl;
+	
+
+
+
+
+
+
+
+
+	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
+	glColor3f(1.0f, 0.25f, 0.25f);
+	
+
+
+	
 	//inner cyliner:
 	//gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 6, 30); //inner cylinder wireframe  //now hexagonal
 	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
@@ -76,23 +209,25 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
 	//glTranslatef(0,0,-40);
 
-	float fDownScale = 1.f;//10.f;
+	//float fDownScale = 10.f;//10.f;
+	float scaleDownSphere = 20.0f;
 
+	//Draws the Icecube detector grid
 	for(int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
-		glColor3f(0.0f, 1.0f, 0.0f);
+		glColor3f(0.25f, 0.25f, 0.25f);
 		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
-		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
+		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 1.0f, 0.0f);
 		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glutSolidSphere(0.25f, 4, 4);
+		glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
 		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
 		}
 		else{
 		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glutSolidSphere(0.35f, 4, 4);
+		glutSolidSphere(0.35f/scaleDownSphere, 4, 4);
 		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
 		glBegin(GL_LINES);
 		if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
-			glColor3f(1.0f, 1.0f, 0.0f);
+			glColor3f(0.75f, 0.75f, 0.75f);
 			if(geometryData.icecubeGeometry.modules[i] == 60){
 				glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
 				glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
@@ -106,7 +241,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 		
 		}
 	}
-
+	
 
   glPopMatrix();
 }
@@ -160,7 +295,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   setNavRotCondition( 'y', AR_EVENT_AXIS, 0, 0.2 );      
 
   // Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
-  setNavTransSpeed( 5. );
+  setNavTransSpeed( 5. );    ////////Changes velocity of user
   setNavRotSpeed( 30. );
   
   // set square's initial position
@@ -178,7 +313,8 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
  // qObj = gluNewQuadric();
 
   geometryData.getText();
-  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
+  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
+  findExtremeEventTimes();
 
   GLfloat fogDensity = 0.01f; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
@@ -277,6 +413,25 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
     stateString = "DOWN";
   } else if (state == AR_KEY_UP) {
     stateString = "UP";
+	if(keyInfo->getKey() == 112){  //p
+			timeCounter = startTime;
+			playForward = true;
+		}
+		if(keyInfo->getKey() == 111){  //o
+			timeCounter = endTime;
+			playForward = false;
+		}
+		if(keyInfo->getKey() == 108){  //l
+			if(playSpeed > 0.01){
+				//playSpeed -= 0.01;
+			}
+		}
+		if(keyInfo->getKey() == 107){  //k
+			if(playSpeed < 2.0){
+				//playSpeed += 0.01;
+			}
+		}
+
   } else if (state == AR_KEY_REPEAT) {
     stateString = "REPEAT";
   } else {
