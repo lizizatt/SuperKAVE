@@ -11,6 +11,10 @@
 
 //#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
 
+#ifdef ICECUBE
+#include "icecube.h"
+#endif
+
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 #include <stdio.h>
@@ -23,10 +27,6 @@
 
 #ifdef WINNEUTRINO
 #include <time.h>
-#endif
-
-#ifdef ICECUBE
-#include "icecube.h"
 #endif
 
 // The class containing all the relevant information about each dot
