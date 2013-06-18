@@ -15,10 +15,7 @@ public:
 	void draw();	//draws the currently-displayed menu
 	void update(double time);
 	void sync();	//updates the menus to be displayed wherever the wand is currently pointing
-<<<<<<< HEAD
 	arVector3 handlePointer();	//gets endpoint of laser pointer and handles effects of current pointer placement in menu
-=======
->>>>>>> origin/master
 	void handleEvents(string ext);	//checks for events within the menu and controller (and outside) and updates accordingly
 private:
 	double lastTime;	//used to calculate time change since last update

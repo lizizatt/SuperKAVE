@@ -9,15 +9,11 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
-<<<<<<< HEAD
 #define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
-=======
-//#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
 
 #ifdef ICECUBE
 #include "icecube.h"
 #endif
->>>>>>> origin/master
 
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
@@ -32,13 +28,6 @@
 #ifdef WINNEUTRINO
 #include <time.h>
 #endif
-<<<<<<< HEAD
-
-#ifdef ICECUBE
-#include "icecube.h"
-#endif
-=======
->>>>>>> origin/master
 
 // The class containing all the relevant information about each dot
 class dot {

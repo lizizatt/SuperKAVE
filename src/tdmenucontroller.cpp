@@ -55,7 +55,6 @@ tdMenuController::tdMenuController(arEffector * wand)
 
 void tdMenuController::draw()
 {
-<<<<<<< HEAD
 	//draw menu
 	menus[activeMenu].draw(align,wand->getBaseMatrix());
 	//draw pointer
@@ -71,9 +70,7 @@ void tdMenuController::draw()
 		glEnd();
 		glPopMatrix();
 	}
-=======
 	menus[activeMenu].draw(align,wand->getBaseMatrix());
->>>>>>> origin/master
 }
 
 void tdMenuController::update(double time)
@@ -101,7 +98,6 @@ void tdMenuController::sync()
 	align = base * roll * pitch;
 }
 
-<<<<<<< HEAD
 arVector3 tdMenuController::handlePointer()
 {
 	arVector3 start = arVector3(0,0,0);	//origin of wand
@@ -120,8 +116,6 @@ arVector3 tdMenuController::handlePointer()
 	return arVector3(0,0,0);
 }
 
-=======
->>>>>>> origin/master
 void tdMenuController::handleEvents(string ext)
 {
 	//TODO: PARSING

@@ -17,33 +17,23 @@
 
 #include "arGlut.h"
 
-<<<<<<< HEAD
-=======
 #include "icecubeGeometryInput.h"
 #include "icecubeDataInput.h"
 
 #include "glslUtils.h"
 
->>>>>>> origin/master
 // OOPified skeleton.cpp. Subclasses arMasterSlaveFramework and overrides its
 // on...() methods (as opposed to installing callback functions).
 
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 // factor is 12*2.54*20.
-<<<<<<< HEAD
-const float FEET_TO_LOCAL_UNITS = 1.;
-=======
 const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
->>>>>>> origin/master
 
 // Near & far clipping planes.
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
-<<<<<<< HEAD
   
-void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
-=======
 
 GeometryInput geometryData;
 DataInput event2Data;
@@ -149,7 +139,6 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 	//glScalef(3.281f, 3.281f, 3.281f);
 	
->>>>>>> origin/master
   glPushMatrix();
     glMultMatrixf( getMatrix().v );
     // set one of two colors depending on if this object has been selected for interaction
@@ -165,8 +154,6 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
       glVertex3f( 1,1,0 );
       glVertex3f( 1,-1,0 );
     glEnd();
-<<<<<<< HEAD
-=======
 	glPopMatrix();
 	glPushMatrix();
 	
@@ -250,17 +237,12 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	}
 	
 
->>>>>>> origin/master
   glPopMatrix();
 }
 
 void RodEffectorIce::draw() const {
   glPushMatrix();
-<<<<<<< HEAD
   glMultMatrixf(getCenterMatrix().v);
-=======
-    glMultMatrixf( getCenterMatrix().v );
->>>>>>> origin/master
     // draw grey rectangular solid 2"x2"x5'
     glScalef( 2./12, 2./12., 5. );
     glColor3f( .5,.5,.5 );
@@ -275,12 +257,8 @@ void RodEffectorIce::draw() const {
 
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
-<<<<<<< HEAD
-  _squareHighlightedTransfer(0) {
-=======
   _squareHighlightedTransfer(0), m_shaderProgram(-1) {
 	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
->>>>>>> origin/master
 }
 
 
@@ -311,11 +289,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   setNavRotCondition( 'y', AR_EVENT_AXIS, 0, 0.2 );      
 
   // Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
-<<<<<<< HEAD
-  setNavTransSpeed( 5. );
-=======
   setNavTransSpeed( 5. );    ////////Changes velocity of user
->>>>>>> origin/master
   setNavRotSpeed( 30. );
   
   // set square's initial position
@@ -327,10 +301,6 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
 // Method to initialize each window (because now a Syzygy app can
 // have more than one).
 void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
-<<<<<<< HEAD
-  // OpenGL initialization
-  glClearColor(0,0,0,0);
-=======
 
   GLenum err = glewInit();
 
@@ -392,7 +362,6 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
 	
->>>>>>> origin/master
 }
 
 
@@ -433,18 +402,10 @@ void IceCubeFramework::onPostExchange() {
     // Update effector's input state. On the slaves we only need the matrix
     // to be updated, for rendering purposes.
     _effector.updateState( getInputState() );
-<<<<<<< HEAD
-	
-    // Unpack our transfer variables.
-    _square.setHighlight( (bool)_squareHighlightedTransfer );
-    _square.setMatrix( _squareMatrixTransfer.v );
-	
-=======
 
     // Unpack our transfer variables.
     _square.setHighlight( (bool)(_squareHighlightedTransfer==0) );
     _square.setMatrix( _squareMatrixTransfer.v );
->>>>>>> origin/master
   }
 }
 
@@ -452,17 +413,11 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   // Load the navigation matrix.
   loadNavMatrix();
   // Draw stuff.
-<<<<<<< HEAD
-  _square.draw();
-  _effector.draw();
-  ct.draw();
-=======
   //glUseProgram(m_shaderProgram);
   _square.draw();
   _effector.draw();
   ct.draw();
   //glUseProgram(0);
->>>>>>> origin/master
 }
 
 // Catch key events.
@@ -476,8 +431,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
     stateString = "DOWN";
   } else if (state == AR_KEY_UP) {
     stateString = "UP";
-<<<<<<< HEAD
-=======
 	if(keyInfo->getKey() == 112){  //p
 			timeCounter = startTime;
 			playForward = true;
@@ -497,7 +450,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			}
 		}
 
->>>>>>> origin/master
   } else if (state == AR_KEY_REPEAT) {
     stateString = "REPEAT";
   } else {
