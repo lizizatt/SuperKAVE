@@ -3,9 +3,12 @@
 
 #include "arInteractableThing.h"
 
+<<<<<<< HEAD
 //matrix inverse function adapted from MAYA implementation of GLU library
 arMatrix4 invert(arMatrix4 m);
 
+=======
+>>>>>>> origin/master
 //The basic menu object, base class for anything appearing on a menu panel
 class tdObject
 {
@@ -26,9 +29,13 @@ public:
 	virtual void close();
 	virtual bool isActive();	//checks if panel is active at all (opening, closing, or open)
 	virtual bool isOpen();	//checks if panel is in open state
+<<<<<<< HEAD
 	virtual arVector3 handlePointer(arVector3 start, arVector3 unit);
 protected:
 	arMatrix4 cmat;	//used to position the panel
+=======
+protected:
+>>>>>>> origin/master
 	arMatrix4 tmat;	//used to tilt the panel
 	vector<tdObject> objects;	//the objects appearing on this menu panel
 	arVector3 center;	//the center of the panel (relative to menu center)
@@ -71,7 +78,10 @@ public:
 	virtual void close();
 	virtual bool isActive();
 	virtual bool isOpen();
+<<<<<<< HEAD
 	virtual arVector3 handlePointer(arVector3 start, arVector3 unit);
+=======
+>>>>>>> origin/master
 private:
 	vector<tdPanel> panels;
 	vector<tdWandPanel> wandPanels;

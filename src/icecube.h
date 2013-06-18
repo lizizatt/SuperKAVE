@@ -1,6 +1,11 @@
 #ifndef OOPSKEL_H_
 #define OOPSKEL_H_
 
+<<<<<<< HEAD
+=======
+#include "GL\glew.h"
+
+>>>>>>> origin/master
 #include "arMasterSlaveFramework.h"
 #include "arInteractableThing.h"
 #include "tdmenucontroller.h"
@@ -71,6 +76,10 @@ class IceCubeFramework : public arMasterSlaveFramework {
 	//JEDIT
 	tdMenuController ct;
 	//ENDJEDIT
+<<<<<<< HEAD
+=======
+	GLint m_shaderProgram;
+>>>>>>> origin/master
 
     // Master-slave transfer variables
     // All we need to explicity transfer in this program is the square's placement matrix and

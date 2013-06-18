@@ -1,0 +1,1331 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Syzygy">
+      <UniqueIdentifier>{a09c64e7-fd7f-4e2b-867c-e8b32e2322ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Barrier">
+      <UniqueIdentifier>{c875a2cf-820d-4ce9-896e-bc0b7efb8a75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Framework">
+      <UniqueIdentifier>{b9e598cc-448f-455e-b8ba-6882ae92ad9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Graphics">
+      <UniqueIdentifier>{fb70e2a4-ed7c-4cec-b659-dca23f550668}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Interaction">
+      <UniqueIdentifier>{21a15347-c8fd-4f1f-bab7-23c64196f4fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Language">
+      <UniqueIdentifier>{2583857c-d045-4dd8-bf6d-8068517c5d62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Math">
+      <UniqueIdentifier>{23faa998-6004-4379-be5f-b4bce805dd28}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Sound">
+      <UniqueIdentifier>{43622e82-bcdc-4a9d-9874-968a9eb029b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Drivers">
+      <UniqueIdentifier>{59adb338-346d-4ab4-bea9-161e0d9081e8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Phleet">
+      <UniqueIdentifier>{0ba5d3bc-5e2c-4ace-8983-a3b5aa30c29a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Syzygy\Model">
+      <UniqueIdentifier>{eac5a911-bf11-4562-b509-aa771d6eb48e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\barrier\arSyncDataClient.cpp">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\barrier\arSyncDataServer.cpp">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arAppLauncher.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arController.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arDistSceneGraphFramework.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arFlyingGravisController.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arFrameworkEventFilter.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arInputSimulator.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arInputSimulatorFactory.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arInteractableThing.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arMasterSlaveDataRouter.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arMasterSlaveFramework.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arRoutableTemplate.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\framework\arSZGAppFramework.cpp">
+      <Filter>Syzygy\Framework</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arCallbackInteractable.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arDragBehavior.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arDragManager.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arEffector.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arGrabCondition.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arInteractable.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arInteractionSelector.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arInteractionUtilities.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arInterfaceObject.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arNavManager.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\interaction\arUniqueInteractor.cpp">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDatabase.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDatabaseLanguage.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDatabaseNode.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDataClient.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDataPoint.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDataServer.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDataTemplate.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arDataUtilities.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arFileTextStream.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arLanguage.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arLightFloatBuffer.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arLogStream.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arPrecompiled.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arQueuedData.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arRS232Port.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arSharedLib.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arSocket.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arSocketAddress.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arSocketTextStream.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arStructuredData.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arStructuredDataParser.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arTemplateDictionary.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arThread.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arUDPSocket.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arVersion.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arXMLParser.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\language\arXMLUtilities.cpp">
+      <Filter>Syzygy\Language</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arPlayerNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundAPI.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundClient.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundDatabase.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundFile.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundFileNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundLanguage.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundServer.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSoundTransformNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSpeakerObject.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arSpeechNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arStreamNode.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\barrier\arBarrierClient.cpp">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\barrier\arBarrierServer.cpp">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\ar5DTGloveDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arBirdWinDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arConstantHeadFilter.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arDeviceServerFramework.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arEVaRTDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arEventUtilities.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arFaroCalFilter.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arFaroDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arFileSink.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arFileSource.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arFOBDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arGenericDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputEvent.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputEventQueue.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputFactory.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputLanguage.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputNode.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputNodeConfig.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputSource.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arInputState.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arIntersenseDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arIOFilter.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arJoystickDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arLogitechDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arMotionstarDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arNetInputSink.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arNetInputSource.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arParallelSwitchDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPForth.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPForthDatabaseVocabulary.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPForthEventVocabulary.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPForthFilter.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPForthStandardVocabulary.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arPPTDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arReactionTimerDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arSerialSwitchDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arSharedMemDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arSharedMemSinkDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arSpacepadDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arTrackCalFilter.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arUSBDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arVRPNDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\arWiimoteDriver.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\drivers\isense.cpp">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arPhleetConfig.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arPhleetConfigLanguage.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arPhleetConnectionBroker.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arPhleetOSLanguage.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arPhleetTemplate.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="..\phleet\arSZGClient.cpp">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClCompile>
+    <ClCompile Include="src\neutrinos.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\ar3DS.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arHTR.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arHTRParsing.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arOBJ.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arObject.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arObjectUtilities.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arOBJParsing.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\model\arOBJSmoothingGroup.cpp">
+      <Filter>Syzygy\Model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arBillboardNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arBlendNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arBoundingSphereNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arBumpMap.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arBumpMapNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arCamera.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arColor4Node.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arDrawableNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFramelockUtilities.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFramerateGraph.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFrameworkObject.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutFont.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutFontData.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutMonoRoman.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutRenderFuncs.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutRoman.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFreeGlutTeapot.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arFrustumCamera.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGluCylinder.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGluDisk.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGluQuadric.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGluSphere.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGluTessObject.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsAPI.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsArrayNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsClient.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsContext.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsDatabase.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsLanguage.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsPeer.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsPeerRPC.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsPluginNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsScreen.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsServer.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsStateNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsUtilities.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGraphicsWindow.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGUIEventManager.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGUIInfo.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGUIWindow.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGUIWindowManager.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arGUIXMLParser.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arHead.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arIndexNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arLargeImage.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arLight.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arLightNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arMaterial.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arMaterialNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arMesh.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arNormal3Node.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arOrthoCamera.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arPerspectiveCamera.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arPerspectiveCameraNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arPointsNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arRay.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arTex2Node.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arTexFont.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arTexture.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arTextureNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arTransformNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arViewerNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arViewport.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arVisibilityNode.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\graphics\arVRCamera.cpp">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\math\arMath.cpp">
+      <Filter>Syzygy\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\math\arNavigationUtilities.cpp">
+      <Filter>Syzygy\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sound\arTTS.cpp">
+      <Filter>Syzygy\Sound</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icecube.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icecubeDataInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icecubeGeometryInput.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenu.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenucontroller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\barrier\arBarrierCalling.h">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\barrier\arSyncDataClient.h">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\barrier\arSyncDataServer.h">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arAppLauncher.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arController.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arDistSceneGraphFramework.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arFlyingGravisController.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arFrameworkCalling.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arFrameworkEventFilter.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arInputSimulator.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arInputSimulatorFactory.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arInteractableThing.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arMasterSlaveDataRouter.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arMasterSlaveFramework.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arMSVectorSynchronizer.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arRoutableTemplate.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\framework\arSZGAppFramework.h">
+      <Filter>Syzygy\Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arCallbackInteractable.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arDragBehavior.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arDragManager.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arEffector.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arGrabCondition.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arInteractable.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arInteractionCalling.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arInteractionSelector.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arInteractionUtilities.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arInterfaceObject.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arNavManager.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\interaction\arUniqueInteractor.h">
+      <Filter>Syzygy\Interaction</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arBuffer.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arCallingConventions.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDatabase.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDatabaseLanguage.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDatabaseNode.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataClient.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataPoint.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataServer.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataTemplate.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataType.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arDataUtilities.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arFileTextStream.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arLanguage.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arLanguageCalling.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arLightFloatBuffer.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arLogStream.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arNameNode.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arPrecompiled.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arQueuedData.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arRS232Port.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arSharedLib.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arSocket.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arSocketAddress.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arSocketTextStream.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arSTLalgo.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arStringTextStream.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arStructuredData.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arStructuredDataParser.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arTemplateDictionary.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arTextStream.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arThread.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arUDPSocket.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arVersion.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arVRConstants.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arXMLParser.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\language\arXMLUtilities.h">
+      <Filter>Syzygy\Language</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arPlayerNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSapi.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundAPI.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundCalling.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundClient.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundDatabase.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundFile.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundFileNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundHeader.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundLanguage.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundServer.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSoundTransformNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSpeakerObject.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arSpeechNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arStreamNode.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\fmodStub.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\barrier\arBarrierClient.h">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\barrier\arBarrierServer.h">
+      <Filter>Syzygy\Barrier</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\ar5DTGloveDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arBirdWinDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arConstantHeadFilter.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arDeviceServerFramework.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arDriversCalling.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arEVaRTDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arEventUtilities.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arFaroCalFilter.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arFaroDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arFileSink.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arFileSource.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arFOBDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arGenericDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputEvent.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputEventQueue.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputFactory.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputHeaders.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputLanguage.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputNode.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputNodeConfig.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputSink.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputSource.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arInputState.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arIntersenseDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arIOFilter.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arJoystickDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arLogitechDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arMotionstarDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arNetInputSink.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arNetInputSource.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arParallelSwitchDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arPForth.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arPForthDatabaseVocabulary.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arPForthEventVocabulary.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arPForthFilter.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arPPTDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arReactionTimerDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arSerialSwitchDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arSharedMemDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arSharedMemSinkDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arSpacepadDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arTrackCalFilter.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arUSBDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arVRPNDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\arWiimoteDriver.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\birdnet.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\isense.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\drivers\isenseTypes.h">
+      <Filter>Syzygy\Drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetCalling.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetConfig.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetConfigLanguage.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetConnectionBroker.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetOSLanguage.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arPhleetTemplate.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\phleet\arSZGClient.h">
+      <Filter>Syzygy\Phleet</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\ar3DS.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arHTR.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arOBJ.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arObjCalling.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arObject.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arObjectUtilities.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\model\arOBJSmoothingGroup.h">
+      <Filter>Syzygy\Model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arAxisAlignedBoundingBox.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arBillboardNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arBlendNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arBoundingSphereNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arBumpMap.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arBumpMapNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arCamera.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arColor4Node.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arDrawable.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arDrawableNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arFramelockUtilities.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arFramerateGraph.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arFrameworkObject.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arFreeGlutInternal.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arFrustumCamera.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGluCylinder.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGluDisk.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGluQuadric.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGluSphere.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGlut.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGluTessObject.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGlutRenderFuncs.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsAPI.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsArrayNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsCalling.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsClient.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsContext.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsDatabase.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsHeader.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsLanguage.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsPeer.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsPeerRPC.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsPlugin.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsPluginNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsScreen.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsServer.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsStateNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsUtilities.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGraphicsWindow.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIDefines.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIEventManager.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIInfo.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIWindow.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIWindowManager.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arGUIXMLParser.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arHead.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arIndexNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arLargeImage.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arLight.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arLightNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arMaterial.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arMaterialNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arMesh.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arNormal3Node.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arOrthoCamera.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arPerspectiveCamera.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arPerspectiveCameraNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arPointsNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arRay.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arTex2Node.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arTexFont.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arTexture.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arTextureNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arTransformNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arViewerNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arViewport.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arVisibilityNode.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\graphics\arVRCamera.h">
+      <Filter>Syzygy\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="..\math\arMath.h">
+      <Filter>Syzygy\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\math\arMathCalling.h">
+      <Filter>Syzygy\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\math\arNavigationUtilities.h">
+      <Filter>Syzygy\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\sound\arTTS.h">
+      <Filter>Syzygy\Sound</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecube.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecubeDataInput.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecubeGeometryInput.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tdmenu.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\tdmenucontroller.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\language\arPrecompiled.pch">
+      <Filter>Syzygy\Language</Filter>
+    </None>
+  </ItemGroup>
+</Project>

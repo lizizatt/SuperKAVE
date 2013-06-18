@@ -10,6 +10,7 @@ const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pe
 void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.6);}
 void colorText()	{glColor4f(1.0, 1.0, 1.0, 1.0);}
 
+<<<<<<< HEAD
 //Code adapted from MESA implementation of GLU library
 arMatrix4 invert(arMatrix4 m)
 {
@@ -136,6 +137,8 @@ arMatrix4 invert(arMatrix4 m)
     return arMatrix4(invOut);
 }
 
+=======
+>>>>>>> origin/master
 ////////////////////////////////////////////////////////////////////////////////
 //TDOBJECT METHODS
 ////////////////////////////////////////////////////////////////////////////////
@@ -154,7 +157,10 @@ tdPanel::tdPanel(arVector3 center, float width, float height)
 	this->phase = 0;
 	this->cwidth = 0;
 	this->cheight = 0;
+<<<<<<< HEAD
 	this->cmat = ar_translationMatrix(center);
+=======
+>>>>>>> origin/master
 	this->tmat = ar_identityMatrix();
 }
 
@@ -176,7 +182,11 @@ void tdPanel::draw()
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glPushMatrix();	//move to panel position
+<<<<<<< HEAD
 		glMultMatrixf(cmat.v);
+=======
+		glMultMatrixf(ar_translationMatrix(center).v);
+>>>>>>> origin/master
 		glMultMatrixf(tmat.v);
 		glPushMatrix();	//draw the panel
 		glMultMatrixf(ar_scaleMatrix(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS).v);
@@ -270,6 +280,7 @@ bool tdPanel::isOpen()
 	return (phase == 3);
 }
 
+<<<<<<< HEAD
 arVector3 tdPanel::handlePointer(arVector3 start, arVector3 unit)
 {
 	arVector3 nstart = start;
@@ -295,6 +306,8 @@ arVector3 tdPanel::handlePointer(arVector3 start, arVector3 unit)
 	return arVector3(0,0,9001);
 }
 
+=======
+>>>>>>> origin/master
 ////////////////////////////////////////////////////////////////////////////////
 //TDWANDPANEL METHODS
 ////////////////////////////////////////////////////////////////////////////////
@@ -413,6 +426,7 @@ bool tdMenu::isOpen()
 	return false;
 }
 
+<<<<<<< HEAD
 arVector3 tdMenu::handlePointer(arVector3 start, arVector3 unit)
 {
 	arVector3 nstart = start;
@@ -429,6 +443,8 @@ arVector3 tdMenu::handlePointer(arVector3 start, arVector3 unit)
 	return arVector3(0,0,9001);
 }
 
+=======
+>>>>>>> origin/master
 ////////////////////////////////////////////////////////////////////////////////
 //TDPLAYBACKMENU METHODS
 ////////////////////////////////////////////////////////////////////////////////
