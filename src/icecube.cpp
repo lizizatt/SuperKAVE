@@ -41,6 +41,7 @@ int timeCounter = 0;
 float playSpeed = 1.0f;
 int endTime = 0;
 int timeSpan = endTime - startTime;
+int expansionTime = 0;
 bool playForward = true;
 struct color{
 float red, green, blue;
@@ -61,6 +62,7 @@ void findExtremeEventTimes(){
 	}
 
 	timeSpan = endTime - startTime;
+	expansionTime = timeSpan/(event2Data.icecubeData.xCoord.size());
 	if(timeSpan < 0.1){timeSpan = 1;}
 	timeCounter = startTime;
 	
@@ -164,15 +166,22 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 	int numDrawn = 0;
 	
+	//glEnable (GL_BLEND); 
+	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 	//Draws the event data
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(timeCounter > event2Data.icecubeData.time[i]){
-			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);
+			//Transparency changing with amount of time event has been drawn
+			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/timeCounter);
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, 0.25);
 			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
-			glutSolidSphere(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere, 4, 4);
+			if(timeCounter-event2Data.icecubeData.time[i] < expansionTime){glutSolidSphere(((timeCounter-event2Data.icecubeData.time[i])/expansionTime)*(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere), 4, 4);}
+			else{glutSolidSphere(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere, 4, 4);}			
 			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
 		}
 	}
+	//glDisable (GL_BLEND);
 
 	//Time increments for forward and backward animation
 	if(playForward){
@@ -313,7 +322,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
  // qObj = gluNewQuadric();
 
   geometryData.getText();
-  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
+  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
   findExtremeEventTimes();
 
   GLfloat fogDensity = 0.01f; 
@@ -431,6 +440,47 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 				//playSpeed += 0.01;
 			}
 		}
+		if(keyInfo->getKey() == 113){  //q
+			startTime = 999999;endTime = 0;		
+			eventColors.clear();
+			event2Data.~DataInput();
+			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
+			findExtremeEventTimes();
+			playForward = true;
+		}
+		if(keyInfo->getKey() == 119){  //w
+			startTime = 999999;endTime = 0;
+			eventColors.clear();
+			event2Data.~DataInput();
+			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
+			findExtremeEventTimes();
+			playForward = true;
+		}
+		if(keyInfo->getKey() == 101){  //e
+			startTime = 999999;endTime = 0;
+			eventColors.clear();
+			event2Data.~DataInput();
+			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e5.txt");
+			findExtremeEventTimes();
+			playForward = true;
+		}
+		if(keyInfo->getKey() == 114){  //r
+			startTime = 999999;endTime = 0;
+			eventColors.clear();
+			event2Data.~DataInput();
+			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e6.txt");
+			findExtremeEventTimes();
+			playForward = true;
+		}
+		if(keyInfo->getKey() == 116){  //t
+			startTime = 999999;endTime = 0;
+			eventColors.clear();
+			event2Data.~DataInput();
+			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");
+			findExtremeEventTimes();
+			playForward = true;
+		}
+		
 
   } else if (state == AR_KEY_REPEAT) {
     stateString = "REPEAT";
