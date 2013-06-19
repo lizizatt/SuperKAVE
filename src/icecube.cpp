@@ -304,6 +304,15 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   // set square's initial position
   _square.setMatrix( ar_translationMatrix(0,5,-6) );
 
+  /*const arMatrix4 ident;
+  dsTransform( "sound scale", getNavNodeName(), ar_scaleMatrix(1) );
+  int whaleSoundTransformID = dsTransform( "whale sound matrix", "sound scale", ident );
+  int dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "sound scale", ident );
+  (void)dsLoop("whale song", "whale sound matrix", "..\\..\\src\\neutrinos\\data\\icecube\\sounds\\whale.mp3",
+    1, 1.0, arVector3(0,0,0));*/
+  //(void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3",
+  //  1, 0.05, arVector3(0,0,0));
+
   return true;
 }
 
