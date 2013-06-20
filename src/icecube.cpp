@@ -46,6 +46,9 @@ int endTime = 0;
 int timeSpan = endTime - startTime;
 int expansionTime = 0;
 bool playForward = true;
+float largestCharge = 0;
+float smallestCharge = 999999;
+float chargeSpan = 0;
 struct color{
 float red, green, blue;
 };
@@ -54,7 +57,9 @@ vector<color> eventColors;
 
 void findExtremeEventTimes(){
 	//Find extreme times
-	
+	largestCharge = 0;
+	smallestCharge = 999999;
+	chargeSpan = 0;
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(event2Data.icecubeData.time[i] > endTime){
 			endTime = (int)(event2Data.icecubeData.time[i]);
@@ -62,10 +67,17 @@ void findExtremeEventTimes(){
 		else if(event2Data.icecubeData.time[i] < startTime){
 			startTime = (int)(event2Data.icecubeData.time[i]);
 		}
+		if(event2Data.icecubeData.charge[i] > largestCharge){
+			largestCharge = event2Data.icecubeData.charge[i];
+		}
+		else if(event2Data.icecubeData.charge[i] < smallestCharge){
+			smallestCharge = event2Data.icecubeData.charge[i];
+		}
 	}
-
+	chargeSpan = largestCharge - smallestCharge;
 	timeSpan = endTime - startTime;
 	expansionTime = timeSpan/(event2Data.icecubeData.xCoord.size());
+	endTime += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
 	timeCounter = startTime;
 	
@@ -84,7 +96,7 @@ void findExtremeEventTimes(){
 			red.red=0.0f;red.green=1.0f-y;red.blue=y;
 		}
 		if(event2Data.icecubeData.time[i] > startTime+0.75*timeSpan){
-			red.red=0;red.green=(event2Data.icecubeData.time[i]-(startTime + 0.75*timeSpan))/(timeSpan/3);red.blue=1.0f;
+			red.red=(event2Data.icecubeData.time[i]-(startTime + 0.75*timeSpan))/(timeSpan/3);red.green=0;red.blue=1.0f;
 		}
 
 	/*red.red=0.5f;red.green=0.0f;red.blue=1.0f;
@@ -165,27 +177,34 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glScalef(3.281f, 3.281f, 3.281f);
 
 	float fDownScale = 100.f;
-	float scaleDownEventSphere = 10.f;
+	float scaleDownEventSphere = fDownScale/10;
 
 	int numDrawn = 0;
 	
 	//glEnable (GL_BLEND); 
 	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
+	glDisable (GL_DEPTH_BUFFER);
+	glDisable (GL_DEPTH_TEST);
+	float chargeRadiusFactor = 1.f;
 	//Draws the event data
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(timeCounter > event2Data.icecubeData.time[i]){
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/timeCounter);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, 0.25);
+			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
+			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
-			if(timeCounter-event2Data.icecubeData.time[i] < expansionTime){glutSolidSphere(((timeCounter-event2Data.icecubeData.time[i])/expansionTime)*(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere), 4, 4);}
-			else{glutSolidSphere(event2Data.icecubeData.charge[i]*0.25f/scaleDownEventSphere, 4, 4);}			
+			//Expansion animation of event data
+			if(timeCounter-event2Data.icecubeData.time[i] < expansionTime){glutSolidSphere(((timeCounter-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere), 4, 4);}
+			else{glutSolidSphere(chargeRadiusFactor*0.25f/scaleDownEventSphere, 4, 4);}			
 			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
 		}
 	}
-	//glDisable (GL_BLEND);
 
+	glEnable (GL_DEPTH_BUFFER);
+	glEnable (GL_DEPTH_TEST);
+	//glDisable (GL_BLEND);
+	//glEnable (GL_DEPTH_BUFFER);
 	//Time increments for forward and backward animation
 	if(playForward){
 		if(timeCounter < endTime){
@@ -212,16 +231,23 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	//glTranslatef(0,0,-40);
 
 	//float fDownScale = 10.f;//10.f;
-	float scaleDownSphere = 20.0f;
+	float scaleDownSphere = fDownScale/5;
 	//fDownScale = 10.f;
+
+	glColor3f(1.0f, 1.0f, 1.0f);
+	glTranslatef(0.0f, 0.0f, -1920.f/fDownScale);
+	glScalef(1.0f, 1.0f, 0.025f);
+	glutSolidCube(2000.0f/fDownScale);
+	glScalef(1.0f, 1.0f, 40.0f);
+	glTranslatef(0.0f, 0.0f, 1920.f/fDownScale);
 
 	//Draws the Icecube detector grid
 	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
 		glColor3f(0.25f, 0.25f, 0.25f);
 		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
-		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 1.0f, 0.0f);
+		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
 		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+		glutSolidSphere(0.55f/scaleDownSphere, 4, 4);
 		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
 		}
 		else{
@@ -324,10 +350,10 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
   //std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\simple.vert");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\red.frag");
-  std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_billboard.vert");
+  std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_billboard2.vert");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_bwprint.frag");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_cheerio.frag");
-  std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_glshovel.frag");
+  std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_glshovel2.frag");
   //std::string vshader = std::string(commonVShader());
   //std::string fshader = coinFShader(PLASTICY,PHONG,false);
   m_shaderProgram = loadProgramFiles(vshader,fshader,true);
@@ -345,7 +371,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
 	
 	//GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
-	GLfloat mat_shininess[] = { 3.0 };
+	GLfloat mat_shininess[] = { 10.0 };
 
 	//glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, mat_shininess);
@@ -397,8 +423,9 @@ void IceCubeFramework::onPreExchange() {
   _squareMatrixTransfer = _square.getMatrix();
 
   //JEDIT
-  ct.update(getTime());
+  
   ct.handleEvents("");
+  ct.update(getTime());
   //ENDJEDIT
 }
 
@@ -425,6 +452,8 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   //glUseProgram(m_shaderProgram);
   _square.draw();
   _effector.draw();
+  //glColor3f(1.0f, 0.0f, 0.0f);
+  //glutSolidSphere(5.0f, 8, 8);
   ct.draw();
   //glUseProgram(0);
 }
