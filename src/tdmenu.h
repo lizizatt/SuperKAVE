@@ -7,6 +7,9 @@
 //matrix inverse function adapted from MAYA implementation of GLU library
 arMatrix4 invert(arMatrix4 m);
 
+//cube drawing function, since glutSolidCube isn't behaving properly for me
+void tdDrawBox(float x = 0, float y = 0, float z = 0, float w = 1, float h = 1, float d = 1);
+
 //The basic menu object, base class for anything appearing on a menu panel. Just a template, never used by itself.
 class tdObject
 {
@@ -14,7 +17,6 @@ public:
 	tdObject(){}
 	virtual void draw(){}
 	virtual void update(double time){}
-	virtual bool isActive(){return false;}
 	virtual arVector3 handlePointer(arVector3 endpt){return arVector3(0,0,9001);}	//checks if pointer is on object, if so, can "hijack" pointer location
 	virtual void handleEvents(tdMenuController* ct, int menu, int panel, int object){}
 	virtual void change(int code, float value = 0, string msg = ""){}	//called by handleEvents function, used to alter values, flags, etc
@@ -41,8 +43,6 @@ public:
 protected:
 	float x;
 	float y;
-	arMatrix4 pos;
-	arMatrix4 bump;
 	float width;
 	float height;
 	float cdepth;
@@ -55,7 +55,27 @@ protected:
 class tdSlider : public tdObject
 {
 public:
+	tdSlider(float x = 0, float y = 0, float start = 0, float end = 1, float length = 1, float height = 1, float depth = 1, float width = 1);
+	virtual void draw();
+	virtual void update(double time);
+	virtual arVector3 handlePointer(arVector3 endpt);
+	virtual void handleEvents(tdMenuController* ct, int menu, int panel, int object);
+	virtual void change(int code, float value = 0, string msg = "");
 protected:
+	float x;
+	float y;
+	arMatrix4 pos;
+	float length;
+	float height;
+	float depth;
+	float width;
+	float start;
+	float end;
+	float cpos;	//current position of slider
+	float dpos;	//desired position of slider
+	bool cursor;
+	bool isGrab;
+	bool wasGrab;
 };
 
 //The basic menu panel, is simply a square pane displayed vertically

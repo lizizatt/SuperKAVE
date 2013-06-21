@@ -12,7 +12,7 @@ class tdMenuController
 public:
 	struct vars	//holds all values maintained by menu system
 	{
-		float time;	//time used by playback control	
+		int time;	//time used by playback control	
 	};
 	tdMenuController(){}	//default constructor doesn't do anything, need to give it a wand
 	tdMenuController(arEffector* wand);	//instantiates the menu controller AND sets up a hardcoded menu.

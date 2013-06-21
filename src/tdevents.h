@@ -12,10 +12,14 @@
 //Event code definitions:
 #define TD_BUTTON_IDLE		2378
 #define TD_BUTTON_CURSOR	8534
+#define TD_SLIDER_IDLE		5902
+#define TD_SLIDER_CURSOR	6251
+#define TD_SLIDER_DRAG		2369
 
 //Change code definitions:
 #define TD_PUSH				2590
 #define TD_GRAB				5656
+#define TD_SETVAL			2568
 #define TD_SETTEXT			6738
 
 class tdMenuController;

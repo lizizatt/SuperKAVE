@@ -23,6 +23,8 @@ tdMenuController::tdMenuController(arEffector* wand)
 	panel = new tdPanel(arVector3(0,5,0),10,15);
 	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1);
 	panel->add(object);
+	object = new tdSlider(0, 2, 0, 10, 5, 0.5, 0.1, 0.5);
+	panel->add(object);
 	menu->addPanel(panel);
 	panel = new tdPanel(arVector3(-10,10,2),5,5);
 	menu->addPanel(panel);
