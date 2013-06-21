@@ -2,51 +2,54 @@
 #define SZG_DO_NOT_EXPORT
 #include "tdmenucontroller.h"
 
-const float MENU_OFFSET = 15.0;	//the distance from the wand base to the menu center
+const float MENU_OFFSET = 10.0;	//the distance from the wand base to the menu center
 
-tdMenuController::tdMenuController(arEffector * wand)
+tdMenuController::tdMenuController(arEffector* wand)
 {
 	this->wand = wand;
-	this->menus = vector<tdMenu>();
+	this->menus = vector<tdMenu*>();
 	/////////////////////////////////////////////////
 	//MENU LAYOUT SECTION: CHANGE TO CUSTOMIZE MENU//
 	/////////////////////////////////////////////////
 
-	tdMenu menu0 = tdMenu();	//base state, no panels
-	menus.push_back(menu0);
+	tdMenu* menu;
+	tdPanel* panel;
+	tdObject* object;
 
-	tdMenu menu1 = tdMenu();	//one big panel and two smaller ones
-	tdPanel m1main = tdPanel(arVector3(0,5,0),10,15);
-	menu1.addPanel(m1main);
-	tdPanel m1left = tdPanel(arVector3(-10,10,2),5,5);
-	menu1.addPanel(m1left);
-	tdPanel m1right = tdPanel(arVector3(10,10,2),5,5);
-	menu1.addPanel(m1right);
-	menus.push_back(menu1);
+	menu = new tdMenu();	//base state, no panels
+	menus.push_back(menu);
 
-	tdMenu menu2 = tdMenu();	//menu with a bunch of panels side by side
-	tdPanel m21 = tdPanel(arVector3(-20*sin(0.523),5,20-20*cos(0.523)),3,5);
-	m21.tilt(ar_rotationMatrix(arVector3(0,1,0),0.523));
-	menu2.addPanel(m21);
-	tdPanel m22 = tdPanel(arVector3(-20*sin(0.262),5,20-20*cos(0.262)),3,5);
-	m22.tilt(ar_rotationMatrix(arVector3(0,1,0),0.262));
-	menu2.addPanel(m22);
-	tdPanel m23 = tdPanel(arVector3(0,5,0),3,5);
-	menu2.addPanel(m23);
-	tdPanel m24 = tdPanel(arVector3(20*sin(0.262),5,20-20*cos(0.262)),3,5);
-	m24.tilt(ar_rotationMatrix(arVector3(0,1,0),-0.262));
-	menu2.addPanel(m24);
-	tdPanel m25 = tdPanel(arVector3(20*sin(0.523),5,20-20*cos(0.523)),3,5);
-	m25.tilt(ar_rotationMatrix(arVector3(0,1,0),-0.523));
-	menu2.addPanel(m25);
+	menu = new tdMenu();	//one big panel and two smaller ones
+	panel = new tdPanel(arVector3(0,5,0),10,15);
+	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1);
+	panel->add(object);
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(-10,10,2),5,5);
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(10,10,2),5,5);
+	menu->addPanel(panel);
+	menus.push_back(menu);
 
-
-
-	menus.push_back(menu2);
+	menu = new tdMenu();	//menu with a bunch of panels side by side
+	panel = new tdPanel(arVector3(-20*sin(0.523),5,20-20*cos(0.523)),3,5);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),0.523));
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(-20*sin(0.262),5,20-20*cos(0.262)),3,5);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),0.262));
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(0,5,0),3,5);
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(20*sin(0.262),5,20-20*cos(0.262)),3,5);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),-0.262));
+	menu->addPanel(panel);
+	panel = new tdPanel(arVector3(20*sin(0.523),5,20-20*cos(0.523)),3,5);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),-0.523));
+	menu->addPanel(panel);
+	menus.push_back(menu);
 
 	activeMenu = 0;
 	nextMenu = 0;
-	menus[0].open();
+	menus[0]->open();
 
 	//////////////////////////////
 	//END OF MENU LAYOUT SECTION//
@@ -56,7 +59,7 @@ tdMenuController::tdMenuController(arEffector * wand)
 void tdMenuController::draw()
 {
 	//draw menu
-	menus[activeMenu].draw(align,wand->getBaseMatrix());
+	menus[activeMenu]->draw(align,wand->getBaseMatrix());
 	//draw pointer
 	arVector3 ptr = handlePointer();
 	if(ptr != arVector3(0,0,0))
@@ -70,20 +73,20 @@ void tdMenuController::draw()
 		glEnd();
 		glPopMatrix();
 	}
-	menus[activeMenu].draw(align,wand->getBaseMatrix());
+	menus[activeMenu]->draw(align,wand->getBaseMatrix());
 }
 
 void tdMenuController::update(double time)
 {
-	menus[activeMenu].update(time - lastTime);
+	menus[activeMenu]->update(time - lastTime);
 	lastTime = time;
 	if(activeMenu != nextMenu)	//checks if menus are switching
 	{
-		menus[activeMenu].close();
-		if(!menus[activeMenu].isActive())	//checks if previous menu is already closed
+		menus[activeMenu]->close();
+		if(!menus[activeMenu]->isActive())	//checks if previous menu is already closed
 		{
 			activeMenu = nextMenu;
-			menus[activeMenu].open();
+			menus[activeMenu]->open();
 		}
 	}
 }
@@ -98,6 +101,11 @@ void tdMenuController::sync()
 	align = base * roll * pitch;
 }
 
+void tdMenuController::swap(int next)
+{
+	nextMenu = next;
+}
+
 arVector3 tdMenuController::handlePointer()
 {
 	arVector3 start = arVector3(0,0,0);	//origin of wand
@@ -106,7 +114,7 @@ arVector3 tdMenuController::handlePointer()
 	start = invert(align) * start;
 	unit = wand->getBaseMatrix() * unit;
 	unit = invert(align) * unit;
-	arVector3 end = menus[activeMenu].handlePointer(start, unit);
+	arVector3 end = menus[activeMenu]->handlePointer(start, unit);
 	if(end != arVector3(0,0,9001))
 	{
 		end = align * end;
@@ -118,38 +126,37 @@ arVector3 tdMenuController::handlePointer()
 
 void tdMenuController::handleEvents(string ext)
 {
-	//TODO: PARSING
+	//TODO: PARSING FOR EXT
 
-	///////////////////////////////////////////////////
-	//MENU BEHAVIOR SECTION: CHANGE TO CUSTOMIZE MENU//
-	///////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////
+	//SECTION CONTROLLING EFFECTS OF BUTTONS WITHOUT CONTEXT//
+	//////////////////////////////////////////////////////////
 
 	switch(activeMenu)
 	{
 	case 0:	//menu closed
-		if(wand->getOnButton(0))
+		if(wand->getOnButton(TD_MENU_TOGGLE))
 		{
 			this->sync();
 			nextMenu = 1;
 		}
 		break;
 	case 1:	//3-panel menu
-		if(wand->getOnButton(0))
+		if(wand->getOnButton(TD_MENU_TOGGLE))
 		{
 			nextMenu = 0;
-			menus[1].close();
 		}
-		else if(wand->getOnButton(1))
+		else if(wand->getOnButton(TD_BUTTON_2))
 		{
 			nextMenu = 2;
 		}
 		break;
 	case 2:	//side-by-side panels
-		if(wand->getOnButton(0))
+		if(wand->getOnButton(TD_MENU_TOGGLE))
 		{
 			nextMenu = 0;
 		}
-		else if(wand->getOnButton(1))
+		else if(wand->getOnButton(TD_BUTTON_2))
 		{
 			nextMenu = 1;
 		}
@@ -159,6 +166,8 @@ void tdMenuController::handleEvents(string ext)
 	}
 
 	////////////////////////////////
-	//END OF MENU BEHAVIOR SECTION//
+	//END OF BUTTON ACTION SECTION//
 	////////////////////////////////
+
+	menus[activeMenu]->handleEvents(this, activeMenu);
 }
