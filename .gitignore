@@ -91,3 +91,4 @@ $RECYCLE.BIN/
 src/neutrinos-backup.cpp
 src/neutrinos.cpp.rej
 src/tdmenucontroller.h.rej
+src/icecube.cpp.rej
