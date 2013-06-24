@@ -288,6 +288,7 @@
     <ClCompile Include="src\icecubeDataInput.cpp" />
     <ClCompile Include="src\icecubeGeometryInput.cpp" />
     <ClCompile Include="src\neutrinos.cpp" />
+    <ClCompile Include="src\tdevents.cpp" />
     <ClCompile Include="src\tdmenu.cpp" />
     <ClCompile Include="src\tdmenucontroller.cpp" />
   </ItemGroup>
@@ -514,6 +515,7 @@
     <ClInclude Include="src\icecube.h" />
     <ClInclude Include="src\icecubeDataInput.h" />
     <ClInclude Include="src\icecubeGeometryInput.h" />
+    <ClInclude Include="src\tdevents.h" />
     <ClInclude Include="src\tdmenu.h" />
     <ClInclude Include="src\tdmenucontroller.h" />
   </ItemGroup>

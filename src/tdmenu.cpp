@@ -3,11 +3,11 @@
 #include "tdmenu.h"
 #include "arGlut.h"
 
-const float MENU_SPEED = 0.15;	//the speed at which menu animations run
+const float MENU_SPEED = 0.15 / 5;	//the speed at which menu animations run
 const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pellet is during open/close)
 
 //color functions, alter to change color scheme
-void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.6);}
+void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.75);}
 void colorText()	{glColor4f(1.0, 1.0, 1.0, 1.0);}
 
 //Code adapted from MESA implementation of GLU library
@@ -136,11 +136,216 @@ arMatrix4 invert(arMatrix4 m)
     return arMatrix4(invOut);
 }
 
+void tdDrawBox(float x, float y, float z, float w, float h, float d)
+{
+	glBegin(GL_QUAD_STRIP);
+	glVertex3f(w/2+x,h/2+y,d/2+z);
+	glVertex3f(w/2+x,-h/2+y,d/2+z);
+	glVertex3f(w/2+x,h/2+y,-d/2+z);
+	glVertex3f(w/2+x,-h/2+y,-d/2+z);
+	glVertex3f(-w/2+x,h/2+y,-d/2+z);
+	glVertex3f(-w/2+x,-h/2+y,-d/2+z);
+	glVertex3f(-w/2+x,h/2+y,d/2+z);
+	glVertex3f(-w/2+x,-h/2+y,d/2+z);
+	glVertex3f(w/2+x,h/2+y,d/2+z);
+	glVertex3f(w/2+x,-h/2+y,d/2+z);
+	glEnd();
+	glBegin(GL_QUADS);
+	glVertex3f(-w/2+x,h/2+y,-d/2+z);
+	glVertex3f(-w/2+x,h/2+y,d/2+z);
+	glVertex3f(w/2+x,h/2+y,d/2+z);
+	glVertex3f(w/2+x,h/2+y,-d/2+z);
+	glVertex3f(-w/2+x,-h/2+y,d/2+z);
+	glVertex3f(-w/2+x,-h/2+y,-d/2+z);
+	glVertex3f(w/2+x,-h/2+y,-d/2+z);
+	glVertex3f(w/2+x,-h/2+y,d/2+z);
+	glEnd();
+}
+
 ////////////////////////////////////////////////////////////////////////////////
-//TDOBJECT METHODS
+//TDTEXTPANE METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
 
+
+////////////////////////////////////////////////////////////////////////////////
+//TDBUTTON METHODS
+////////////////////////////////////////////////////////////////////////////////
+
+tdButton::tdButton(float x, float y, float width, float height, float depth)
+{
+	this->x = x;
+	this->y = y;
+	this->width = width;
+	this->height = height;
+	this->cdepth = depth;
+	this->depth = depth;
+	this->cursor = false;
+	this->pushed = false;
+}
+
+void tdButton::draw()
+{
+	tdDrawBox(x, y, cdepth/2, width, height, cdepth);
+}
+
+void tdButton::update(double time)
+{
+	if(pushed)
+	{
+		cdepth -= MENU_SPEED * time;
+		if(cdepth < depth / 2)
+			cdepth = depth / 2;
+	}
+	else
+	{
+		cdepth += MENU_SPEED * time;
+		if(cdepth > depth)
+			cdepth = depth;
+	}
+	pushed = false;
+	cursor = false;
+}
+
+arVector3 tdButton::handlePointer(arVector3 endpt)
+{
+	if(endpt.v[0] >= x - width/2 && endpt.v[0] <= x + width/2 && endpt.v[1] >= y - height/2 && endpt.v[1] <= y + height/2)
+	{
+		cursor = true;
+		return arVector3(endpt.v[0],endpt.v[1],endpt.v[2]+cdepth);
+	}
+	return arVector3(0,0,9001);
+}
+
+void tdButton::handleEvents(tdMenuController* ct, int menu, int panel, int object)
+{
+	if(cursor)
+		handleEvent(ct,menu,panel,object,TD_BUTTON_CURSOR,this);
+	else
+		handleEvent(ct,menu,panel,object,TD_BUTTON_IDLE,this);
+}
+
+void tdButton::change(int code, float value, string msg)
+{
+	switch(code)
+	{
+	case TD_PUSH:
+		pushed = true;
+		break;
+	default:
+		break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//TDSLIDER METHODS
+////////////////////////////////////////////////////////////////////////////////
+
+tdSlider::tdSlider(float x, float y, float start, float end, float length, float height, float depth, float width)
+{
+	this->x = x;
+	this->y = y;
+	this->pos = ar_translationMatrix(x,y,0);
+	this->start = start;
+	this->end = end;
+	this->length = length;
+	this->height = height;
+	this->depth = depth;
+	this->width = width;
+	this->cpos = 0;
+	this->dpos = 0;
+	this->cursor = false;
+	this->isGrab = false;
+	this->wasGrab = false;
+}
+
+void tdSlider::draw()
+{
+	glPushMatrix();
+	glMultMatrixf(pos.v);
+	glBegin(GL_QUAD_STRIP);
+	for(int i = 100; i >= 0; i--)
+	{
+		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+		glVertex3f(length/2+width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+	}
+	glEnd();
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(-length/2-depth/2-width/2,0,0);
+	for(int i = 100; i >= 0; i--)
+		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+	glEnd();
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(length/2+depth/2+width/2,0,0);
+	for(int i = 0; i < 101; i++)
+		glVertex3f(length/2+width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+	glEnd();
+	tdDrawBox(cpos-length/2,0,depth/2,width,height,depth);
+
+	glPopMatrix();
+}
+
+void tdSlider::update(double time)
+{
+	if(dpos < 0) dpos = 0;
+	if(dpos > length) dpos = length;
+	if(cpos < dpos)
+	{
+		cpos += MENU_SPEED * time;
+		if(cpos > dpos)
+			cpos = dpos;
+	}
+	else if(cpos > dpos)
+	{
+		cpos -= MENU_SPEED * time;
+		if(cpos < dpos)
+			cpos = dpos;
+	}
+
+	cursor = false;
+	wasGrab = isGrab;
+	isGrab = false;
+}
+
+arVector3 tdSlider::handlePointer(arVector3 endpt)
+{
+	if(wasGrab)
+	{
+		dpos = endpt.v[0] - x + length/2;
+		return arVector3(x - length/2 + cpos, y, depth);
+	}
+	if(endpt.v[0] >= x - length/2 + cpos - width/2 && endpt.v[0] <= x - length/2 + cpos + width/2 && endpt.v[1] >= y - height/2 && endpt.v[1] <= y + height/2)
+	{
+		cursor = true;
+		return arVector3(endpt.v[0],endpt.v[1],endpt.v[2]+depth);
+	}
+	return arVector3(0,0,9001);
+}
+
+void tdSlider::handleEvents(tdMenuController* ct, int menu, int panel, int object)
+{
+	if(wasGrab)
+		handleEvent(ct,menu,panel,object,TD_SLIDER_DRAG,this);
+	else if(cursor)
+		handleEvent(ct,menu,panel,object,TD_SLIDER_CURSOR,this);
+	else
+		handleEvent(ct,menu,panel,object,TD_SLIDER_IDLE,this);
+}
+
+void tdSlider::change(int code, float value, string msg)
+{
+	switch(code)
+	{
+	case TD_GRAB:
+		isGrab = true;
+		break;
+	case TD_SETVAL:
+		dpos = value;
+		break;
+	default:
+		break;
+	}
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //TDPANEL METHODS
@@ -156,6 +361,7 @@ tdPanel::tdPanel(arVector3 center, float width, float height)
 	this->cheight = 0;
 	this->cmat = ar_translationMatrix(center);
 	this->tmat = ar_identityMatrix();
+	this->objects = vector<tdObject*>();
 }
 
 void tdPanel::tilt(arMatrix4 matrix)
@@ -163,34 +369,43 @@ void tdPanel::tilt(arMatrix4 matrix)
 	this->tmat = matrix;
 }
 
-void tdPanel::add(tdObject o)
+void tdPanel::add(tdObject* o)
 {
-	//TODO
+	this->objects.push_back(o);
 }
 
 void tdPanel::draw()
 {
 	if(phase != 0)	//only display panel if it's actually active
 	{
-		//glEnable(GL_CULL_FACE); dunno if want this, guess I'll see
+		glEnable(GL_CULL_FACE); //dunno if want this, guess I'll see
 		glEnable(GL_BLEND);
+		glDisable(GL_LIGHTING);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glPushMatrix();	//move to panel position
 		glMultMatrixf(cmat.v);
 		glMultMatrixf(tmat.v);
-		glPushMatrix();	//draw the panel
-		glMultMatrixf(ar_scaleMatrix(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS).v);
-		glMultMatrixf(ar_translationMatrix(0,0,-0.5).v);
+		//draw the panel
+		//glPushMatrix();	
+		//glScalef(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS);
+		//glTranslatef(0,0,-0.5);
 		colorPanel();
-		glutSolidCube(1);
-		glPopMatrix();
+		//glutSolidCube(1);
+		tdDrawBox(0, 0, -PANEL_THICKNESS/2, PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS);
+		//glPopMatrix();
 		if(cwidth > 0 && cheight > 0)
 		{
-			//TODO: draw other stuff (transform as needed first)
+			//glMultMatrixf(ar_translationMatrix(-cwidth/2, -cheight/2,0).v);	//would set origin to bottom-left corner
+			glScalef(cwidth/panew, cheight/paneh, 1);	//proportions drawing matrix to panel's current state of compression
+			for(int i = 0; i < objects.size(); i++)
+			{
+				objects[i]->draw();
+			}
 		}
 		glPopMatrix();
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
 	}
 }
 
@@ -246,6 +461,8 @@ void tdPanel::update(double time)
 		phase = 0;
 		break;
 	}
+	for(int i = 0; i < objects.size(); i++)
+		objects[i]->update(time);
 }
 
 void tdPanel::open()
@@ -286,13 +503,25 @@ arVector3 tdPanel::handlePointer(arVector3 start, arVector3 unit)
 		endpt = arVector3(nstart.v[0]+dir.v[0]*mag, nstart.v[1]+dir.v[1]*mag, nstart.v[2]+dir.v[2]*mag);
 		if(abs(endpt.v[0]) < (PANEL_THICKNESS + cwidth) / 2 && abs(endpt.v[1]) < (PANEL_THICKNESS + cheight) / 2)
 		{
-			//TODO: put object handling stuff here
+			arVector3 newend;
+			for(int i = 0; i < objects.size(); i++)
+			{
+				newend = objects[i]->handlePointer(endpt);
+				if(newend.v[2] != 9001)
+					endpt = newend;
+			}
 			endpt = tmat * endpt;
 			endpt = cmat * endpt;
 			return endpt;
 		}
 	}
 	return arVector3(0,0,9001);
+}
+
+void tdPanel::handleEvents(tdMenuController* ct, int menu, int panel)
+{
+	for(int i = 0; i < objects.size(); i++)
+		objects[i]->handleEvents(ct, menu, panel, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -319,16 +548,16 @@ arVector3 tdPanel::handlePointer(arVector3 start, arVector3 unit)
 
 tdMenu::tdMenu()
 {
-	this->panels = vector<tdPanel>();
-	this->wandPanels = vector<tdWandPanel>();
+	this->panels = vector<tdPanel*>();
+	this->wandPanels = vector<tdWandPanel*>();
 }
 
-void tdMenu::addPanel(tdPanel p)
+void tdMenu::addPanel(tdPanel* p)
 {
 	panels.push_back(p);
 }
 
-void tdMenu::addWandPanel(tdWandPanel p)
+void tdMenu::addWandPanel(tdWandPanel* p)
 {
 	//TODO
 }
@@ -339,14 +568,14 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 	glMultMatrixf(menualign.v);
 	for(int i = 0; i < panels.size(); i++)
 	{
-		panels[i].draw();
+		panels[i]->draw();
 	}
 	glPopMatrix();
 	glPushMatrix();	//align to wand and draw
 	glMultMatrixf(wandalign.v);
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i].draw();
+		//wandPanels[i]->draw();
 	}
 	glPopMatrix();
 }
@@ -355,11 +584,11 @@ void tdMenu::update(double time)
 {
 	for(int i = 0; i < panels.size(); i++)
 	{
-		panels[i].update(time);
+		panels[i]->update(time);
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i].update(time);
+		//wandPanels[i]->update(time);
 	}
 }
 
@@ -367,11 +596,11 @@ void tdMenu::open()
 {
 	for(int i = 0; i < panels.size(); i++)
 	{
-		panels[i].open();
+		panels[i]->open();
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i].open();
+		//wandPanels[i]->open();
 	}
 }
 
@@ -379,11 +608,11 @@ void tdMenu::close()
 {
 	for(int i = 0; i < panels.size(); i++)
 	{
-		panels[i].close();
+		panels[i]->close();
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i].close();
+		//wandPanels[i]->close();
 	}
 }
 
@@ -391,11 +620,11 @@ bool tdMenu::isActive()
 {
 	for(int i = 0; i < panels.size(); i++)
 	{
-		if(panels[i].isActive()) return true;
+		if(panels[i]->isActive()) return true;
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//if(wandPanels[i].isActive()) return true;
+		//if(wandPanels[i]->isActive()) return true;
 	}
 	return false;
 }
@@ -404,11 +633,11 @@ bool tdMenu::isOpen()
 {
 	for(int i = 0; i < panels.size(); i++)
 	{
-		if(!panels[i].isOpen()) return false;
+		if(!panels[i]->isOpen()) return false;
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//if(!wandPanels[i].isOpen()) return false;
+		//if(!wandPanels[i]->isOpen()) return false;
 	}
 	return false;
 }
@@ -417,16 +646,24 @@ arVector3 tdMenu::handlePointer(arVector3 start, arVector3 unit)
 {
 	arVector3 nstart = start;
 	arVector3 nunit = unit;
-	arVector3 endpt = arVector3();
+	arVector3 endpt = arVector3(0,0,9001);
 	for(int i = 0; i < panels.size(); i++)
 	{
-		endpt = panels[i].handlePointer(nstart, nunit);
+		if(panels[i]->isOpen())
+			endpt = panels[i]->handlePointer(nstart, nunit);
 		if(endpt != arVector3(0,0,9001))
 		{
 			return endpt;
 		}
 	}
 	return arVector3(0,0,9001);
+}
+
+void tdMenu::handleEvents(tdMenuController* ct, int menu)
+{
+	for(int i = 0; i < panels.size(); i++)
+		if(panels[i]->isOpen())
+			panels[i]->handleEvents(ct, menu, i);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
