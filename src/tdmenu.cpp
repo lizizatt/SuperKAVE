@@ -3,6 +3,7 @@
 #include "tdmenu.h"
 #include "arGlut.h"
 
+
 const float MENU_SPEED = 0.15 / 5;	//the speed at which menu animations run
 const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pellet is during open/close)
 
@@ -241,13 +242,12 @@ void tdButton::change(int code, float value, string msg)
 //TDSLIDER METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdSlider::tdSlider(float x, float y, float start, float end, float length, float height, float depth, float width)
+tdSlider::tdSlider(float x, float y, slidval* val, float length, float height, float depth, float width)
 {
 	this->x = x;
 	this->y = y;
 	this->pos = ar_translationMatrix(x,y,0);
-	this->start = start;
-	this->end = end;
+	this->val = val;
 	this->length = length;
 	this->height = height;
 	this->depth = depth;
@@ -336,8 +336,13 @@ void tdSlider::change(int code, float value, string msg)
 {
 	switch(code)
 	{
+	case TD_UPDATE:
+		cout << dpos;
+		dpos = (val->val - val->start) * length / (val->end - val->start);
+		break;
 	case TD_GRAB:
 		isGrab = true;
+		val->val = (cpos * (val->end - val->start) / length);
 		break;
 	case TD_SETVAL:
 		dpos = value;

@@ -6,14 +6,18 @@
 #include <vector>
 #include "arMasterSlaveFramework.h"
 
+
 //This class controls the menu system and its behavior. To alter the menu configuration, change the MenuController constructor and handleEvents functions
 class tdMenuController
 {
 public:
-	struct vars	//holds all values maintained by menu system
+	struct valuetable	//holds all values maintained by menu system
 	{
-		int time;	//time used by playback control	
-	};
+		slidval* time;
+		//float time;		//time used by playback control
+		//float time_s;		//start time value
+		//float time_f;		//final time value
+	}vars;
 	tdMenuController(){}	//default constructor doesn't do anything, need to give it a wand
 	tdMenuController(arEffector* wand);	//instantiates the menu controller AND sets up a hardcoded menu.
 	void draw();	//draws the currently-displayed menu
