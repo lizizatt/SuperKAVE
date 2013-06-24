@@ -48,3 +48,11 @@ void DataInput::getText(string filename){
 	cout << "initialized icecube event data" <<endl;
 	
 }
+
+void DataInput::getExtremeCharges(){
+
+}
+
+void DataInput::sortByTime(){
+
+}

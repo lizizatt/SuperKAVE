@@ -57,6 +57,280 @@ float red, green, blue;
 
 vector<color> eventColors;
 
+
+
+
+
+
+
+
+/////////////////////////////////////Sphere drawing algorithm////////////////////////////////////////////////
+
+GLuint texture[1];
+
+double angle = 0;
+
+typedef struct 
+{
+    
+int X;
+    
+int Y;
+    
+int Z;
+    
+
+    
+double U;
+    
+double V;
+}VERTICES;
+
+const double PI = 3.1415926535897;
+
+const int space = 10;
+
+const int VertexCount = (90 / space) * (360 / space) * 4;
+
+VERTICES VERTEX[VertexCount];
+
+GLuint LoadTextureRAW( const char * filename );
+
+void DisplaySphere (double R, bool youWantToTexture, GLuint texture){
+    
+int b;
+    
+
+    
+glScalef (0.0125 * R, 0.0125 * R, 0.0125 * R);
+    
+    
+    
+glRotatef (90, 1, 0, 0);
+    
+
+   if(youWantToTexture){ 
+glBindTexture (GL_TEXTURE_2D, texture);
+   }
+
+    
+glBegin (GL_TRIANGLE_STRIP);
+    
+for ( b = 0; b <= VertexCount; b++){
+        
+	 if(youWantToTexture){
+glTexCoord2f (VERTEX[b].U, VERTEX[b].V);
+	 }
+        
+glVertex3f (VERTEX[b].X, VERTEX[b].Y, -VERTEX[b].Z);
+    
+}
+    
+
+    
+for ( b = 0; b <= VertexCount; b++){
+         if(youWantToTexture){
+glTexCoord2f (VERTEX[b].U, -VERTEX[b].V);
+		 }
+        
+glVertex3f (VERTEX[b].X, VERTEX[b].Y, VERTEX[b].Z);
+    
+}
+    
+glEnd();
+}
+
+void CreateSphere (double R, double H, double K, double Z) {
+    
+int n;
+    
+double a;
+    
+double b;
+    
+
+    
+n = 0;
+    
+
+    
+for( b = 0; b <= 90 - space; b+=space){
+        
+    for( a = 0; a <= 360 - space; a+=space){
+            
+
+            
+VERTEX[n].X = R * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
+            
+VERTEX[n].Y = R * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
+            
+VERTEX[n].Z = R * cos((b) / 180 * PI) - Z;
+            
+VERTEX[n].V = (2 * b) / 360;
+            
+VERTEX[n].U = (a) / 360;
+            
+n++;
+            
+
+            
+VERTEX[n].X = R * sin((a) / 180 * PI) * sin((b + space) / 180 * PI
+            
+) - H;
+            
+VERTEX[n].Y = R * cos((a) / 180 * PI) * sin((b + space) / 180 * PI
+            
+) + K;
+            
+VERTEX[n].Z = R * cos((b + space) / 180 * PI) - Z;
+            
+VERTEX[n].V = (2 * (b + space)) / 360;
+            
+VERTEX[n].U = (a) / 360;
+            
+n++;
+            
+
+            
+VERTEX[n].X = R * sin((a + space) / 180 * PI) * sin((b) / 180 * PI
+            
+) - H;
+            
+VERTEX[n].Y = R * cos((a + space) / 180 * PI) * sin((b) / 180 * PI
+            
+) + K;
+            
+VERTEX[n].Z = R * cos((b) / 180 * PI) - Z;
+            
+VERTEX[n].V = (2 * b) / 360;
+            
+VERTEX[n].U = (a + space) / 360;
+            
+n++;
+            
+
+            
+VERTEX[n].X = R * sin((a + space) / 180 * PI) * sin((b + space) /
+            
+180 * PI) - H;
+            
+VERTEX[n].Y = R * cos((a + space) / 180 * PI) * sin((b + space) /
+            
+180 * PI) + K;
+            
+VERTEX[n].Z = R * cos((b + space) / 180 * PI) - Z;
+            
+VERTEX[n].V = (2 * (b + space)) / 360;
+            
+VERTEX[n].U = (a + space) / 360;
+            
+n++;
+            
+
+            
+    }
+    
+}
+}
+
+
+GLuint LoadTextureRAW( const char * filename )
+{
+    
+  GLuint texture;
+    
+  int width, height;
+    
+  unsigned char * data;
+    
+  FILE * file;
+    
+
+    
+  file = fopen( filename, "rb" );
+    
+  if ( file == NULL ) return 0;
+    
+
+    
+  width = 1024;
+    
+  height = 512;
+    
+  data = (unsigned char *)malloc( width * height * 3 );
+    
+
+    
+  fread( data, width * height * 3, 1, file );
+    
+  fclose( file );
+    
+
+    
+  glGenTextures( 1, &texture );
+    
+
+    
+  glBindTexture( GL_TEXTURE_2D, texture );
+    
+
+    
+  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
+    
+GL_MODULATE );
+    
+
+    
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+    
+ GL_LINEAR_MIPMAP_NEAREST );
+    
+
+    
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+    
+ GL_LINEAR );
+    
+
+    
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
+    
+GL_REPEAT );
+    
+  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
+    
+GL_REPEAT );
+    
+
+    
+  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height, 
+    
+GL_RGB, GL_UNSIGNED_BYTE, data );
+    
+
+    
+  free( data );
+    
+
+    
+  return texture;
+    
+
+} 
+
+
+//////////////////////////////End sphere drawing algorithm//////////////////////////////
+
+
+
+
+
+
+
+
+
+
+
 void findExtremeEventTimes(){
 	//Find extreme times
 	largestCharge = 0;
@@ -146,6 +420,8 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glDisable (GL_DEPTH_BUFFER);
 	glDisable (GL_DEPTH_TEST);
 	float chargeRadiusFactor = 1.f;
+
+	//DisplaySphere(5, false, 0);
 	//Draws the event data
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(timeCounter > event2Data.icecubeData.time[i]){
@@ -176,7 +452,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 			timeCounter-=10 - speedAdjuster;
 		}
 	}
-	cout << "time = " << timeCounter << endl;
+	//cout << "time = " << timeCounter << endl;
 
 
 	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
@@ -261,6 +537,9 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glutSolidCube(0.2f);
 	glRotatef(-45.0f, 0, 0, 1);
 
+	if(timeCounter > endTime){timeCounter = endTime;}
+	if(timeCounter < startTime){timeCounter = startTime;}
+
 	glTranslatef(8*float((float(timeCounter)-float(startTime))/float(timeSpan+expansionTime)) , 0.0, 0.5);
 	glColor3f(0.55f, 0.15f, 0.15f);
 	glRotatef(45.0f, 0, 0, 1);
@@ -308,6 +587,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   addTransferField("squareHighlighted", &_squareHighlightedTransfer, AR_INT, 1);
   addTransferField("squareMatrix", _squareMatrixTransfer.v, AR_FLOAT, 16);
 
+
   //JEDIT
   ct = tdMenuController(&_effector);
   //ENDJEDIT
@@ -328,7 +608,9 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   setNavRotSpeed( 30. );
   
   // set square's initial position
-  _square.setMatrix( ar_translationMatrix(0,5,-6) );
+  _square.setMatrix( ar_translationMatrix(0,5,-16) );
+
+  
 
   /*const arMatrix4 ident;
   dsTransform( "sound scale", getNavNodeName(), ar_scaleMatrix(1) );
@@ -379,10 +661,10 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   GLfloat fogDensity = 0.01f; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
 	
-	//GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
-	GLfloat mat_shininess[] = { 10.0 };
+	GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
+	GLfloat mat_shininess[] = { 100.0 };
 
-	//glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
 	glEnable (GL_FOG); //enable the fog
@@ -395,16 +677,29 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
 	glHint (GL_FOG_HINT, GL_NICEST);
 
-	GLfloat light_position[] = { 0.0, 0.0, 500.0, 0.0 };
+	GLfloat light_position[] = { 0.0, 0.0, -0.01, 0.0 };
+	GLfloat light_position2[] = { 0.0, 0.0, 0.01, 0.0 };
 	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel (GL_SMOOTH);
 
-	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diffuse);
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+
+	glShadeModel (GL_SMOOTH);
+
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, light_diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position2);
 
 	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT0);
+
+	CreateSphere(10, 1, 1, 1);
+	
 	
 }
 
@@ -566,3 +861,12 @@ void IceCubeFramework::onWindowEvent( arGUIWindowInfo* winInfo ) {
     getWindowManager()->setWindowViewport( windowID, 0, 0, width, height );
   }
 }
+
+
+
+
+
+
+
+
+
