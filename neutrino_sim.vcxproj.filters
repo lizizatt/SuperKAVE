@@ -645,10 +645,10 @@
     <ClCompile Include="src\tdmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tdmenucontroller.cpp">
-      <Filter>Syzygy</Filter>
-    </ClCompile>
     <ClCompile Include="src\tdevents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenucontroller.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

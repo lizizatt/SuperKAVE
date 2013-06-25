@@ -173,7 +173,7 @@ void tdDrawBox(float x, float y, float z, float w, float h, float d)
 //TDBUTTON METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdButton::tdButton(float x, float y, float width, float height, float depth)
+tdButton::tdButton(float x, float y, float width, float height, float depth, int actioncode)
 {
 	this->x = x;
 	this->y = y;
@@ -183,6 +183,7 @@ tdButton::tdButton(float x, float y, float width, float height, float depth)
 	this->depth = depth;
 	this->cursor = false;
 	this->pushed = false;
+	this->actioncode = actioncode;
 }
 
 void tdButton::draw()
@@ -257,6 +258,7 @@ tdSlider::tdSlider(float x, float y, slidval* val, float length, float height, f
 	this->cursor = false;
 	this->isGrab = false;
 	this->wasGrab = false;
+	this->actioncode = 0;
 }
 
 void tdSlider::draw()
@@ -342,7 +344,7 @@ void tdSlider::change(int code, float value, string msg)
 		break;
 	case TD_GRAB:
 		isGrab = true;
-		val->val = (cpos * (val->end - val->start) / length);
+		val->val = (cpos * (val->end - val->start) / length) + val->start;
 		break;
 	case TD_SETVAL:
 		dpos = value;

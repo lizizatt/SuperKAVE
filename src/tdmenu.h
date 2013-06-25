@@ -28,7 +28,9 @@ public:
 	virtual arVector3 handlePointer(arVector3 endpt){return arVector3(0,0,9001);}	//checks if pointer is on object, if so, can "hijack" pointer location
 	virtual void handleEvents(tdMenuController* ct, int menu, int panel, int object){}
 	virtual void change(int code, float value = 0, string msg = ""){}	//called by handleEvents function, used to alter values, flags, etc
+	virtual int getAction(){return this->actioncode;}
 protected:
+	int actioncode;	//objects that perform scripted actions (like buttons) are identified by codes
 };
 
 //A text pane, displays text
@@ -42,7 +44,7 @@ protected:
 class tdButton : public tdObject
 {
 public:
-	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1);
+	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1, int actioncode = 0);
 	virtual void draw();
 	virtual void update(double time);
 	virtual arVector3 handlePointer(arVector3 endpt);
