@@ -177,18 +177,19 @@ void findExtremeEventTimes(){
 }
 
   
-void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
+void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHTING);
 
 	//glScalef(3.281f, 3.281f, 3.281f);
 
-	//arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
+	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
 	//cout << "userPosition[0] = " << userPosition[0] << endl;
-	
+  //fw->getMatrix(0); //12, 13, 14 to get user's position
+
   glPushMatrix();
-    glMultMatrixf( getMatrix().v );
+    glMultMatrixf(getMatrix().v );
     // set one of two colors depending on if this object has been selected for interaction
     if (getHighlight()) {
       glColor3f( 0,1,0 );
@@ -217,10 +218,10 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 
 	int numDrawn = 0;
 	
-	//glEnable (GL_BLEND); 
-	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable (GL_DEPTH_BUFFER);
-	glDisable (GL_DEPTH_TEST);
+	glEnable (GL_BLEND); 
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glDisable (GL_DEPTH_BUFFER);
+	//glDisable (GL_DEPTH_TEST);
 	float chargeRadiusFactor = 1.f;
 
 	//DisplaySphere(5, false, 0);
@@ -230,22 +231,21 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin(ct.vars.time->val - event2Data.icecubeData.time[i]));    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
 			//Expansion animation of event data
-<<<<<<< HEAD
-			if(timeCounter-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((timeCounter-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-=======
+			//glRotatef(ct.vars.time->val, 0, 0, 1);
 			if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
->>>>>>> 4786f002d29342e49e923646f32bd093f6ebdb6d
-			else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}			
+			//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+			else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
+			//glRotatef(-ct.vars.time->val, 0, 0, 1);
 			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
 		}
 	}
 
 	glEnable (GL_DEPTH_BUFFER);
 	glEnable (GL_DEPTH_TEST);
-	//glDisable (GL_BLEND);
+	glDisable (GL_BLEND);
 	//glEnable (GL_DEPTH_BUFFER);
 	//Time increments for forward and backward animation
 	if(playForward){
@@ -459,6 +459,9 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
  // qObj = gluNewQuadric();
 
+  ct.vars.time->start = 999999;ct.vars.time->end = 0;		
+			eventColors.clear();
+			event2Data.~DataInput();
   geometryData.getText();
   event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
   findExtremeEventTimes();
@@ -482,8 +485,8 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
 	glHint (GL_FOG_HINT, GL_NICEST);
 
-	GLfloat light_position[] = { 0.0, 0.0, -0.01, 0.0 };
-	GLfloat light_position2[] = { 0.0, 0.0, 0.01, 0.0 };
+	GLfloat light_position[] = { 0.0, 0.0, 0.0, 0.0 };
+	GLfloat light_position2[] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel (GL_SMOOTH);
@@ -500,7 +503,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position2);
 
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT0);
 	
 	
