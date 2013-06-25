@@ -185,10 +185,13 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 	//glScalef(3.281f, 3.281f, 3.281f);
 
 	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
-	//cout << "userPosition[0] = " << userPosition[0] << endl;
-  //fw->getMatrix(0); //12, 13, 14 to get user's position
+	//cout << "userPosition (x,y,z) = (" << userPosition[12] << ", " << userPosition[14] << ", " << userPosition[13] << ")" << endl; //12 (initial x direction), 13 (vertical), 14 (initial z direction) to get user's position
+  //fw->getMatrix(0); //12 (some 2D movement), 13 (vertical), 14 to get user's position
+	//fw->getMatrix(0);
+	//cout << "uP[0] = " << uP[0] << endl;
 
   glPushMatrix();
+   
     glMultMatrixf(getMatrix().v );
     // set one of two colors depending on if this object has been selected for interaction
     if (getHighlight()) {
@@ -211,6 +214,18 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 
 	glScalef(3.281f, 3.281f, 3.281f);
 
+	glBegin( GL_LINES );	
+		glColor3f(1.0f, 0.0f, 0.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 0,0,100 );
+	  glColor3f(0.0f, 0.0f, 1.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 100,0,0 );
+	  glColor3f(1.0f, 1.0f, 0.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 0,100,0 );
+    glEnd();
+
 	
 	//drawsphere(1, 1.0f);
 
@@ -224,6 +239,9 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 	//glDisable (GL_DEPTH_TEST);
 	float chargeRadiusFactor = 1.f;
 
+	float sphereX, sphereY, sphereZ;
+	float diffX, diffY, diffZ;
+
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
@@ -231,15 +249,23 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin(ct.vars.time->val - event2Data.icecubeData.time[i]));    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
-			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
-			//Expansion animation of event data
-			//glRotatef(ct.vars.time->val, 0, 0, 1);
-			if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-			//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-			else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
-			//glRotatef(-ct.vars.time->val, 0, 0, 1);
-			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
+			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);   //, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.24);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
+			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
+			//cout << "diffZ = " << diffZ << endl;
+			if(diffX*diffX + diffY*diffY < 25 && diffZ*diffZ < 25){
+				//cout << "diffZ = " << diffZ << endl;
+				glTranslatef(sphereX, sphereY, sphereZ);
+				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
+			
+				//Expansion animation of event data
+				//glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
+				//glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				glTranslatef(-sphereX, -sphereY, -sphereZ);
+			}
 		}
 	}
 
@@ -286,30 +312,50 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 	//Draws the Icecube detector grid
 	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
 		glColor3f(0.25f, 0.25f, 0.25f);
-		if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
-		if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
-		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glutSolidSphere(0.55f/scaleDownSphere, 4, 4);
-		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		}
-		else{
-		glTranslatef(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glutSolidSphere(0.35f/scaleDownSphere, 4, 4);
-		glTranslatef(-geometryData.icecubeGeometry.xCoord[i]/fDownScale, -geometryData.icecubeGeometry.yCoord[i]/fDownScale, geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-		glBegin(GL_LINES);
-		if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
-			glColor3f(0.75f, 0.75f, 0.75f);
-			if(geometryData.icecubeGeometry.modules[i] == 60){
-				glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
-				glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+		sphereX=geometryData.icecubeGeometry.xCoord[i]/fDownScale;sphereY=geometryData.icecubeGeometry.yCoord[i]/fDownScale;sphereZ=-geometryData.icecubeGeometry.zCoord[i]/fDownScale;
+		diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 -sphereZ - userPosition[13]/3.281;
+		if(diffX*diffX + diffY*diffY< 16 && diffZ*diffZ < 16){
+			
+			if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
+			if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
+			glTranslatef(sphereX, sphereY, sphereZ);
+			glutSolidSphere(0.55f/scaleDownSphere, 4, 4);
+			glTranslatef(-sphereX, -sphereY, -sphereZ);
 			}
 			else{
-				glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-				glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+			glTranslatef(sphereX, sphereY, sphereZ);
+			glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+			glTranslatef(-sphereX, -sphereY, -sphereZ);
+			glBegin(GL_LINES);
+			if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
+				glColor3f(0.75f, 0.75f, 0.75f);
+				if(geometryData.icecubeGeometry.modules[i] == 60){
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+				}
+				else{
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+				}
+			}
+			glEnd();
+		
 			}
 		}
-		glEnd();
-		
+		else{
+			glBegin(GL_LINES);
+			if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
+				glColor3f(0.75f, 0.75f, 0.75f);
+				if(geometryData.icecubeGeometry.modules[i] == 60){
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+				}
+				else{
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
+					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
+				}
+			}
+			glEnd();
 		}
 	}
   glPopMatrix();
@@ -466,7 +512,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
   findExtremeEventTimes();
 
-  GLfloat fogDensity = 0.01f; 
+  GLfloat fogDensity = 0.1f; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
 	
 	GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
