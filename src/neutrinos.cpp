@@ -6,9 +6,15 @@
 //  -Ben Izatt
 // bji@berkeley.edu
 
-
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
+
+#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+
+#ifdef ICECUBE
+#include "icecube.h"
+#endif
+
 // MUST come before other szg includes. See arCallingConventions.h for details.
 #define SZG_DO_NOT_EXPORT
 #include <stdio.h>
@@ -19,6 +25,9 @@
 #include "arGlut.h"
 #include "arGraphicsHeader.h" //include gl.h
 
+#ifdef WINNEUTRINO
+#include <time.h>
+#endif
 
 // The class containing all the relevant information about each dot
 class dot {
@@ -164,9 +173,15 @@ arVector3 add(arVector3 a, arVector3 b){
 	return arVector3(a[0]+b[0], a[1]+b[1], a[2]+b[2]);
 }
 
+#ifdef WINNEUTRINO
+float magnitude(arVector3& a){
+	return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
+}
+#else
 float magnitude(arVector3 a){
 	return sqrt(a[0]*a[0] + a[1]*a[1] + a[2]*a[2]);
-	}
+}
+#endif
 
 double dotProduct(arVector3 a, arVector3 b){
 	return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -182,12 +197,14 @@ arVector3 normalize(arVector3 a){
 }
 
 //absolute value function to deal with a stupid compilation issue (b/c there's an abs(double) function in more than one of our imported libraries?)
+#ifndef WINNEUTRINO
 double abs(double in){
 	if(in > 0.0){
 		return in;
 	}
 	return in * -1.0;
 }
+#endif
 
 //returns color of dots based on whether charge or time are the metrics for coloring.
 arVector3 dotColor(dot d) {
@@ -477,26 +494,23 @@ void drawScene(arMasterSlaveFramework& framework)
 	gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 50, 30); //inner cylinder wireframe
 
 	//wireframe caps:
+	glColor3f(1.0f,1.0f,1.0f);
+	glBegin(GL_LINES);
 	for(int i = 0; i < 2; i++){
-		glColor3f(1.0f,1.0f,1.0f);
 		int num_verticies = 50;
 		for(double j = PI/num_verticies; j < PI; j+=(2*PI/num_verticies)){
-			glBegin(GL_LINES);
 			glVertex3f(RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
 			glVertex3f(RADIUS*cos(j),-RADIUS*sin(j),i*HEIGHT-0.1);
-			glEnd();    
 		}
 	}
 	for(int i = 0; i < 2; i++){
-		glColor3f(1.0f,1.0f,1.0f);
 		int num_verticies = 50;
 		for(double j = PI/num_verticies; j < 2*PI; j+=(2*PI/num_verticies)){
-			glBegin(GL_LINES);
 			glVertex3f(RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
 			glVertex3f(-RADIUS*cos(j),RADIUS*sin(j),i*HEIGHT-0.1);
-			glEnd();   
 		} 
 	}
+	glEnd();
 
 	//draw the dots
 	gluQuadricDrawStyle(quadObj, GLU_FILL);
@@ -591,7 +605,7 @@ void drawScene(arMasterSlaveFramework& framework)
 
 				glEnable (GL_BLEND); 
 				glLineWidth(3.0);
-				//draw ring points, if they are memoized already
+				//draw ring points, if they are memorized already
 				if(currentDots.haveRingPoints[i]){//this trades memory for processing...we only generate the points on the first frame of an event, then save them.
 					//and, if we come back to the event, we still don't need to redo it!  unless we tell it to by changing haveRingPoints to false
 					for(int c = 0; c < 2; c++){
@@ -785,7 +799,11 @@ void loadNextEvent(void) {
 					currentDots.coneDirection.push_back(coneDirHold);
 
 					//calculate angle
+#ifdef WINNEUTRINO
+					double momentumConverted = momentum[i] * pow(10.0,6) * 1.6e-19 / 2.998e8;
+#else
 					double momentumConverted = momentum[i] * pow(10,6) * 1.6e-19 / 2.998e8;
+#endif
 					double mass = electronMass;  //assume electron to start .. ID of electron is 11 / -11
 					double cherenkovThreshold = cherenkovElectronThreshold;
 					if(abs(currentDots.particleType[i]) == 13){  //id 13 and -13 is muon
@@ -2054,6 +2072,8 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfo ) {
 }
 
 int main(int argc, char** argv) {
+
+#ifndef ICECUBE
 	filename = "temp";
 	if(argc > 1){
 		filename = argv[1];
@@ -2096,7 +2116,17 @@ int main(int argc, char** argv) {
 	if (!framework.init(argc, argv)) {
 		return 1;
 	}
+#else
+	IceCubeFramework framework;
+	// Tell the framework what units we're using.
+	framework.setUnitConversion(FEET_TO_LOCAL_UNITS);
+	framework.setClipPlanes(nearClipDistance, farClipDistance);
 
+	if (!framework.init(argc, argv)) {
+		return 1;
+	}
+
+#endif
 
 	// Never returns unless something goes wrong
 	return framework.start() ? 0 : 1;

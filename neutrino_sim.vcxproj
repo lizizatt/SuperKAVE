@@ -1,0 +1,528 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{EF40D0A3-AE53-4AFC-A79D-9893E5704B16}</ProjectGuid>
+    <RootNamespace>neutrino_sim</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <AdditionalIncludeDirectories>..\..\..\external\win32\fmod-4\include;..\..\..\external\win32\glut-3.7-vc\include;..\..\..\external\win32\glew-1.9.0\include;..\barrier;..\drivers;..\framework;..\graphics;..\interaction;..\language;..\math;..\model;..\phleet;..\sound;..\utilities</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EnableSound;_CRT_SECURE_NO_WARNINGS;WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>arPrecompiled.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>arPrecompiled.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalDependencies>fmodex_vc.lib;glew32.lib;wsock32.lib;glut32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\external\win32\fmod-4\lib;..\..\..\external\win32\glut-3.7-vc\lib;..\..\..\external\win32\glew-1.9.0\lib;</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\bin\win32\$(TargetName)$(TargetExt)</Command>
+    </PostBuildEvent>
+    <PostBuildEvent>
+      <Message>copying to main syzygy bin directory...</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <AdditionalIncludeDirectories>..\..\..\external\win32\fmod-4\include;..\..\..\external\win32\glut-3.7-vc\include;..\..\..\external\win32\glew-1.9.0\include;..\barrier;..\drivers;..\framework;..\graphics;..\interaction;..\language;..\math;..\model;..\phleet;..\sound;..\utilities</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>EnableSound;_CRT_SECURE_NO_WARNINGS;WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>arPrecompiled.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>arPrecompiled.pch</PrecompiledHeaderOutputFile>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalDependencies>fmodex_vc.lib;glew32.lib;wsock32.lib;glut32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>..\..\..\external\win32\fmod-4\lib;..\..\..\external\win32\glut-3.7-vc\lib;..\..\..\external\win32\glew-1.9.0\lib;</AdditionalLibraryDirectories>
+    </Link>
+    <PostBuildEvent>
+      <Command>copy $(OutDir)$(TargetName)$(TargetExt) ..\..\bin\win32\$(TargetName)$(TargetExt)</Command>
+      <Message>copying to main syzygy bin directory...</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="..\barrier\arBarrierClient.cpp" />
+    <ClCompile Include="..\barrier\arBarrierServer.cpp" />
+    <ClCompile Include="..\barrier\arSyncDataClient.cpp" />
+    <ClCompile Include="..\barrier\arSyncDataServer.cpp" />
+    <ClCompile Include="..\drivers\ar5DTGloveDriver.cpp" />
+    <ClCompile Include="..\drivers\arBirdWinDriver.cpp" />
+    <ClCompile Include="..\drivers\arConstantHeadFilter.cpp" />
+    <ClCompile Include="..\drivers\arDeviceServerFramework.cpp" />
+    <ClCompile Include="..\drivers\arEVaRTDriver.cpp" />
+    <ClCompile Include="..\drivers\arEventUtilities.cpp" />
+    <ClCompile Include="..\drivers\arFaroCalFilter.cpp" />
+    <ClCompile Include="..\drivers\arFaroDriver.cpp" />
+    <ClCompile Include="..\drivers\arFileSink.cpp" />
+    <ClCompile Include="..\drivers\arFileSource.cpp" />
+    <ClCompile Include="..\drivers\arFOBDriver.cpp" />
+    <ClCompile Include="..\drivers\arGenericDriver.cpp" />
+    <ClCompile Include="..\drivers\arInputEvent.cpp" />
+    <ClCompile Include="..\drivers\arInputEventQueue.cpp" />
+    <ClCompile Include="..\drivers\arInputFactory.cpp" />
+    <ClCompile Include="..\drivers\arInputLanguage.cpp" />
+    <ClCompile Include="..\drivers\arInputNode.cpp" />
+    <ClCompile Include="..\drivers\arInputNodeConfig.cpp" />
+    <ClCompile Include="..\drivers\arInputSource.cpp" />
+    <ClCompile Include="..\drivers\arInputState.cpp" />
+    <ClCompile Include="..\drivers\arIntersenseDriver.cpp" />
+    <ClCompile Include="..\drivers\arIOFilter.cpp" />
+    <ClCompile Include="..\drivers\arJoystickDriver.cpp" />
+    <ClCompile Include="..\drivers\arLogitechDriver.cpp" />
+    <ClCompile Include="..\drivers\arMotionstarDriver.cpp" />
+    <ClCompile Include="..\drivers\arNetInputSink.cpp" />
+    <ClCompile Include="..\drivers\arNetInputSource.cpp" />
+    <ClCompile Include="..\drivers\arParallelSwitchDriver.cpp" />
+    <ClCompile Include="..\drivers\arPForth.cpp" />
+    <ClCompile Include="..\drivers\arPForthDatabaseVocabulary.cpp" />
+    <ClCompile Include="..\drivers\arPForthEventVocabulary.cpp" />
+    <ClCompile Include="..\drivers\arPForthFilter.cpp" />
+    <ClCompile Include="..\drivers\arPForthStandardVocabulary.cpp" />
+    <ClCompile Include="..\drivers\arPPTDriver.cpp" />
+    <ClCompile Include="..\drivers\arReactionTimerDriver.cpp" />
+    <ClCompile Include="..\drivers\arSerialSwitchDriver.cpp" />
+    <ClCompile Include="..\drivers\arSharedMemDriver.cpp" />
+    <ClCompile Include="..\drivers\arSharedMemSinkDriver.cpp" />
+    <ClCompile Include="..\drivers\arSpacepadDriver.cpp" />
+    <ClCompile Include="..\drivers\arTrackCalFilter.cpp" />
+    <ClCompile Include="..\drivers\arUSBDriver.cpp" />
+    <ClCompile Include="..\drivers\arVRPNDriver.cpp" />
+    <ClCompile Include="..\drivers\arWiimoteDriver.cpp" />
+    <ClCompile Include="..\drivers\isense.cpp" />
+    <ClCompile Include="..\framework\arAppLauncher.cpp" />
+    <ClCompile Include="..\framework\arController.cpp" />
+    <ClCompile Include="..\framework\arDistSceneGraphFramework.cpp" />
+    <ClCompile Include="..\framework\arFlyingGravisController.cpp" />
+    <ClCompile Include="..\framework\arFrameworkEventFilter.cpp" />
+    <ClCompile Include="..\framework\arInputSimulator.cpp" />
+    <ClCompile Include="..\framework\arInputSimulatorFactory.cpp" />
+    <ClCompile Include="..\framework\arInteractableThing.cpp" />
+    <ClCompile Include="..\framework\arMasterSlaveDataRouter.cpp" />
+    <ClCompile Include="..\framework\arMasterSlaveFramework.cpp" />
+    <ClCompile Include="..\framework\arRoutableTemplate.cpp" />
+    <ClCompile Include="..\framework\arSZGAppFramework.cpp" />
+    <ClCompile Include="..\graphics\arBillboardNode.cpp" />
+    <ClCompile Include="..\graphics\arBlendNode.cpp" />
+    <ClCompile Include="..\graphics\arBoundingSphereNode.cpp" />
+    <ClCompile Include="..\graphics\arBumpMap.cpp" />
+    <ClCompile Include="..\graphics\arBumpMapNode.cpp" />
+    <ClCompile Include="..\graphics\arCamera.cpp" />
+    <ClCompile Include="..\graphics\arColor4Node.cpp" />
+    <ClCompile Include="..\graphics\arDrawableNode.cpp" />
+    <ClCompile Include="..\graphics\arFramelockUtilities.cpp" />
+    <ClCompile Include="..\graphics\arFramerateGraph.cpp" />
+    <ClCompile Include="..\graphics\arFrameworkObject.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutFont.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutFontData.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutMonoRoman.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutRenderFuncs.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutRoman.cpp" />
+    <ClCompile Include="..\graphics\arFreeGlutTeapot.cpp" />
+    <ClCompile Include="..\graphics\arFrustumCamera.cpp" />
+    <ClCompile Include="..\graphics\arGluCylinder.cpp" />
+    <ClCompile Include="..\graphics\arGluDisk.cpp" />
+    <ClCompile Include="..\graphics\arGluQuadric.cpp" />
+    <ClCompile Include="..\graphics\arGluSphere.cpp" />
+    <ClCompile Include="..\graphics\arGluTessObject.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsAPI.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsArrayNode.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsClient.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsContext.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsDatabase.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsLanguage.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsNode.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsPeer.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsPeerRPC.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsPluginNode.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsScreen.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsServer.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsStateNode.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsUtilities.cpp" />
+    <ClCompile Include="..\graphics\arGraphicsWindow.cpp" />
+    <ClCompile Include="..\graphics\arGUIEventManager.cpp" />
+    <ClCompile Include="..\graphics\arGUIInfo.cpp" />
+    <ClCompile Include="..\graphics\arGUIWindow.cpp" />
+    <ClCompile Include="..\graphics\arGUIWindowManager.cpp" />
+    <ClCompile Include="..\graphics\arGUIXMLParser.cpp" />
+    <ClCompile Include="..\graphics\arHead.cpp" />
+    <ClCompile Include="..\graphics\arIndexNode.cpp" />
+    <ClCompile Include="..\graphics\arLargeImage.cpp" />
+    <ClCompile Include="..\graphics\arLight.cpp" />
+    <ClCompile Include="..\graphics\arLightNode.cpp" />
+    <ClCompile Include="..\graphics\arMaterial.cpp" />
+    <ClCompile Include="..\graphics\arMaterialNode.cpp" />
+    <ClCompile Include="..\graphics\arMesh.cpp" />
+    <ClCompile Include="..\graphics\arNormal3Node.cpp" />
+    <ClCompile Include="..\graphics\arOrthoCamera.cpp" />
+    <ClCompile Include="..\graphics\arPerspectiveCamera.cpp" />
+    <ClCompile Include="..\graphics\arPerspectiveCameraNode.cpp" />
+    <ClCompile Include="..\graphics\arPointsNode.cpp" />
+    <ClCompile Include="..\graphics\arRay.cpp" />
+    <ClCompile Include="..\graphics\arTex2Node.cpp" />
+    <ClCompile Include="..\graphics\arTexFont.cpp" />
+    <ClCompile Include="..\graphics\arTexture.cpp" />
+    <ClCompile Include="..\graphics\arTextureNode.cpp" />
+    <ClCompile Include="..\graphics\arTransformNode.cpp" />
+    <ClCompile Include="..\graphics\arViewerNode.cpp" />
+    <ClCompile Include="..\graphics\arViewport.cpp" />
+    <ClCompile Include="..\graphics\arVisibilityNode.cpp" />
+    <ClCompile Include="..\graphics\arVRCamera.cpp" />
+    <ClCompile Include="..\interaction\arCallbackInteractable.cpp" />
+    <ClCompile Include="..\interaction\arDragBehavior.cpp" />
+    <ClCompile Include="..\interaction\arDragManager.cpp" />
+    <ClCompile Include="..\interaction\arEffector.cpp" />
+    <ClCompile Include="..\interaction\arGrabCondition.cpp" />
+    <ClCompile Include="..\interaction\arInteractable.cpp" />
+    <ClCompile Include="..\interaction\arInteractionSelector.cpp" />
+    <ClCompile Include="..\interaction\arInteractionUtilities.cpp" />
+    <ClCompile Include="..\interaction\arInterfaceObject.cpp" />
+    <ClCompile Include="..\interaction\arNavManager.cpp" />
+    <ClCompile Include="..\interaction\arUniqueInteractor.cpp" />
+    <ClCompile Include="..\language\arDatabase.cpp" />
+    <ClCompile Include="..\language\arDatabaseLanguage.cpp" />
+    <ClCompile Include="..\language\arDatabaseNode.cpp" />
+    <ClCompile Include="..\language\arDataClient.cpp" />
+    <ClCompile Include="..\language\arDataPoint.cpp" />
+    <ClCompile Include="..\language\arDataServer.cpp" />
+    <ClCompile Include="..\language\arDataTemplate.cpp" />
+    <ClCompile Include="..\language\arDataUtilities.cpp" />
+    <ClCompile Include="..\language\arFileTextStream.cpp" />
+    <ClCompile Include="..\language\arLanguage.cpp" />
+    <ClCompile Include="..\language\arLightFloatBuffer.cpp" />
+    <ClCompile Include="..\language\arLogStream.cpp" />
+    <ClCompile Include="..\language\arPrecompiled.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">arPrecompiled.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">arPrecompiled.pch</PrecompiledHeaderOutputFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\language\arQueuedData.cpp" />
+    <ClCompile Include="..\language\arRS232Port.cpp" />
+    <ClCompile Include="..\language\arSharedLib.cpp" />
+    <ClCompile Include="..\language\arSocket.cpp" />
+    <ClCompile Include="..\language\arSocketAddress.cpp" />
+    <ClCompile Include="..\language\arSocketTextStream.cpp" />
+    <ClCompile Include="..\language\arStructuredData.cpp" />
+    <ClCompile Include="..\language\arStructuredDataParser.cpp" />
+    <ClCompile Include="..\language\arTemplateDictionary.cpp" />
+    <ClCompile Include="..\language\arThread.cpp" />
+    <ClCompile Include="..\language\arUDPSocket.cpp" />
+    <ClCompile Include="..\language\arVersion.cpp" />
+    <ClCompile Include="..\language\arXMLParser.cpp" />
+    <ClCompile Include="..\language\arXMLUtilities.cpp" />
+    <ClCompile Include="..\math\arMath.cpp" />
+    <ClCompile Include="..\math\arNavigationUtilities.cpp" />
+    <ClCompile Include="..\model\ar3DS.cpp" />
+    <ClCompile Include="..\model\arHTR.cpp" />
+    <ClCompile Include="..\model\arHTRParsing.cpp" />
+    <ClCompile Include="..\model\arOBJ.cpp" />
+    <ClCompile Include="..\model\arObject.cpp" />
+    <ClCompile Include="..\model\arObjectUtilities.cpp" />
+    <ClCompile Include="..\model\arOBJParsing.cpp" />
+    <ClCompile Include="..\model\arOBJSmoothingGroup.cpp" />
+    <ClCompile Include="..\phleet\arPhleetConfig.cpp" />
+    <ClCompile Include="..\phleet\arPhleetConfigLanguage.cpp" />
+    <ClCompile Include="..\phleet\arPhleetConnectionBroker.cpp" />
+    <ClCompile Include="..\phleet\arPhleetOSLanguage.cpp" />
+    <ClCompile Include="..\phleet\arPhleetTemplate.cpp" />
+    <ClCompile Include="..\phleet\arSZGClient.cpp" />
+    <ClCompile Include="..\sound\arPlayerNode.cpp" />
+    <ClCompile Include="..\sound\arSoundAPI.cpp" />
+    <ClCompile Include="..\sound\arSoundClient.cpp" />
+    <ClCompile Include="..\sound\arSoundDatabase.cpp" />
+    <ClCompile Include="..\sound\arSoundFile.cpp" />
+    <ClCompile Include="..\sound\arSoundFileNode.cpp" />
+    <ClCompile Include="..\sound\arSoundLanguage.cpp" />
+    <ClCompile Include="..\sound\arSoundNode.cpp" />
+    <ClCompile Include="..\sound\arSoundServer.cpp" />
+    <ClCompile Include="..\sound\arSoundTransformNode.cpp" />
+    <ClCompile Include="..\sound\arSpeakerObject.cpp" />
+    <ClCompile Include="..\sound\arSpeechNode.cpp" />
+    <ClCompile Include="..\sound\arStreamNode.cpp" />
+    <ClCompile Include="..\sound\arTTS.cpp" />
+    <ClCompile Include="src\icecube.cpp" />
+    <ClCompile Include="src\icecubeDataInput.cpp" />
+    <ClCompile Include="src\icecubeGeometryInput.cpp" />
+    <ClCompile Include="src\neutrinos.cpp" />
+    <ClCompile Include="src\tdevents.cpp" />
+    <ClCompile Include="src\tdmenu.cpp" />
+    <ClCompile Include="src\tdmenucontroller.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\barrier\arBarrierCalling.h" />
+    <ClInclude Include="..\barrier\arBarrierClient.h" />
+    <ClInclude Include="..\barrier\arBarrierServer.h" />
+    <ClInclude Include="..\barrier\arSyncDataClient.h" />
+    <ClInclude Include="..\barrier\arSyncDataServer.h" />
+    <ClInclude Include="..\drivers\ar5DTGloveDriver.h" />
+    <ClInclude Include="..\drivers\arBirdWinDriver.h" />
+    <ClInclude Include="..\drivers\arConstantHeadFilter.h" />
+    <ClInclude Include="..\drivers\arDeviceServerFramework.h" />
+    <ClInclude Include="..\drivers\arDriversCalling.h" />
+    <ClInclude Include="..\drivers\arEVaRTDriver.h" />
+    <ClInclude Include="..\drivers\arEventUtilities.h" />
+    <ClInclude Include="..\drivers\arFaroCalFilter.h" />
+    <ClInclude Include="..\drivers\arFaroDriver.h" />
+    <ClInclude Include="..\drivers\arFileSink.h" />
+    <ClInclude Include="..\drivers\arFileSource.h" />
+    <ClInclude Include="..\drivers\arFOBDriver.h" />
+    <ClInclude Include="..\drivers\arGenericDriver.h" />
+    <ClInclude Include="..\drivers\arInputEvent.h" />
+    <ClInclude Include="..\drivers\arInputEventQueue.h" />
+    <ClInclude Include="..\drivers\arInputFactory.h" />
+    <ClInclude Include="..\drivers\arInputHeaders.h" />
+    <ClInclude Include="..\drivers\arInputLanguage.h" />
+    <ClInclude Include="..\drivers\arInputNode.h" />
+    <ClInclude Include="..\drivers\arInputNodeConfig.h" />
+    <ClInclude Include="..\drivers\arInputSink.h" />
+    <ClInclude Include="..\drivers\arInputSource.h" />
+    <ClInclude Include="..\drivers\arInputState.h" />
+    <ClInclude Include="..\drivers\arIntersenseDriver.h" />
+    <ClInclude Include="..\drivers\arIOFilter.h" />
+    <ClInclude Include="..\drivers\arJoystickDriver.h" />
+    <ClInclude Include="..\drivers\arLogitechDriver.h" />
+    <ClInclude Include="..\drivers\arMotionstarDriver.h" />
+    <ClInclude Include="..\drivers\arNetInputSink.h" />
+    <ClInclude Include="..\drivers\arNetInputSource.h" />
+    <ClInclude Include="..\drivers\arParallelSwitchDriver.h" />
+    <ClInclude Include="..\drivers\arPForth.h" />
+    <ClInclude Include="..\drivers\arPForthDatabaseVocabulary.h" />
+    <ClInclude Include="..\drivers\arPForthEventVocabulary.h" />
+    <ClInclude Include="..\drivers\arPForthFilter.h" />
+    <ClInclude Include="..\drivers\arPPTDriver.h" />
+    <ClInclude Include="..\drivers\arReactionTimerDriver.h" />
+    <ClInclude Include="..\drivers\arSerialSwitchDriver.h" />
+    <ClInclude Include="..\drivers\arSharedMemDriver.h" />
+    <ClInclude Include="..\drivers\arSharedMemSinkDriver.h" />
+    <ClInclude Include="..\drivers\arSpacepadDriver.h" />
+    <ClInclude Include="..\drivers\arTrackCalFilter.h" />
+    <ClInclude Include="..\drivers\arUSBDriver.h" />
+    <ClInclude Include="..\drivers\arVRPNDriver.h" />
+    <ClInclude Include="..\drivers\arWiimoteDriver.h" />
+    <ClInclude Include="..\drivers\birdnet.h" />
+    <ClInclude Include="..\drivers\isense.h" />
+    <ClInclude Include="..\drivers\isenseTypes.h" />
+    <ClInclude Include="..\framework\arAppLauncher.h" />
+    <ClInclude Include="..\framework\arController.h" />
+    <ClInclude Include="..\framework\arDistSceneGraphFramework.h" />
+    <ClInclude Include="..\framework\arFlyingGravisController.h" />
+    <ClInclude Include="..\framework\arFrameworkCalling.h" />
+    <ClInclude Include="..\framework\arFrameworkEventFilter.h" />
+    <ClInclude Include="..\framework\arInputSimulator.h" />
+    <ClInclude Include="..\framework\arInputSimulatorFactory.h" />
+    <ClInclude Include="..\framework\arInteractableThing.h" />
+    <ClInclude Include="..\framework\arMasterSlaveDataRouter.h" />
+    <ClInclude Include="..\framework\arMasterSlaveFramework.h" />
+    <ClInclude Include="..\framework\arMSVectorSynchronizer.h" />
+    <ClInclude Include="..\framework\arRoutableTemplate.h" />
+    <ClInclude Include="..\framework\arSZGAppFramework.h" />
+    <ClInclude Include="..\graphics\arAxisAlignedBoundingBox.h" />
+    <ClInclude Include="..\graphics\arBillboardNode.h" />
+    <ClInclude Include="..\graphics\arBlendNode.h" />
+    <ClInclude Include="..\graphics\arBoundingSphereNode.h" />
+    <ClInclude Include="..\graphics\arBumpMap.h" />
+    <ClInclude Include="..\graphics\arBumpMapNode.h" />
+    <ClInclude Include="..\graphics\arCamera.h" />
+    <ClInclude Include="..\graphics\arColor4Node.h" />
+    <ClInclude Include="..\graphics\arDrawable.h" />
+    <ClInclude Include="..\graphics\arDrawableNode.h" />
+    <ClInclude Include="..\graphics\arFramelockUtilities.h" />
+    <ClInclude Include="..\graphics\arFramerateGraph.h" />
+    <ClInclude Include="..\graphics\arFrameworkObject.h" />
+    <ClInclude Include="..\graphics\arFreeGlutInternal.h" />
+    <ClInclude Include="..\graphics\arFrustumCamera.h" />
+    <ClInclude Include="..\graphics\arGluCylinder.h" />
+    <ClInclude Include="..\graphics\arGluDisk.h" />
+    <ClInclude Include="..\graphics\arGluQuadric.h" />
+    <ClInclude Include="..\graphics\arGluSphere.h" />
+    <ClInclude Include="..\graphics\arGlut.h" />
+    <ClInclude Include="..\graphics\arGluTessObject.h" />
+    <ClInclude Include="..\graphics\arGlutRenderFuncs.h" />
+    <ClInclude Include="..\graphics\arGraphicsAPI.h" />
+    <ClInclude Include="..\graphics\arGraphicsArrayNode.h" />
+    <ClInclude Include="..\graphics\arGraphicsCalling.h" />
+    <ClInclude Include="..\graphics\arGraphicsClient.h" />
+    <ClInclude Include="..\graphics\arGraphicsContext.h" />
+    <ClInclude Include="..\graphics\arGraphicsDatabase.h" />
+    <ClInclude Include="..\graphics\arGraphicsHeader.h" />
+    <ClInclude Include="..\graphics\arGraphicsLanguage.h" />
+    <ClInclude Include="..\graphics\arGraphicsNode.h" />
+    <ClInclude Include="..\graphics\arGraphicsPeer.h" />
+    <ClInclude Include="..\graphics\arGraphicsPeerRPC.h" />
+    <ClInclude Include="..\graphics\arGraphicsPlugin.h" />
+    <ClInclude Include="..\graphics\arGraphicsPluginNode.h" />
+    <ClInclude Include="..\graphics\arGraphicsScreen.h" />
+    <ClInclude Include="..\graphics\arGraphicsServer.h" />
+    <ClInclude Include="..\graphics\arGraphicsStateNode.h" />
+    <ClInclude Include="..\graphics\arGraphicsUtilities.h" />
+    <ClInclude Include="..\graphics\arGraphicsWindow.h" />
+    <ClInclude Include="..\graphics\arGUIDefines.h" />
+    <ClInclude Include="..\graphics\arGUIEventManager.h" />
+    <ClInclude Include="..\graphics\arGUIInfo.h" />
+    <ClInclude Include="..\graphics\arGUIWindow.h" />
+    <ClInclude Include="..\graphics\arGUIWindowManager.h" />
+    <ClInclude Include="..\graphics\arGUIXMLParser.h" />
+    <ClInclude Include="..\graphics\arHead.h" />
+    <ClInclude Include="..\graphics\arIndexNode.h" />
+    <ClInclude Include="..\graphics\arLargeImage.h" />
+    <ClInclude Include="..\graphics\arLight.h" />
+    <ClInclude Include="..\graphics\arLightNode.h" />
+    <ClInclude Include="..\graphics\arMaterial.h" />
+    <ClInclude Include="..\graphics\arMaterialNode.h" />
+    <ClInclude Include="..\graphics\arMesh.h" />
+    <ClInclude Include="..\graphics\arNormal3Node.h" />
+    <ClInclude Include="..\graphics\arOrthoCamera.h" />
+    <ClInclude Include="..\graphics\arPerspectiveCamera.h" />
+    <ClInclude Include="..\graphics\arPerspectiveCameraNode.h" />
+    <ClInclude Include="..\graphics\arPointsNode.h" />
+    <ClInclude Include="..\graphics\arRay.h" />
+    <ClInclude Include="..\graphics\arTex2Node.h" />
+    <ClInclude Include="..\graphics\arTexFont.h" />
+    <ClInclude Include="..\graphics\arTexture.h" />
+    <ClInclude Include="..\graphics\arTextureNode.h" />
+    <ClInclude Include="..\graphics\arTransformNode.h" />
+    <ClInclude Include="..\graphics\arViewerNode.h" />
+    <ClInclude Include="..\graphics\arViewport.h" />
+    <ClInclude Include="..\graphics\arVisibilityNode.h" />
+    <ClInclude Include="..\graphics\arVRCamera.h" />
+    <ClInclude Include="..\interaction\arCallbackInteractable.h" />
+    <ClInclude Include="..\interaction\arDragBehavior.h" />
+    <ClInclude Include="..\interaction\arDragManager.h" />
+    <ClInclude Include="..\interaction\arEffector.h" />
+    <ClInclude Include="..\interaction\arGrabCondition.h" />
+    <ClInclude Include="..\interaction\arInteractable.h" />
+    <ClInclude Include="..\interaction\arInteractionCalling.h" />
+    <ClInclude Include="..\interaction\arInteractionSelector.h" />
+    <ClInclude Include="..\interaction\arInteractionUtilities.h" />
+    <ClInclude Include="..\interaction\arInterfaceObject.h" />
+    <ClInclude Include="..\interaction\arNavManager.h" />
+    <ClInclude Include="..\interaction\arUniqueInteractor.h" />
+    <ClInclude Include="..\language\arBuffer.h" />
+    <ClInclude Include="..\language\arCallingConventions.h" />
+    <ClInclude Include="..\language\arDatabase.h" />
+    <ClInclude Include="..\language\arDatabaseLanguage.h" />
+    <ClInclude Include="..\language\arDatabaseNode.h" />
+    <ClInclude Include="..\language\arDataClient.h" />
+    <ClInclude Include="..\language\arDataPoint.h" />
+    <ClInclude Include="..\language\arDataServer.h" />
+    <ClInclude Include="..\language\arDataTemplate.h" />
+    <ClInclude Include="..\language\arDataType.h" />
+    <ClInclude Include="..\language\arDataUtilities.h" />
+    <ClInclude Include="..\language\arFileTextStream.h" />
+    <ClInclude Include="..\language\arLanguage.h" />
+    <ClInclude Include="..\language\arLanguageCalling.h" />
+    <ClInclude Include="..\language\arLightFloatBuffer.h" />
+    <ClInclude Include="..\language\arLogStream.h" />
+    <ClInclude Include="..\language\arNameNode.h" />
+    <ClInclude Include="..\language\arPrecompiled.h" />
+    <ClInclude Include="..\language\arQueuedData.h" />
+    <ClInclude Include="..\language\arRS232Port.h" />
+    <ClInclude Include="..\language\arSharedLib.h" />
+    <ClInclude Include="..\language\arSocket.h" />
+    <ClInclude Include="..\language\arSocketAddress.h" />
+    <ClInclude Include="..\language\arSocketTextStream.h" />
+    <ClInclude Include="..\language\arSTLalgo.h" />
+    <ClInclude Include="..\language\arStringTextStream.h" />
+    <ClInclude Include="..\language\arStructuredData.h" />
+    <ClInclude Include="..\language\arStructuredDataParser.h" />
+    <ClInclude Include="..\language\arTemplateDictionary.h" />
+    <ClInclude Include="..\language\arTextStream.h" />
+    <ClInclude Include="..\language\arThread.h" />
+    <ClInclude Include="..\language\arUDPSocket.h" />
+    <ClInclude Include="..\language\arVersion.h" />
+    <ClInclude Include="..\language\arVRConstants.h" />
+    <ClInclude Include="..\language\arXMLParser.h" />
+    <ClInclude Include="..\language\arXMLUtilities.h" />
+    <ClInclude Include="..\math\arMath.h" />
+    <ClInclude Include="..\math\arMathCalling.h" />
+    <ClInclude Include="..\math\arNavigationUtilities.h" />
+    <ClInclude Include="..\model\ar3DS.h" />
+    <ClInclude Include="..\model\arHTR.h" />
+    <ClInclude Include="..\model\arOBJ.h" />
+    <ClInclude Include="..\model\arObjCalling.h" />
+    <ClInclude Include="..\model\arObject.h" />
+    <ClInclude Include="..\model\arObjectUtilities.h" />
+    <ClInclude Include="..\model\arOBJSmoothingGroup.h" />
+    <ClInclude Include="..\phleet\arPhleetCalling.h" />
+    <ClInclude Include="..\phleet\arPhleetConfig.h" />
+    <ClInclude Include="..\phleet\arPhleetConfigLanguage.h" />
+    <ClInclude Include="..\phleet\arPhleetConnectionBroker.h" />
+    <ClInclude Include="..\phleet\arPhleetOSLanguage.h" />
+    <ClInclude Include="..\phleet\arPhleetTemplate.h" />
+    <ClInclude Include="..\phleet\arSZGClient.h" />
+    <ClInclude Include="..\sound\arPlayerNode.h" />
+    <ClInclude Include="..\sound\arSapi.h" />
+    <ClInclude Include="..\sound\arSoundAPI.h" />
+    <ClInclude Include="..\sound\arSoundCalling.h" />
+    <ClInclude Include="..\sound\arSoundClient.h" />
+    <ClInclude Include="..\sound\arSoundDatabase.h" />
+    <ClInclude Include="..\sound\arSoundFile.h" />
+    <ClInclude Include="..\sound\arSoundFileNode.h" />
+    <ClInclude Include="..\sound\arSoundHeader.h" />
+    <ClInclude Include="..\sound\arSoundLanguage.h" />
+    <ClInclude Include="..\sound\arSoundNode.h" />
+    <ClInclude Include="..\sound\arSoundServer.h" />
+    <ClInclude Include="..\sound\arSoundTransformNode.h" />
+    <ClInclude Include="..\sound\arSpeakerObject.h" />
+    <ClInclude Include="..\sound\arSpeechNode.h" />
+    <ClInclude Include="..\sound\arStreamNode.h" />
+    <ClInclude Include="..\sound\arTTS.h" />
+    <ClInclude Include="..\sound\fmodStub.h" />
+    <ClInclude Include="src\icecube.h" />
+    <ClInclude Include="src\icecubeDataInput.h" />
+    <ClInclude Include="src\icecubeGeometryInput.h" />
+    <ClInclude Include="src\tdevents.h" />
+    <ClInclude Include="src\tdmenu.h" />
+    <ClInclude Include="src\tdmenucontroller.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\language\arPrecompiled.pch" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
