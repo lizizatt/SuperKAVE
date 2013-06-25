@@ -68,257 +68,52 @@ vector<color> eventColors;
 
 /////////////////////////////////////Sphere drawing algorithm////////////////////////////////////////////////
 
-GLuint texture[1];
 
-double angle = 0;
+#define X .525731112119133606 
+#define Z .850650808352039932
 
-typedef struct 
-{
-    
-int X;
-    
-int Y;
-    
-int Z;
-    
+static GLfloat vdata[12][3] = {    
+    {-X, 0.0, Z}, {X, 0.0, Z}, {-X, 0.0, -Z}, {X, 0.0, -Z},    
+    {0.0, Z, X}, {0.0, Z, -X}, {0.0, -Z, X}, {0.0, -Z, -X},    
+    {Z, X, 0.0}, {-Z, X, 0.0}, {Z, -X, 0.0}, {-Z, -X, 0.0} 
+};
+static GLuint tindices[20][3] = { 
+    {0,4,1}, {0,9,4}, {9,5,4}, {4,5,8}, {4,8,1},    
+    {8,10,1}, {8,3,10}, {5,3,8}, {5,2,3}, {2,7,3},    
+    {7,10,3}, {7,6,10}, {7,11,6}, {11,0,6}, {0,1,6}, 
+    {6,1,10}, {9,0,11}, {9,11,2}, {9,2,5}, {7,2,11} };
 
-    
-double U;
-    
-double V;
-}VERTICES;
-
-const double PI = 3.1415926535897;
-
-const int space = 10;
-
-const int VertexCount = (90 / space) * (360 / space) * 4;
-
-VERTICES VERTEX[VertexCount];
-
-GLuint LoadTextureRAW( const char * filename );
-
-void DisplaySphere (double R, bool youWantToTexture, GLuint texture){
-    
-int b;
-    
-
-    
-glScalef (0.0125 * R, 0.0125 * R, 0.0125 * R);
-    
-    
-    
-glRotatef (90, 1, 0, 0);
-    
-
-   if(youWantToTexture){ 
-glBindTexture (GL_TEXTURE_2D, texture);
-   }
-
-    
-glBegin (GL_TRIANGLE_STRIP);
-    
-for ( b = 0; b <= VertexCount; b++){
-        
-	 if(youWantToTexture){
-glTexCoord2f (VERTEX[b].U, VERTEX[b].V);
-	 }
-        
-glVertex3f (VERTEX[b].X, VERTEX[b].Y, -VERTEX[b].Z);
-    
-}
-    
-
-    
-for ( b = 0; b <= VertexCount; b++){
-         if(youWantToTexture){
-glTexCoord2f (VERTEX[b].U, -VERTEX[b].V);
-		 }
-        
-glVertex3f (VERTEX[b].X, VERTEX[b].Y, VERTEX[b].Z);
-    
-}
-    
-glEnd();
+void normalize(GLfloat *a) {
+    GLfloat d=sqrt(a[0]*a[0]+a[1]*a[1]+a[2]*a[2]);
+    a[0]/=d; a[1]/=d; a[2]/=d;
 }
 
-void CreateSphere (double R, double H, double K, double Z) {
-    
-int n;
-    
-double a;
-    
-double b;
-    
-
-    
-n = 0;
-    
-
-    
-for( b = 0; b <= 90 - space; b+=space){
-        
-    for( a = 0; a <= 360 - space; a+=space){
-            
-
-            
-VERTEX[n].X = R * sin((a) / 180 * PI) * sin((b) / 180 * PI) - H;
-            
-VERTEX[n].Y = R * cos((a) / 180 * PI) * sin((b) / 180 * PI) + K;
-            
-VERTEX[n].Z = R * cos((b) / 180 * PI) - Z;
-            
-VERTEX[n].V = (2 * b) / 360;
-            
-VERTEX[n].U = (a) / 360;
-            
-n++;
-            
-
-            
-VERTEX[n].X = R * sin((a) / 180 * PI) * sin((b + space) / 180 * PI
-            
-) - H;
-            
-VERTEX[n].Y = R * cos((a) / 180 * PI) * sin((b + space) / 180 * PI
-            
-) + K;
-            
-VERTEX[n].Z = R * cos((b + space) / 180 * PI) - Z;
-            
-VERTEX[n].V = (2 * (b + space)) / 360;
-            
-VERTEX[n].U = (a) / 360;
-            
-n++;
-            
-
-            
-VERTEX[n].X = R * sin((a + space) / 180 * PI) * sin((b) / 180 * PI
-            
-) - H;
-            
-VERTEX[n].Y = R * cos((a + space) / 180 * PI) * sin((b) / 180 * PI
-            
-) + K;
-            
-VERTEX[n].Z = R * cos((b) / 180 * PI) - Z;
-            
-VERTEX[n].V = (2 * b) / 360;
-            
-VERTEX[n].U = (a + space) / 360;
-            
-n++;
-            
-
-            
-VERTEX[n].X = R * sin((a + space) / 180 * PI) * sin((b + space) /
-            
-180 * PI) - H;
-            
-VERTEX[n].Y = R * cos((a + space) / 180 * PI) * sin((b + space) /
-            
-180 * PI) + K;
-            
-VERTEX[n].Z = R * cos((b + space) / 180 * PI) - Z;
-            
-VERTEX[n].V = (2 * (b + space)) / 360;
-            
-VERTEX[n].U = (a + space) / 360;
-            
-n++;
-            
-
-            
-    }
-    
-}
+void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
+    if (div<=0) {
+        glNormal3fv(a); glVertex3f(a[0]*r, a[1]*r, a[2]*r);
+        glNormal3fv(b); glVertex3f(b[0]*r, b[1]*r, b[2]*r);
+        glNormal3fv(c); glVertex3f(c[0]*r, c[1]*r, c[2]*r);
+    } else {
+        GLfloat ab[3], ac[3], bc[3];
+        for (int i=0;i<3;i++) {
+            ab[i]=(a[i]+b[i])/2;
+            ac[i]=(a[i]+c[i])/2;
+            bc[i]=(b[i]+c[i])/2;
+        }
+        normalize(ab); normalize(ac); normalize(bc);
+        drawtri(a, ab, ac, div-1, r);
+        //drawtri(b, bc, ab, div-1, r);
+        drawtri(c, ac, bc, div-1, r);
+        //drawtri(ab, bc, ac, div-1, r);  //<--Comment this line and sphere looks really cool!
+    }  
 }
 
-
-GLuint LoadTextureRAW( const char * filename )
-{
-    
-  GLuint texture;
-    
-  int width, height;
-    
-  unsigned char * data;
-    
-  FILE * file;
-    
-
-    
-  file = fopen( filename, "rb" );
-    
-  if ( file == NULL ) return 0;
-    
-
-    
-  width = 1024;
-    
-  height = 512;
-    
-  data = (unsigned char *)malloc( width * height * 3 );
-    
-
-    
-  fread( data, width * height * 3, 1, file );
-    
-  fclose( file );
-    
-
-    
-  glGenTextures( 1, &texture );
-    
-
-    
-  glBindTexture( GL_TEXTURE_2D, texture );
-    
-
-    
-  glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, 
-    
-GL_MODULATE );
-    
-
-    
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-    
- GL_LINEAR_MIPMAP_NEAREST );
-    
-
-    
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-    
- GL_LINEAR );
-    
-
-    
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, 
-    
-GL_REPEAT );
-    
-  glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, 
-    
-GL_REPEAT );
-    
-
-    
-  gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height, 
-    
-GL_RGB, GL_UNSIGNED_BYTE, data );
-    
-
-    
-  free( data );
-    
-
-    
-  return texture;
-    
-
-} 
+void drawsphere(int ndiv, float radius=1.0) {
+    glBegin(GL_TRIANGLES);
+    for (int i=0;i<20;i++)
+        drawtri(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], ndiv, radius);
+    glEnd();
+}
 
 
 //////////////////////////////End sphere drawing algorithm//////////////////////////////
@@ -382,15 +177,19 @@ void findExtremeEventTimes(){
 }
 
   
-void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
+void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 
 	glEnable(GL_COLOR_MATERIAL);
 	glEnable(GL_LIGHTING);
 
 	//glScalef(3.281f, 3.281f, 3.281f);
-	
+
+	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
+	//cout << "userPosition[0] = " << userPosition[0] << endl;
+  //fw->getMatrix(0); //12, 13, 14 to get user's position
+
   glPushMatrix();
-    glMultMatrixf( getMatrix().v );
+    glMultMatrixf(getMatrix().v );
     // set one of two colors depending on if this object has been selected for interaction
     if (getHighlight()) {
       glColor3f( 0,1,0 );
@@ -413,14 +212,16 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glScalef(3.281f, 3.281f, 3.281f);
 
 	
+	//drawsphere(1, 1.0f);
+
 	float scaleDownEventSphere = fDownScale/10;
 
 	int numDrawn = 0;
 	
-	//glEnable (GL_BLEND); 
-	//glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable (GL_DEPTH_BUFFER);
-	glDisable (GL_DEPTH_TEST);
+	glEnable (GL_BLEND); 
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glDisable (GL_DEPTH_BUFFER);
+	//glDisable (GL_DEPTH_TEST);
 	float chargeRadiusFactor = 1.f;
 
 	//DisplaySphere(5, false, 0);
@@ -430,18 +231,21 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin(ct.vars.time->val - event2Data.icecubeData.time[i]));    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
 			//Expansion animation of event data
-			if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){glutSolidSphere(((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere), 4, 4);}
-			else{glutSolidSphere(chargeRadiusFactor*0.25f/scaleDownEventSphere, 4, 4);}			
+			//glRotatef(ct.vars.time->val, 0, 0, 1);
+			if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+			//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+			else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
+			//glRotatef(-ct.vars.time->val, 0, 0, 1);
 			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
 		}
 	}
 
 	glEnable (GL_DEPTH_BUFFER);
 	glEnable (GL_DEPTH_TEST);
-	//glDisable (GL_BLEND);
+	glDisable (GL_BLEND);
 	//glEnable (GL_DEPTH_BUFFER);
 	//Time increments for forward and backward animation
 	if(playForward){
@@ -655,6 +459,9 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
  // qObj = gluNewQuadric();
 
+  ct.vars.time->start = 999999;ct.vars.time->end = 0;		
+			eventColors.clear();
+			event2Data.~DataInput();
   geometryData.getText();
   event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
   findExtremeEventTimes();
@@ -678,8 +485,8 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
 	glHint (GL_FOG_HINT, GL_NICEST);
 
-	GLfloat light_position[] = { 0.0, 0.0, -0.01, 0.0 };
-	GLfloat light_position2[] = { 0.0, 0.0, 0.01, 0.0 };
+	GLfloat light_position[] = { 0.0, 0.0, 0.0, 0.0 };
+	GLfloat light_position2[] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel (GL_SMOOTH);
@@ -696,10 +503,8 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	glLightfv(GL_LIGHT0, GL_POSITION, light_position2);
 
 	glEnable(GL_LIGHTING);
-	glEnable(GL_LIGHT1);
+	//glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT0);
-
-	CreateSphere(10, 1, 1, 1);
 	
 	
 }
