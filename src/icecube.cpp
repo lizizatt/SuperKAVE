@@ -249,7 +249,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);   //, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.24);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
 			//cout << "diffZ = " << diffZ << endl;
@@ -259,11 +259,11 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
 			
 				//Expansion animation of event data
-				//glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
 				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
 				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
 				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
-				//glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 			}
 		}
@@ -314,7 +314,7 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
 		glColor3f(0.25f, 0.25f, 0.25f);
 		sphereX=geometryData.icecubeGeometry.xCoord[i]/fDownScale;sphereY=geometryData.icecubeGeometry.yCoord[i]/fDownScale;sphereZ=-geometryData.icecubeGeometry.zCoord[i]/fDownScale;
 		diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 -sphereZ - userPosition[13]/3.281;
-		if(diffX*diffX + diffY*diffY< 16 && diffZ*diffZ < 16){
+		if(diffX*diffX + diffY*diffY< 16 && diffZ*diffZ < 20){
 			
 			if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
 			if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
