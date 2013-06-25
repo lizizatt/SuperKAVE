@@ -26,9 +26,9 @@ public:
 	float cx, cy, cz, charge, time, radius;
 	arVector3 angle;
 	dot(float x, float y, float z, arVector3 theta, float q, float t, float r) {
-		cx = x;
-		cy = y;
-		cz = z;
+		cx = x * 3.28;
+		cy = y * 3.28;
+		cz = z * 3.28;
 		angle = theta;
 		charge = q;
 		time = t;
@@ -99,6 +99,7 @@ float lastJoyStickMove = 0;  //last time the joystick was moved, used for double
 bool joyStickMoveDir = true;  //last joystick move direction, true = right, false = left, not implemented
 float ax, az;
 GLUquadricObj * quadObj;        //cylinder quadratic object.
+/*
 static float RADIUS = 17;     //Constants for sizing.
 static float HEIGHT = 40;
 static float OUTERRADIUS = 17.61;  
@@ -106,6 +107,14 @@ static float OUTERHEIGHT = 41.22;
 static float PI = 3.141592;
 static float innerDotRad = 0.3;
 static float outerDotRad = 0.2;
+*/
+static float RADIUS = 17 * 3.28;     //Constants for sizing.
+static float HEIGHT = 40 * 3.28;
+static float OUTERRADIUS = 17.61 * 3.28;  
+static float OUTERHEIGHT = 41.22*  3.28;
+static float PI = 3.141592;
+static float innerDotRad = 0.3 * 3.28;
+static float outerDotRad = 0.2 * 3.28;
 static double threshold = 1.;
 int index;  //current location in the event list
 int indexTransfer;  
@@ -570,13 +579,14 @@ void drawScene(arMasterSlaveFramework& framework)
 					float dotResult = dotProduct(currentRotation, direction);
 					float angle = acos(dotResult);
 					glRotatef(angle*180./PI, perpAxis[0], perpAxis[1], perpAxis[2]);
+					glTranslatef(0,0,-.5);
 					gluCylinder(quadObj, .2, 0, .5, 50, 30); //inner cylinder wireframe
 				glPopMatrix();
 				
 				glColor4f(1.,1.,.69,.4);
 
 				//raycasted cone
-				float slices = 360.;
+				float slices = 270.;
 				float dist = 10;
 
 				glEnable (GL_BLEND); 
@@ -741,9 +751,10 @@ void loadNextEvent(void) {
 			}
 			if(type == "VERTEX"){  //vertex location of particle
 				dataFile >> vx >> vy >> vz;
-				vx = vx / 100;
-				vy = vy / 100;
+				vx = vx / 100 * 3.28;
+				vy = vy / 100 * 3.28;
 				vz = vz * 20.0 / 1810.0 + 20.0;
+				vz = vz * 3.28;
 			}
 			if(type == "PARTICLE"){  //particle information -- momentum and direction of cone
 				dataFile >> particleType2 >> dx2 >> dy2 >> dz2 >> momentum2 >> id2;
@@ -1453,7 +1464,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.setNavTransCondition('x',AR_EVENT_AXIS,0,.1);
 
 	// Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
-	framework.setNavTransSpeed( 5. );
+	framework.setNavTransSpeed( 15. );
 	//framework.setNavRotSpeed( 0.2 );  //sets it to not rotate at all so we can use left/right joystick as event controller
 
 	return true;
