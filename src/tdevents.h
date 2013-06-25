@@ -19,6 +19,7 @@
 //Change code definitions:
 #define TD_PUSH				2590
 #define TD_GRAB				5656
+#define TD_UPDATE			3475
 #define TD_SETVAL			2568
 #define TD_SETTEXT			6738
 

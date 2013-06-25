@@ -8,6 +8,13 @@ tdMenuController::tdMenuController(arEffector* wand)
 {
 	this->wand = wand;
 	this->menus = vector<tdMenu*>();
+	this->lastTime = 0;
+
+	//Initialize vars values
+	this->vars.time = new slidval(0,999999,0);
+	/*this->vars.time = 0;
+	this->vars.time_s = 999999;
+	this->vars.time_f = 0;*/
 	/////////////////////////////////////////////////
 	//MENU LAYOUT SECTION: CHANGE TO CUSTOMIZE MENU//
 	/////////////////////////////////////////////////
@@ -15,6 +22,7 @@ tdMenuController::tdMenuController(arEffector* wand)
 	tdMenu* menu;
 	tdPanel* panel;
 	tdObject* object;
+	slidval* sv = new slidval();
 
 	menu = new tdMenu();	//base state, no panels
 	menus.push_back(menu);
@@ -23,7 +31,7 @@ tdMenuController::tdMenuController(arEffector* wand)
 	panel = new tdPanel(arVector3(0,5,0),10,15);
 	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1);
 	panel->add(object);
-	object = new tdSlider(0, 2, 0, 10, 5, 0.5, 0.1, 0.5);
+	object = new tdSlider(0, 2, vars.time, 5, 0.5, 0.1, 0.5);
 	panel->add(object);
 	menu->addPanel(panel);
 	panel = new tdPanel(arVector3(-10,10,2),5,5);

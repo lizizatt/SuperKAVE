@@ -41,11 +41,11 @@ DataInput event2Data;
 
 float fDownScale = 100.f;
 
-int startTime = 999999;
-int timeCounter = 0;
+//int startTime = 999999;
+//int timeCounter = 0;
 float speedAdjuster = 0.0f;
-int endTime = 0;
-int timeSpan = endTime - startTime;
+//int endTime = 0;
+int timeSpan = 0;
 int expansionTime = 0;
 bool playForward = true;
 float largestCharge = 0;
@@ -54,6 +54,8 @@ float chargeSpan = 0;
 struct color{
 float red, green, blue;
 };
+
+tdMenuController ct = tdMenuController();
 
 vector<color> eventColors;
 
@@ -132,11 +134,11 @@ void findExtremeEventTimes(){
 	smallestCharge = 999999;
 	chargeSpan = 0;
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
-		if(event2Data.icecubeData.time[i] > endTime){
-			endTime = (int)(event2Data.icecubeData.time[i]);
+		if(event2Data.icecubeData.time[i] > ct.vars.time->end){
+			ct.vars.time->end = (int)(event2Data.icecubeData.time[i]);
 		}
-		else if(event2Data.icecubeData.time[i] < startTime){
-			startTime = (int)(event2Data.icecubeData.time[i]);
+		else if(event2Data.icecubeData.time[i] < ct.vars.time->start){
+			ct.vars.time->start = (int)(event2Data.icecubeData.time[i]);
 		}
 		if(event2Data.icecubeData.charge[i] > largestCharge){
 			largestCharge = event2Data.icecubeData.charge[i];
@@ -146,28 +148,28 @@ void findExtremeEventTimes(){
 		}
 	}
 	chargeSpan = largestCharge - smallestCharge;
-	timeSpan = endTime - startTime;
+	timeSpan = ct.vars.time->end - ct.vars.time->start;
 	expansionTime = timeSpan/(event2Data.icecubeData.xCoord.size());
-	endTime += expansionTime;
+	ct.vars.time->end += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
-	timeCounter = startTime;
+	ct.vars.time->val = ct.vars.time->start;
 	
 	color red;
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		red.red=0.5f;red.green=0.0f;red.blue=1.0f;
 		
-		if(event2Data.icecubeData.time[i] <= startTime+timeSpan/4){
-			red.red=1.0f;red.green=4*(event2Data.icecubeData.time[i]-startTime)/timeSpan;red.blue=0.0f;
+		if(event2Data.icecubeData.time[i] <= ct.vars.time->start+timeSpan/4){
+			red.red=1.0f;red.green=4*(event2Data.icecubeData.time[i]-ct.vars.time->start)/timeSpan;red.blue=0.0f;
 		}
-		if(event2Data.icecubeData.time[i] > startTime+timeSpan/4){
-			red.red=1-(event2Data.icecubeData.time[i]-(startTime + timeSpan/4))/(timeSpan/4);red.green=1.0f;red.blue=0.0f;
+		if(event2Data.icecubeData.time[i] > ct.vars.time->start+timeSpan/4){
+			red.red=1-(event2Data.icecubeData.time[i]-(ct.vars.time->start + timeSpan/4))/(timeSpan/4);red.green=1.0f;red.blue=0.0f;
 		}
-		if(event2Data.icecubeData.time[i] > startTime+timeSpan/2){
-			float y = (event2Data.icecubeData.time[i]-(startTime + timeSpan/2))/(timeSpan/4);;
+		if(event2Data.icecubeData.time[i] > ct.vars.time->start+timeSpan/2){
+			float y = (event2Data.icecubeData.time[i]-(ct.vars.time->start + timeSpan/2))/(timeSpan/4);;
 			red.red=0.0f;red.green=1.0f-y;red.blue=y;
 		}
-		if(event2Data.icecubeData.time[i] > startTime+0.75*timeSpan){
-			red.red=(event2Data.icecubeData.time[i]-(startTime + 0.75*timeSpan))/(timeSpan/3);red.green=0;red.blue=1.0f;
+		if(event2Data.icecubeData.time[i] > ct.vars.time->start+0.75*timeSpan){
+			red.red=(event2Data.icecubeData.time[i]-(ct.vars.time->start + 0.75*timeSpan))/(timeSpan/3);red.green=0;red.blue=1.0f;
 		}
 		eventColors.push_back(red);
 
@@ -224,14 +226,18 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
 	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
-		if(timeCounter > event2Data.icecubeData.time[i]){
+		if(ct.vars.time->val > event2Data.icecubeData.time[i]){
 			//Transparency changing with amount of time event has been drawn
-			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/timeCounter);
+			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
 			glColor3f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			glTranslatef(event2Data.icecubeData.xCoord[i]/fDownScale, event2Data.icecubeData.yCoord[i]/fDownScale, -event2Data.icecubeData.zCoord[i]/fDownScale);
 			//Expansion animation of event data
+<<<<<<< HEAD
 			if(timeCounter-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((timeCounter-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+=======
+			if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+>>>>>>> 4786f002d29342e49e923646f32bd093f6ebdb6d
 			else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}			
 			glTranslatef(-event2Data.icecubeData.xCoord[i]/fDownScale, -event2Data.icecubeData.yCoord[i]/fDownScale, event2Data.icecubeData.zCoord[i]/fDownScale);
 		}
@@ -243,16 +249,16 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	//glEnable (GL_DEPTH_BUFFER);
 	//Time increments for forward and backward animation
 	if(playForward){
-		if(timeCounter < endTime){
-			timeCounter+=10 - speedAdjuster;
+		if(ct.vars.time->val < ct.vars.time->end){
+			ct.vars.time->val+=10 - speedAdjuster;
 		}
 	}
 	else{
-		if(timeCounter > startTime){
-			timeCounter-=10 - speedAdjuster;
+		if(ct.vars.time->val > ct.vars.time->start){
+			ct.vars.time->val-=10 - speedAdjuster;
 		}
 	}
-	//cout << "time = " << timeCounter << endl;
+	//cout << "time = " << ct.vars.time->val << endl;
 
 
 	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
@@ -337,10 +343,10 @@ void ColoredSquareIce::draw( arMasterSlaveFramework* /*fw*/ ) {
 	glutSolidCube(0.2f);
 	glRotatef(-45.0f, 0, 0, 1);
 
-	if(timeCounter > endTime){timeCounter = endTime;}
-	if(timeCounter < startTime){timeCounter = startTime;}
+	if(ct.vars.time->val > ct.vars.time->end){ct.vars.time->val = ct.vars.time->end;}
+	if(ct.vars.time->val < ct.vars.time->start){ct.vars.time->val = ct.vars.time->start;}
 
-	glTranslatef(8*float((float(timeCounter)-float(startTime))/float(timeSpan+expansionTime)) , 0.0, 0.5);
+	glTranslatef(8*float((float(ct.vars.time->val)-float(ct.vars.time->start))/float(timeSpan+expansionTime)) , 0.0, 0.5);
 	glColor3f(0.55f, 0.15f, 0.15f);
 	glRotatef(45.0f, 0, 0, 1);
 	glutSolidCube(0.2f);
@@ -387,8 +393,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   addTransferField("squareHighlighted", &_squareHighlightedTransfer, AR_INT, 1);
   addTransferField("squareMatrix", _squareMatrixTransfer.v, AR_FLOAT, 16);
 
-
-  //JEDIT
+  // (re)initialize menu controller
   ct = tdMenuController(&_effector);
   //ENDJEDIT
 
@@ -556,8 +561,8 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   _effector.draw();
   //glColor3f(1.0f, 0.0f, 0.0f);
   //glutSolidSphere(5.0f, 8, 8);
-  ct.draw();
   //glUseProgram(0);
+  ct.draw();
 }
 
 // Catch key events.
@@ -572,11 +577,11 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
   } else if (state == AR_KEY_UP) {
     stateString = "UP"; 
 	if(keyInfo->getKey() == 112){  //p (play forwards)
-			timeCounter = startTime;
+			ct.vars.time->val = ct.vars.time->start;
 			playForward = true;
 		}
 		if(keyInfo->getKey() == 111){  //o (play backwards)
-			timeCounter = endTime;
+			ct.vars.time->val = ct.vars.time->end;
 			playForward = false;
 		}
 		if(keyInfo->getKey() == 108){  //l (speed up playing of event)
@@ -592,7 +597,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			else{speedAdjuster = 9.0f;}
 		}
 		if(keyInfo->getKey() == 113){  //q
-			startTime = 999999;endTime = 0;		
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;		
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
@@ -600,7 +605,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			playForward = true;
 		}
 		if(keyInfo->getKey() == 119){  //w
-			startTime = 999999;endTime = 0;
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
@@ -608,7 +613,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			playForward = true;
 		}
 		if(keyInfo->getKey() == 101){  //e
-			startTime = 999999;endTime = 0;
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e5.txt");
@@ -616,7 +621,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			playForward = true;
 		}
 		if(keyInfo->getKey() == 114){  //r
-			startTime = 999999;endTime = 0;
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e6.txt");
@@ -624,7 +629,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			playForward = true;
 		}
 		if(keyInfo->getKey() == 116){  //t
-			startTime = 999999;endTime = 0;
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");

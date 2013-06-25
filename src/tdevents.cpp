@@ -46,7 +46,7 @@ void handleEvent(tdMenuController* ct, int menu, int panel, int object, int code
 		}
 		break;
 	case TD_SLIDER_IDLE:	//sliders check and update values from controller table
-		//TODO: table updates for all sliders
+		ob->change(TD_UPDATE);
 		break;
 	case TD_SLIDER_CURSOR:	//sliders initiate grab if button pressed
 		if(ct->wand->getButton(TD_BUTTON_1))
@@ -55,7 +55,6 @@ void handleEvent(tdMenuController* ct, int menu, int panel, int object, int code
 	case TD_SLIDER_DRAG:	//sliders continue grab (if button pressed) and push values to controller table
 		if(ct->wand->getButton(TD_BUTTON_1))
 			ob->change(TD_GRAB);
-		//TODO: table push for all sliders
 		break;
 	default:
 		break;

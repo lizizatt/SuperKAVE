@@ -69,9 +69,6 @@ class IceCubeFramework : public arMasterSlaveFramework {
     // Our single object and effector
     ColoredSquareIce _square;
     RodEffectorIce _effector;
-	//JEDIT
-	tdMenuController ct;
-	//ENDJEDIT
 	GLint m_shaderProgram;
 
     // Master-slave transfer variables

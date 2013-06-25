@@ -4,6 +4,14 @@
 #include "arInteractableThing.h"
 #include "tdevents.h"
 
+struct slidval
+{
+	float start;
+	float val;
+	float end;
+	slidval(float start = 0,float val = 0,float end = 10):start(start),val(val),end(end){}
+};
+
 //matrix inverse function adapted from MAYA implementation of GLU library
 arMatrix4 invert(arMatrix4 m);
 
@@ -55,7 +63,7 @@ protected:
 class tdSlider : public tdObject
 {
 public:
-	tdSlider(float x = 0, float y = 0, float start = 0, float end = 1, float length = 1, float height = 1, float depth = 1, float width = 1);
+	tdSlider(float x = 0, float y = 0, slidval* val = new slidval(), float length = 1, float height = 1, float depth = 1, float width = 1);
 	virtual void draw();
 	virtual void update(double time);
 	virtual arVector3 handlePointer(arVector3 endpt);
@@ -69,8 +77,7 @@ protected:
 	float height;
 	float depth;
 	float width;
-	float start;
-	float end;
+	slidval* val;
 	float cpos;	//current position of slider
 	float dpos;	//desired position of slider
 	bool cursor;
