@@ -192,12 +192,13 @@ tdButton::tdButton(float x, float y, float width, float height, float depth, int
 
 void tdButton::draw()
 {
+	glDisable(GL_TEXTURE_2D);
 	glPushMatrix();
 	colorPanel();
 	tdDrawBox(x, y, cdepth/2, width, height, cdepth);
 	if(label != "")
 	{
-		glTranslatef(x-label.length()*textsize/(2.2728*TEXT_COMPRESSION),y-textsize/2,cdepth+0.001);
+		glTranslatef(x-label.length()*textsize/(2.2728*TEXT_COMPRESSION),y-textsize/2,cdepth+0.01);
 		glScalef(textsize/(119.05*TEXT_COMPRESSION),textsize/119.05,textsize/119.05);
 		colorText();
 		for(int i = 0; i < label.length(); i++)
@@ -205,6 +206,7 @@ void tdButton::draw()
 		colorPanel();
 	}
 	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
 }
 
 void tdButton::update(double time)
@@ -249,6 +251,9 @@ void tdButton::change(int code, float value, string msg)
 	{
 	case TD_PUSH:
 		pushed = true;
+		break;
+	case TD_SETTEXT:
+		this->label = msg;
 		break;
 	default:
 		break;

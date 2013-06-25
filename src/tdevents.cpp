@@ -12,7 +12,8 @@ void handleEvent(tdMenuController* ct, int menu, int panel, int object, int code
 		if(ct->wand->getButton(TD_BUTTON_1))
 		{
 			ob->change(TD_PUSH);
-			doAction(ct,menu,panel,object,ob);
+			if(ct->wand->getOnButton(TD_BUTTON_1))
+				doAction(ct,menu,panel,object,ob);
 		}
 		break;
 	case TD_SLIDER_IDLE:	//sliders check and update values from controller table
@@ -46,6 +47,13 @@ void doAction(tdMenuController* ct, int menu, int panel, int object, tdObject* o
 		ct->vars.time->val -= 100;
 		break;
 	case TD_A_PLAYPAUSE:
+
+		/*
+		if(ct->vars.pause)
+		{ct->vars.pause = false; ob->change(TD_SETTEXT,0,"Pause");}
+		else
+		{ct->vars.pause = true; ob->change(TD_SETTEXT,0,"Play");}
+		*/
 		break;
 	case TD_A_FWDSKIP:
 		ct->vars.time->val += 100;

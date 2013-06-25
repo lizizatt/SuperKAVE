@@ -11,9 +11,14 @@
 
 //Action codes:	//EDIT SECTION FOR MENU CUSTOMIZATION//
 #define TD_A_SWITCHMENU2	2364
-#define TD_A_BACKSKIP		3720
+
+	//playback controls
 #define TD_A_PLAYPAUSE		8743
+#define TD_A_BACKSKIP		3720
 #define TD_A_FWDSKIP		7369
+#define TD_A_REWIND			2567
+#define TD_A_FASTFWD		1798
+#define TD_A_REVERSE		6029
 
 //Event codes:
 #define TD_BUTTON_IDLE		2378

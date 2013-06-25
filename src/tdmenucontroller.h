@@ -14,9 +14,8 @@ public:
 	struct valuetable	//holds all values maintained by menu system
 	{
 		slidval* time;
-		//float time;		//time used by playback control
-		//float time_s;		//start time value
-		//float time_f;		//final time value
+		int playstatus;	//feedback to/from playback controls
+		bool playreverse;	//true if playing event backwards
 	}vars;
 	tdMenuController(){}	//default constructor doesn't do anything, need to give it a wand
 	tdMenuController(arEffector* wand);	//instantiates the menu controller AND sets up a hardcoded menu.

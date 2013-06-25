@@ -12,6 +12,8 @@ tdMenuController::tdMenuController(arEffector* wand)
 
 	//Initialize vars values
 	this->vars.time = new slidval(0,999999,0);
+	this->vars.playstatus = 0;
+	this->vars.playreverse = false;
 	/////////////////////////////////////////////////
 	//MENU LAYOUT SECTION: CHANGE TO CUSTOMIZE MENU//
 	/////////////////////////////////////////////////
@@ -30,11 +32,11 @@ tdMenuController::tdMenuController(arEffector* wand)
 	panel->add(object);
 	object = new tdSlider(0, 2, vars.time, 5, 0.5, 0.1, 0.5);
 	panel->add(object);
-	object = new tdButton(-1.2, 1, 1, 0.5, 0.1, TD_A_BACKSKIP, "Rewind", 0.25);
+	object = new tdButton(-1.2, 1, 1, 0.5, 0.1, TD_A_BACKSKIP, "Back", 0.25);
 	panel->add(object);
-	object = new tdButton(0, 1, 1, 0.5, 0.1, TD_A_PLAYPAUSE);
+	object = new tdButton(0, 1, 1, 0.5, 0.1, TD_A_PLAYPAUSE, "Play", 0.25);
 	panel->add(object);
-	object = new tdButton(1.2, 1, 1, 0.5, 0.1, TD_A_FWDSKIP, "FFwd", 0.25);
+	object = new tdButton(1.2, 1, 1, 0.5, 0.1, TD_A_FWDSKIP, "Skip", 0.25);
 	panel->add(object);
 	menu->addPanel(panel);
 	panel = new tdPanel(arVector3(-10,10,2),5,5);
