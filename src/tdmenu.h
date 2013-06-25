@@ -44,7 +44,7 @@ protected:
 class tdButton : public tdObject
 {
 public:
-	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1, int actioncode = 0);
+	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1, int actioncode = 0, string label = "", float textsize = 1, bool leftjust = false);
 	virtual void draw();
 	virtual void update(double time);
 	virtual arVector3 handlePointer(arVector3 endpt);
@@ -57,8 +57,11 @@ protected:
 	float height;
 	float cdepth;
 	float depth;
+	string label;
+	float textsize;
 	bool cursor;
 	bool pushed;
+	bool leftjust;	//used for lists to set text to be left-justified.
 };
 
 //A slider, can be dragged to set a float value

@@ -6,6 +6,7 @@
 
 const float MENU_SPEED = 0.15 / 5;	//the speed at which menu animations run
 const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pellet is during open/close)
+const float TEXT_COMPRESSION = 1.5;	//how text is "squished" on the x-axis
 
 //color functions, alter to change color scheme
 void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.75);}
@@ -173,7 +174,7 @@ void tdDrawBox(float x, float y, float z, float w, float h, float d)
 //TDBUTTON METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdButton::tdButton(float x, float y, float width, float height, float depth, int actioncode)
+tdButton::tdButton(float x, float y, float width, float height, float depth, int actioncode, string label, float textsize, bool leftjust)
 {
 	this->x = x;
 	this->y = y;
@@ -184,11 +185,26 @@ tdButton::tdButton(float x, float y, float width, float height, float depth, int
 	this->cursor = false;
 	this->pushed = false;
 	this->actioncode = actioncode;
+	this->label = label;
+	this->textsize = textsize;
+	this->leftjust = leftjust;
 }
 
 void tdButton::draw()
 {
+	glPushMatrix();
+	colorPanel();
 	tdDrawBox(x, y, cdepth/2, width, height, cdepth);
+	if(label != "")
+	{
+		glTranslatef(x-label.length()*textsize/(2.2728*TEXT_COMPRESSION),y-textsize/2,cdepth+0.001);
+		glScalef(textsize/(119.05*TEXT_COMPRESSION),textsize/119.05,textsize/119.05);
+		colorText();
+		for(int i = 0; i < label.length(); i++)
+			glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,label[i]);
+		colorPanel();
+	}
+	glPopMatrix();
 }
 
 void tdButton::update(double time)
@@ -263,6 +279,7 @@ tdSlider::tdSlider(float x, float y, slidval* val, float length, float height, f
 
 void tdSlider::draw()
 {
+	colorPanel();
 	glPushMatrix();
 	glMultMatrixf(pos.v);
 	glBegin(GL_QUAD_STRIP);
@@ -339,7 +356,6 @@ void tdSlider::change(int code, float value, string msg)
 	switch(code)
 	{
 	case TD_UPDATE:
-		cout << dpos;
 		dpos = (val->val - val->start) * length / (val->end - val->start);
 		break;
 	case TD_GRAB:
