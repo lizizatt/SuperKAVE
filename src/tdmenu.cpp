@@ -356,7 +356,6 @@ void tdSlider::change(int code, float value, string msg)
 	switch(code)
 	{
 	case TD_UPDATE:
-		cout << dpos;
 		dpos = (val->val - val->start) * length / (val->end - val->start);
 		break;
 	case TD_GRAB:
@@ -426,20 +425,6 @@ void tdPanel::draw()
 				objects[i]->draw();
 			}
 		}
-		colorText();
-		glScalef(1/104.76,1/104.76,1/104.76);
-		glTranslatef(0,0,1);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[0]);
-		//glTranslatef(1.0476,0,0);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[1]);
-		//glTranslatef(1.0476,0,0);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[2]);
-		//glTranslatef(1.0476,0,0);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[3]);
-		//glTranslatef(1.0476,0,0);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[4]);
-		//glTranslatef(1.0476,0,0);
-		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,"WASSUP"[5]);
 		glPopMatrix();
 		glDisable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
