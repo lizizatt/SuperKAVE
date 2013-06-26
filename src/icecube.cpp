@@ -265,7 +265,6 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
 
   // (re)initialize menu controller
   ct = tdMenuController(&_effector);
-  //ENDJEDIT
   
   // Register shared memory.
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
@@ -410,11 +409,9 @@ void IceCubeFramework::onPreExchange() {
 		}
 	}
 
-  //JEDIT
   
   ct.handleEvents("");
   ct.update(getTime());
-  //ENDJEDIT
 }
 
 // Method called after transfer of data from master to slaves. Mostly used to
