@@ -14,8 +14,6 @@
 
 	//playback controls
 #define TD_A_PLAYPAUSE		8743
-#define TD_A_BACKSKIP		3720
-#define TD_A_FWDSKIP		7369
 #define TD_A_REWIND			2567
 #define TD_A_FASTFWD		1798
 #define TD_A_REVERSE		6029
@@ -37,7 +35,9 @@
 class tdMenuController;
 class tdObject;
 
-void handleEvent(tdMenuController* ct, int menu, int panel, int object, int code, tdObject* ob);
-void doAction(tdMenuController* ct, int menu, int panel, int object, tdObject* ob);
+//Handles 
+void tdHandleEvent(tdMenuController* ct, int menu, int panel, int object, int code, tdObject* ob);
+void tdDoAction(tdMenuController* ct, int menu, int panel, int object, tdObject* ob);
+void tdGetUpdate(tdMenuController* ct, int menu, int panel, int object, tdObject* ob);
 
 #endif

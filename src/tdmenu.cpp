@@ -240,9 +240,9 @@ arVector3 tdButton::handlePointer(arVector3 endpt)
 void tdButton::handleEvents(tdMenuController* ct, int menu, int panel, int object)
 {
 	if(cursor)
-		handleEvent(ct,menu,panel,object,TD_BUTTON_CURSOR,this);
+		tdHandleEvent(ct,menu,panel,object,TD_BUTTON_CURSOR,this);
 	else
-		handleEvent(ct,menu,panel,object,TD_BUTTON_IDLE,this);
+		tdHandleEvent(ct,menu,panel,object,TD_BUTTON_IDLE,this);
 }
 
 void tdButton::change(int code, float value, string msg)
@@ -349,11 +349,11 @@ arVector3 tdSlider::handlePointer(arVector3 endpt)
 void tdSlider::handleEvents(tdMenuController* ct, int menu, int panel, int object)
 {
 	if(wasGrab)
-		handleEvent(ct,menu,panel,object,TD_SLIDER_DRAG,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_DRAG,this);
 	else if(cursor)
-		handleEvent(ct,menu,panel,object,TD_SLIDER_CURSOR,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_CURSOR,this);
 	else
-		handleEvent(ct,menu,panel,object,TD_SLIDER_IDLE,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_IDLE,this);
 }
 
 void tdSlider::change(int code, float value, string msg)
