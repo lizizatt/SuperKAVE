@@ -2,7 +2,7 @@
 #define SZG_DO_NOT_EXPORT
 #include "tdmenucontroller.h"
 
-const float MENU_OFFSET = 10.0;	//the distance from the wand base to the menu center
+const float MENU_OFFSET = 5.0;	//the distance from the wand base to the menu center
 
 tdMenuController::tdMenuController(arEffector* wand)
 {
@@ -28,15 +28,17 @@ tdMenuController::tdMenuController(arEffector* wand)
 
 	menu = new tdMenu();	//one big panel and two smaller ones
 	panel = new tdPanel(arVector3(0,5,0),10,15);
-	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1, TD_A_SWITCHMENU2, "menu 2", 0.1);
-	panel->add(object);
-	object = new tdSlider(0, 2, vars.time, 5, 0.5, 0.1, 0.5);
-	panel->add(object);
-	object = new tdButton(-1.2, 1, 1, 0.5, 0.1, TD_A_BACKSKIP, "Back", 0.25);
+	object = new tdButton(-1.2, 1, 1, 0.5, 0.1, TD_A_REWIND, "Rewind", 0.25);
 	panel->add(object);
 	object = new tdButton(0, 1, 1, 0.5, 0.1, TD_A_PLAYPAUSE, "Play", 0.25);
 	panel->add(object);
-	object = new tdButton(1.2, 1, 1, 0.5, 0.1, TD_A_FWDSKIP, "Skip", 0.25);
+	object = new tdButton(0, 0.25, 1, 0.5, 0.1, TD_A_REVERSE, "Reverse", 0.25);
+	panel->add(object);
+	object = new tdButton(1.2, 1, 1, 0.5, 0.1, TD_A_FASTFWD, "FastFwd", 0.25);
+	panel->add(object);
+	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1, TD_A_SWITCHMENU2, "menu 2", 0.1);
+	panel->add(object);
+	object = new tdSlider(0, 2, vars.time, 5, 0.5, 0.1, 0.5);
 	panel->add(object);
 	menu->addPanel(panel);
 	panel = new tdPanel(arVector3(-10,10,2),5,5);
