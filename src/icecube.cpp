@@ -30,6 +30,8 @@ const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
 // Near & far clipping planes.
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
+
+bool paused = false;
   
 const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = { "..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt",
 																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt",
@@ -121,13 +123,6 @@ void IceCubeFramework::drawAxis(void)
 
 	glLineWidth(5.f);
 
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
-
 	//axes
 	glBegin( GL_LINES );	
 	  glColor3f(1.0f, 0.0f, 0.0f);
@@ -140,8 +135,6 @@ void IceCubeFramework::drawAxis(void)
       glVertex3f( 0,0,0 );
       glVertex3f( 0,100,0 );
     glEnd();
-
-	glPopMatrix();
 
 	glLineWidth(1.f);
 
@@ -156,12 +149,6 @@ void IceCubeFramework::drawEvents(void)
 	//fw->getMatrix(0);
 	//cout << "uP[0] = " << uP[0] << endl;
 
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
 
 	//drawsphere(1, 1.0f);
 
@@ -204,8 +191,6 @@ void IceCubeFramework::drawEvents(void)
 			}
 		}
 	}
-
-  glPopMatrix();
 }
 
 void IceCubeFramework::findExtremeEventTimes(){
@@ -398,14 +383,16 @@ void IceCubeFramework::onPreExchange() {
   // (bools transfer as ints).
   
 	//Time increments for forward and backward animation
-	if(playForward){
-		if(ct.vars.time->val < ct.vars.time->end){
-			ct.vars.time->val+=10 - speedAdjuster;
+	if(!paused){
+		if(!ct.vars.playreverse){
+			if(ct.vars.time->val < ct.vars.time->end){
+				ct.vars.time->val+=10 - speedAdjuster;
+			}
 		}
-	}
-	else{
-		if(ct.vars.time->val > ct.vars.time->start){
-			ct.vars.time->val-=10 - speedAdjuster;
+		else{
+			if(ct.vars.time->val > ct.vars.time->start){
+				ct.vars.time->val-=10 - speedAdjuster;
+			}
 		}
 	}
 
@@ -504,6 +491,13 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_LIGHTING);
 
+  glPushMatrix();
+	
+  glTranslatef(0,20,0);
+  glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
+
+  glScalef(3.281f, 3.281f, 3.281f);
+
   //draw axis (if debugging)
 #ifdef _DEBUG
   drawAxis();
@@ -520,6 +514,8 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
 	drawTimeline();
   }
 
+  glPopMatrix();
+
   //draw the wand
   _effector.draw();
   
@@ -533,32 +529,59 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
   cout << "Key alt   value = " << keyInfo->getAlt() << endl;
   string stateString;
   arGUIState state = keyInfo->getState();
+
+  if(ct.vars.playstatus == 0){
+	  paused = !paused;
+	  speedAdjuster = 0;
+  }
+  else if(ct.vars.playstatus == 1){
+	  ct.vars.playreverse = !ct.vars.playreverse;
+  }
+  else if(ct.vars.playstatus == 2){
+	  paused = false;
+	  if(speedAdjuster == -90 || speedAdjuster == 50){
+		speedAdjuster = 0.0f;
+	}
+	else{speedAdjuster = -90;}
+  }
+  else if(ct.vars.playstatus == 3){
+	   paused = false;
+	  if(speedAdjuster == 50 || speedAdjuster == -90){
+			speedAdjuster = 0.0f;
+		}
+		else{speedAdjuster = 50.0f;}
+  }
+
+
+
   if (state == AR_KEY_DOWN) {
     stateString = "DOWN";
   } else if (state == AR_KEY_UP) {
     stateString = "UP"; 
 	if(keyInfo->getKey() == 112){  //p (play forwards)
-			ct.vars.time->val = ct.vars.time->start;
-			playForward = true;
+			paused = !paused;
+			speedAdjuster = 0;
 		}
 		if(keyInfo->getKey() == 111){  //o (play backwards)
-			ct.vars.time->val = ct.vars.time->end;
-			playForward = false;
+			ct.vars.playreverse = !ct.vars.playreverse;
 		}
 		if(keyInfo->getKey() == 108){  //l (speed up playing of event)
-			if(speedAdjuster == -90 || speedAdjuster == 9){
-				speedAdjuster = 0.0f;
-			}
-			else{speedAdjuster = -90;}
+			 paused = false;
+			if(speedAdjuster == -90 || speedAdjuster == 50){
+		speedAdjuster = 0.0f;
+	}
+	else{speedAdjuster = -90;}
 		}
 		if(keyInfo->getKey() == 107){  //k (slow down)
-			if(speedAdjuster == 9 || speedAdjuster == -90){
-				speedAdjuster = 0.0f;
-			}
-			else{speedAdjuster = 9.0f;}
+			 paused = false;
+			if(speedAdjuster == 50 || speedAdjuster == -90){
+			speedAdjuster = 0.0f;
+		}
+		else{speedAdjuster = 50.0f;}
 		}
 		if(keyInfo->getKey() == 113){  //q
-			ct.vars.time->start = 999999;ct.vars.time->end = 0;		
+			ct.vars.time->start = 999999;ct.vars.time->end = 0;	
+			//ct.vars.playstatus
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");

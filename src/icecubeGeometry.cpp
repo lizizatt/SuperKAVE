@@ -21,13 +21,6 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 	//fw->getMatrix(0);
 	//cout << "uP[0] = " << uP[0] << endl;
 
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
-
 	//drawsphere(1, 1.0f);
 
 	int numDrawn = 0;
@@ -135,8 +128,6 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 			glEnd();
 		}
 	}
-
-	glPopMatrix();
 }
 
 void IceCubeGeometry::loadGeometry(const char *sFilename)
