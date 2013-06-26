@@ -383,7 +383,7 @@ void IceCubeFramework::onPreExchange() {
   // (bools transfer as ints).
   
 	//Time increments for forward and backward animation
-	if(!paused){
+	/*if(!paused){
 		if(!ct.vars.playreverse){
 			if(ct.vars.time->val < ct.vars.time->end){
 				ct.vars.time->val+=10 - speedAdjuster;
@@ -394,6 +394,32 @@ void IceCubeFramework::onPreExchange() {
 				ct.vars.time->val-=10 - speedAdjuster;
 			}
 		}
+	}*/
+	//*/
+	switch(ct.vars.playstatus)
+	{
+	case 0:
+		break;
+	case 1:
+		if(!ct.vars.playreverse){
+			if(ct.vars.time->val < ct.vars.time->end){
+				ct.vars.time->val+=10;
+			}
+		}
+		else{
+			if(ct.vars.time->val > ct.vars.time->start){
+				ct.vars.time->val-=10;
+			}
+		}
+		break;
+	case 2:
+		ct.vars.time->val -= 50;
+		break;
+	case 3:
+		ct.vars.time->val += 50;
+		break;
+	default:
+		break;
 	}
 
   
@@ -530,6 +556,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
   string stateString;
   arGUIState state = keyInfo->getState();
 
+  /*
   if(ct.vars.playstatus == 0){
 	  paused = !paused;
 	  speedAdjuster = 0;
@@ -550,7 +577,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			speedAdjuster = 0.0f;
 		}
 		else{speedAdjuster = 50.0f;}
-  }
+  }*/
 
 
 
