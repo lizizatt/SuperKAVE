@@ -121,13 +121,6 @@ void IceCubeFramework::drawAxis(void)
 
 	glLineWidth(5.f);
 
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
-
 	//axes
 	glBegin( GL_LINES );	
 	  glColor3f(1.0f, 0.0f, 0.0f);
@@ -140,8 +133,6 @@ void IceCubeFramework::drawAxis(void)
       glVertex3f( 0,0,0 );
       glVertex3f( 0,100,0 );
     glEnd();
-
-	glPopMatrix();
 
 	glLineWidth(1.f);
 
@@ -156,12 +147,6 @@ void IceCubeFramework::drawEvents(void)
 	//fw->getMatrix(0);
 	//cout << "uP[0] = " << uP[0] << endl;
 
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
 
 	//drawsphere(1, 1.0f);
 
@@ -204,8 +189,6 @@ void IceCubeFramework::drawEvents(void)
 			}
 		}
 	}
-
-  glPopMatrix();
 }
 
 void IceCubeFramework::findExtremeEventTimes(){
@@ -507,6 +490,13 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_LIGHTING);
 
+  glPushMatrix();
+	
+  glTranslatef(0,20,0);
+  glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
+
+  glScalef(3.281f, 3.281f, 3.281f);
+
   //draw axis (if debugging)
 #ifdef _DEBUG
   drawAxis();
@@ -522,6 +512,8 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   {
 	drawTimeline();
   }
+
+  glPopMatrix();
 
   //draw the wand
   _effector.draw();
