@@ -278,6 +278,12 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   (void)dsLoop("background song", "background matrix", "..\\..\\src\\neutrinos\\data\\icecube\\sounds\\background.mp3",
     1, 1.0, arVector3(0,0,0));
 
+  //read in a skybox
+  if(!m_skybox.readOBJ("neutrino_skybox.obj", "", "..\\..\\src\\neutrinos\\data\\icecube\\skybox\\"))
+  {
+	  cout << "Couldn't load skybox...!" << endl;
+  }
+
   return true;
 }
 
@@ -493,6 +499,8 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
 
   glScalef(3.281f, 3.281f, 3.281f);
+
+  //m_skybox.draw();
 
   //draw axis (if debugging)
 #ifdef _DEBUG

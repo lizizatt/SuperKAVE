@@ -8,6 +8,9 @@
 
 #include "icecubeGeometry.h"
 #include "icecubeDataInput.h"
+
+#include "arOBJ.h"
+
 // Class definitions & imlpementations. We'll have just one one class, a 2-ft colored square that
 // can be grabbed & dragged around. We'll also have an effector class for doing the grabbing
 //
@@ -84,6 +87,8 @@ class IceCubeFramework : public arMasterSlaveFramework {
 	
 	IceCubeGeometry geometryData;
 	DataInput event2Data; 
+	
+	arOBJRenderer m_skybox;
 
 	int timeSpan;
 	int expansionTime;
