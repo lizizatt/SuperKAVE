@@ -126,7 +126,7 @@ protected:
 };
 
 //The button icons displayed above the wand
-class tdIcon : public tdWandPanel
+class tdIcon : public tdObject
 {
 public:
 private:
