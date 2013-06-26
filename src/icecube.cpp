@@ -17,9 +17,6 @@
 
 #include "arGlut.h"
 
-#include "icecubeGeometryInput.h"
-#include "icecubeDataInput.h"
-
 #include "glslUtils.h"
 
 // OOPified skeleton.cpp. Subclasses arMasterSlaveFramework and overrides its
@@ -34,37 +31,14 @@ const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
   
+const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = { "..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt",
+																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt",
+																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e4.txt",
+																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e5.txt",
+																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e6.txt",
+																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt" };
 
-GeometryInput geometryData;
-DataInput event2Data;
-//GLUquadricObj * qObj; 
-
-float fDownScale = 100.f;
-
-//int startTime = 999999;
-//int timeCounter = 0;
-float speedAdjuster = 0.0f;
-//int endTime = 0;
-int timeSpan = 0;
-int expansionTime = 0;
-bool playForward = true;
-float largestCharge = 0;
-float smallestCharge = 999999;
-float chargeSpan = 0;
-struct color{
-float red, green, blue;
-};
-
-tdMenuController ct = tdMenuController();
-
-vector<color> eventColors;
-
-
-
-
-
-
-
+const string IceCubeFramework::geometryFile = string("..\\..\\src\\neutrinos\\data\\icecube\\geometry\\Icecube_Geometry_Data.txt");
 
 /////////////////////////////////////Sphere drawing algorithm////////////////////////////////////////////////
 
@@ -115,20 +89,122 @@ void drawsphere(int ndiv, float radius=1.0) {
     glEnd();
 }
 
-
 //////////////////////////////End sphere drawing algorithm//////////////////////////////
 
+void RodEffectorIce::draw() const {
+  glPushMatrix();
+  glMultMatrixf(getCenterMatrix().v);
+    // draw grey rectangular solid 2"x2"x5'
+    glScalef( 2./12, 2./12., 5. );
+    glColor3f( .5,.5,.5 );
+    glutSolidCube(1.);
+    // superimpose slightly larger black wireframe (makes it easier to see shape)
+    glColor3f(0,0,0);
+    glutWireCube(1.03);
+  glPopMatrix();
+}
 
+// End of classes
 
+IceCubeFramework::IceCubeFramework() :
+  arMasterSlaveFramework(),
+    fDownScale(100.f), speedAdjuster(0.f), timeSpan(999999), expansionTime(0), playForward(true), 
+	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_fileIndex(0) 
+{
+	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
+	  arTexture().readJPEG("", "", "", -1, true);
+}
 
+void IceCubeFramework::drawAxis(void)
+{
+	glLineWidth(5.f);
 
+	glPushMatrix();
+	
+	glTranslatef(0,20,0);
+	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
 
+	glScalef(3.281f, 3.281f, 3.281f);
 
+	//axes
+	glBegin( GL_LINES );	
+	  glColor3f(1.0f, 0.0f, 0.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 0,0,100 );
+	  glColor3f(0.0f, 0.0f, 1.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 100,0,0 );
+	  glColor3f(1.0f, 1.0f, 0.0f);
+      glVertex3f( 0,0,0 );
+      glVertex3f( 0,100,0 );
+    glEnd();
 
+	glPopMatrix();
 
+	glLineWidth(1.f);
+}
 
+void IceCubeFramework::drawEvents(void)
+{
+	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
+	//cout << "userPosition (x,y,z) = (" << userPosition[12] << ", " << userPosition[14] << ", " << userPosition[13] << ")" << endl; //12 (initial x direction), 13 (vertical), 14 (initial z direction) to get user's position
+  //fw->getMatrix(0); //12 (some 2D movement), 13 (vertical), 14 to get user's position
+	//fw->getMatrix(0);
+	//cout << "uP[0] = " << uP[0] << endl;
 
-void findExtremeEventTimes(){
+	glPushMatrix();
+	
+	glTranslatef(0,20,0);
+	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
+
+	glScalef(3.281f, 3.281f, 3.281f);
+
+	//drawsphere(1, 1.0f);
+
+	float scaleDownEventSphere = fDownScale/10;
+
+	int numDrawn = 0;
+	
+	glEnable (GL_BLEND); 
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glDisable (GL_DEPTH_BUFFER);
+	//glDisable (GL_DEPTH_TEST);
+	float chargeRadiusFactor = 1.f;
+
+	float sphereX, sphereY, sphereZ;
+	float diffX, diffY, diffZ;
+
+	//DisplaySphere(5, false, 0);
+	//Draws the event data
+	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+		if(ct.vars.time->val > event2Data.icecubeData.time[i]){
+			//Transparency changing with amount of time event has been drawn
+			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
+			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
+			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
+			//cout << "diffZ = " << diffZ << endl;
+			if(diffX*diffX + diffY*diffY < 25 && diffZ*diffZ < 25){
+				//cout << "diffZ = " << diffZ << endl;
+				glTranslatef(sphereX, sphereY, sphereZ);
+				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
+			
+				//Expansion animation of event data
+				glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
+				glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				glTranslatef(-sphereX, -sphereY, -sphereZ);
+			}
+		}
+	}
+
+  glPopMatrix();
+}
+
+void IceCubeFramework::findExtremeEventTimes(){
 	//Find extreme times
 	largestCharge = 0;
 	smallestCharge = 999999;
@@ -176,272 +252,24 @@ void findExtremeEventTimes(){
 	}
 }
 
-  
-void ColoredSquareIce::draw( arMasterSlaveFramework* fw ) {
-
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_LIGHTING);
-
-	//glScalef(3.281f, 3.281f, 3.281f);
-
-	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
-	//cout << "userPosition (x,y,z) = (" << userPosition[12] << ", " << userPosition[14] << ", " << userPosition[13] << ")" << endl; //12 (initial x direction), 13 (vertical), 14 (initial z direction) to get user's position
-  //fw->getMatrix(0); //12 (some 2D movement), 13 (vertical), 14 to get user's position
-	//fw->getMatrix(0);
-	//cout << "uP[0] = " << uP[0] << endl;
-
-  glPushMatrix();
-   
-    glMultMatrixf(getMatrix().v );
-    // set one of two colors depending on if this object has been selected for interaction
-    if (getHighlight()) {
-      glColor3f( 0,1,0 );
-    } else {
-     glColor3f( 1,1,0 );
-    }
-    // draw a 2-ft upright square
-    glBegin( GL_QUADS );	
-      glVertex3f( -1,-1,0 );
-      glVertex3f( -1,1,0 );
-      glVertex3f( 1,1,0 );
-      glVertex3f( 1,-1,0 );
-    glEnd();
-	glPopMatrix();
-	glPushMatrix();
-	
-	glTranslatef(0,20,0);
-	glRotatef(90, 1.0, 0.0, 0.0);  //rotate to set cylinder up/down
-
-	glScalef(3.281f, 3.281f, 3.281f);
-
-	glBegin( GL_LINES );	
-		glColor3f(1.0f, 0.0f, 0.0f);
-      glVertex3f( 0,0,0 );
-      glVertex3f( 0,0,100 );
-	  glColor3f(0.0f, 0.0f, 1.0f);
-      glVertex3f( 0,0,0 );
-      glVertex3f( 100,0,0 );
-	  glColor3f(1.0f, 1.0f, 0.0f);
-      glVertex3f( 0,0,0 );
-      glVertex3f( 0,100,0 );
-    glEnd();
-
-	
-	//drawsphere(1, 1.0f);
-
-	float scaleDownEventSphere = fDownScale/10;
-
-	int numDrawn = 0;
-	
-	glEnable (GL_BLEND); 
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glDisable (GL_DEPTH_BUFFER);
-	//glDisable (GL_DEPTH_TEST);
-	float chargeRadiusFactor = 1.f;
-
-	float sphereX, sphereY, sphereZ;
-	float diffX, diffY, diffZ;
-
-	//DisplaySphere(5, false, 0);
-	//Draws the event data
-	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
-		if(ct.vars.time->val > event2Data.icecubeData.time[i]){
-			//Transparency changing with amount of time event has been drawn
-			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
-			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
-			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
-			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
-			//cout << "diffZ = " << diffZ << endl;
-			if(diffX*diffX + diffY*diffY < 25 && diffZ*diffZ < 25){
-				//cout << "diffZ = " << diffZ << endl;
-				glTranslatef(sphereX, sphereY, sphereZ);
-				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
-			
-				//Expansion animation of event data
-				glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
-				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
-				glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
-				glTranslatef(-sphereX, -sphereY, -sphereZ);
-			}
-		}
-	}
-
-	glEnable (GL_DEPTH_BUFFER);
-	glEnable (GL_DEPTH_TEST);
-	glDisable (GL_BLEND);
-	//glEnable (GL_DEPTH_BUFFER);
-	//Time increments for forward and backward animation
-	if(playForward){
-		if(ct.vars.time->val < ct.vars.time->end){
-			ct.vars.time->val+=10 - speedAdjuster;
-		}
-	}
-	else{
-		if(ct.vars.time->val > ct.vars.time->start){
-			ct.vars.time->val-=10 - speedAdjuster;
-		}
-	}
-	//cout << "time = " << ct.vars.time->val << endl;
-
-
-	//gluQuadricDrawStyle(qObj, GLU_FILL);  //sets draw style of the cylinder to wireframe (GLU_LINE)
-	glColor3f(1.0f, 0.25f, 0.25f);
-
-	//inner cyliner:
-	//gluCylinder(quadObj, RADIUS, RADIUS, HEIGHT, 6, 30); //inner cylinder wireframe  //now hexagonal
-	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
-
-	//glTranslatef(0,0,40);
-	//gluDisk(quadObj, 0.0, RADIUS, 6, 30);
-	//glTranslatef(0,0,-40);
-
-	//float fDownScale = 10.f;//10.f;
-	float scaleDownSphere = fDownScale/5;
-	//fDownScale = 10.f;
-
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glTranslatef(0.0f, 0.0f, -1920.f/fDownScale);
-	glScalef(1.0f, 1.0f, 0.025f);
-	glutSolidCube(2000.0f/fDownScale);
-	glScalef(1.0f, 1.0f, 40.0f);
-	glTranslatef(0.0f, 0.0f, 1920.f/fDownScale);
-
-	//Draws the Icecube detector grid
-	for(unsigned int i=0; i < geometryData.icecubeGeometry.xCoord.size(); i++){
-		glColor3f(0.25f, 0.25f, 0.25f);
-		sphereX=geometryData.icecubeGeometry.xCoord[i]/fDownScale;sphereY=geometryData.icecubeGeometry.yCoord[i]/fDownScale;sphereZ=-geometryData.icecubeGeometry.zCoord[i]/fDownScale;
-		diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 -sphereZ - userPosition[13]/3.281;
-		if(diffX*diffX + diffY*diffY< 16 && diffZ*diffZ < 20){
-			
-			if(geometryData.icecubeGeometry.strings[i] > 78){glColor3f(1.0f, 1.0f, 1.0f);}
-			if(geometryData.icecubeGeometry.modules[i] > 60){glColor3f(1.0f, 0.0f, 0.0f);
-			glTranslatef(sphereX, sphereY, sphereZ);
-			glutSolidSphere(0.55f/scaleDownSphere, 4, 4);
-			glTranslatef(-sphereX, -sphereY, -sphereZ);
-			}
-			else{
-			glTranslatef(sphereX, sphereY, sphereZ);
-			glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
-			glTranslatef(-sphereX, -sphereY, -sphereZ);
-			glBegin(GL_LINES);
-			if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
-				glColor3f(0.75f, 0.75f, 0.75f);
-				if(geometryData.icecubeGeometry.modules[i] == 60){
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
-				}
-				else{
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
-				}
-			}
-			glEnd();
-		
-			}
-		}
-		else{
-			glBegin(GL_LINES);
-			if(i < geometryData.icecubeGeometry.xCoord.size()-1 && geometryData.icecubeGeometry.strings[i] == geometryData.icecubeGeometry.strings[i+1]){
-				glColor3f(0.75f, 0.75f, 0.75f);
-				if(geometryData.icecubeGeometry.modules[i] == 60){
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i-59]/fDownScale, geometryData.icecubeGeometry.yCoord[i-59]/fDownScale, -geometryData.icecubeGeometry.zCoord[i-59]/fDownScale);
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
-				}
-				else{
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i]/fDownScale, geometryData.icecubeGeometry.yCoord[i]/fDownScale, -geometryData.icecubeGeometry.zCoord[i]/fDownScale);
-					glVertex3f(geometryData.icecubeGeometry.xCoord[i+1]/fDownScale, geometryData.icecubeGeometry.yCoord[i+1]/fDownScale, -geometryData.icecubeGeometry.zCoord[i+1]/fDownScale);
-				}
-			}
-			glEnd();
-		}
-	}
-  glPopMatrix();
-
-
- 
-  glMatrixMode(GL_PROJECTION);
-  glPushMatrix();
-	 
-	glLoadIdentity();
-	gluOrtho2D(-5.0f, 5.0f, -5.0f, 5.0f);
-	glMatrixMode(GL_MODELVIEW);
-	glPushMatrix();
-	glLoadIdentity();
-
-	glTranslatef(0.0, 4.8, -1.0);  //x=horizontal across screen; y=vertical across screen; z=does nothing important
-	glColor3f(0.55f, 0.55f, 0.95f);
-	glScalef(8.0, 0.1, 1.0);
-	glutSolidCube(1.0f);
-	glScalef(0.125, 10.0, 1.0);
-	glTranslatef(0.0, -4.8, 1.0); 
-
-	glTranslatef(4.0, 4.8, -0.5);
-	glColor3f(0.15f, 0.15f, 0.55f);
-	glRotatef(45.0f, 0, 0, 1);
-	glutSolidCube(0.2f);
-	glRotatef(-45.0f, 0, 0, 1);
-
-	glTranslatef(-8.0, 0.0, 0.0);
-	glRotatef(45.0f, 0, 0, 1);
-	glutSolidCube(0.2f);
-	glRotatef(-45.0f, 0, 0, 1);
-
-	if(ct.vars.time->val > ct.vars.time->end){ct.vars.time->val = ct.vars.time->end;}
-	if(ct.vars.time->val < ct.vars.time->start){ct.vars.time->val = ct.vars.time->start;}
-
-	glTranslatef(8*float((float(ct.vars.time->val)-float(ct.vars.time->start))/float(timeSpan+expansionTime)) , 0.0, 0.5);
-	glColor3f(0.55f, 0.15f, 0.15f);
-	glRotatef(45.0f, 0, 0, 1);
-	glutSolidCube(0.2f);
-	glRotatef(-45.0f, 0, 0, 1);
-
-
-  glPopMatrix();
-   glMatrixMode(GL_PROJECTION);
-   glPopMatrix();
-   glMatrixMode(GL_MODELVIEW);
-}
-
-void RodEffectorIce::draw() const {
-  glPushMatrix();
-  glMultMatrixf(getCenterMatrix().v);
-    // draw grey rectangular solid 2"x2"x5'
-    glScalef( 2./12, 2./12., 5. );
-    glColor3f( .5,.5,.5 );
-    glutSolidCube(1.);
-    // superimpose slightly larger black wireframe (makes it easier to see shape)
-    glColor3f(0,0,0);
-    glutWireCube(1.03);
-  glPopMatrix();
-}
-
-// End of classes
-
-IceCubeFramework::IceCubeFramework() :
-  arMasterSlaveFramework(),
-  _squareHighlightedTransfer(0), m_shaderProgram(-1) {
-	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
-	  arTexture().readJPEG("", "", "", -1, true);
-}
-
-
 // onStart callback method (called in arMasterSlaveFramework::start()
 //
 // Note: DO NOT do OpenGL initialization here; this is now called
 // __before__ window creation. Do it in the onWindowStartGL()
 //
 bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
-  // Register shared memory.
-  //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
-  addTransferField("squareHighlighted", &_squareHighlightedTransfer, AR_INT, 1);
-  addTransferField("squareMatrix", _squareMatrixTransfer.v, AR_FLOAT, 16);
 
   // (re)initialize menu controller
   ct = tdMenuController(&_effector);
   //ENDJEDIT
+  
+  // Register shared memory.
+  //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
+ 
+  addTransferField("playForward", &playForward, AR_INT, 1);
+  addTransferField("timeCounter", &ct.vars.time->val, AR_INT, 1);
+  addTransferField("fileIndex", &m_fileIndex, AR_INT, 1);
+  addTransferField("nextMenu", ct.getNextMenuPtr(), AR_INT, 1);
 
   // Setup navigation, so we can drive around with the joystick
   //
@@ -458,19 +286,12 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   setNavTransSpeed( 5. * 100/fDownScale );    ////////Changes velocity of user
   setNavRotSpeed( 30. );
   
-  // set square's initial position
-  _square.setMatrix( ar_translationMatrix(0,5,-16) );
-
-  
-
   /*const arMatrix4 ident;
   dsTransform( "sound scale", getNavNodeName(), ar_scaleMatrix(1) );
-  int whaleSoundTransformID = dsTransform( "whale sound matrix", "sound scale", ident );
-  int dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "sound scale", ident );
-  (void)dsLoop("whale song", "whale sound matrix", "..\\..\\src\\neutrinos\\data\\icecube\\sounds\\whale.mp3",
+  int soundTransformID = dsTransform( "background matrix", "sound scale", ident );
+  //int dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "sound scale", ident );
+  (void)dsLoop("background song", "background matrix", "..\\..\\src\\neutrinos\\data\\icecube\\sounds\\background.mp3",
     1, 1.0, arVector3(0,0,0));*/
-  //(void)dsLoop("dolphin song", "dolphin sound matrix", "dolphin.mp3",
-  //  1, 0.05, arVector3(0,0,0));
 
   return true;
 }
@@ -492,24 +313,27 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
   //std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\simple.vert");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\red.frag");
-  std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_billboard2.vert");
+  //std::string vshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_billboard2.vert");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_bwprint.frag");
   //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_cheerio.frag");
-  std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_glshovel2.frag");
+  //std::string fshader = std::string("..\\..\\src\\neutrinos\\data\\icecube\\shader\\sphere_glshovel2.frag");
   //std::string vshader = std::string(commonVShader());
   //std::string fshader = coinFShader(PLASTICY,PHONG,false);
-  m_shaderProgram = loadProgramFiles(vshader,fshader,true);
+  //m_shaderProgram = loadProgramFiles(vshader,fshader,true);
 
   // OpenGL initialization
   glClearColor(0,0,0,0);
 
- // qObj = gluNewQuadric();
+  ct.vars.time->start = 999999;
+  ct.vars.time->end = 0;		
+	
+  eventColors.clear();
+	event2Data.~DataInput();
+  
+  geometryData.loadGeometry(geometryFile.c_str());
 
-  ct.vars.time->start = 999999;ct.vars.time->end = 0;		
-			eventColors.clear();
-			event2Data.~DataInput();
-  geometryData.getText();
-  event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
+  event2Data.getText(string(eventFiles[m_fileIndex]));
+
   findExtremeEventTimes();
 
   GLfloat fogDensity = 0.1f; 
@@ -551,10 +375,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	glEnable(GL_LIGHTING);
 	//glEnable(GL_LIGHT1);
 	glEnable(GL_LIGHT0);
-	
-	
 }
-
 
 // Method called before data is transferred from master to slaves. Only called
 // on the master. This is where anything having to do with
@@ -571,12 +392,22 @@ void IceCubeFramework::onPreExchange() {
 
   // Handle any interaction with the square (see interaction/arInteractionUtilities.h).
   // Any grabbing/dragging happens in here.
-  ar_pollingInteraction( _effector, (arInteractable*)&_square );
+  //ar_pollingInteraction( _effector, (arInteractable*)&_square );
 
   // Pack data destined for slaves into appropriate variables
   // (bools transfer as ints).
-  _squareHighlightedTransfer = (int)_square.getHighlight();
-  _squareMatrixTransfer = _square.getMatrix();
+  
+	//Time increments for forward and backward animation
+	if(playForward){
+		if(ct.vars.time->val < ct.vars.time->end){
+			ct.vars.time->val+=10 - speedAdjuster;
+		}
+	}
+	else{
+		if(ct.vars.time->val > ct.vars.time->start){
+			ct.vars.time->val-=10 - speedAdjuster;
+		}
+	}
 
   //JEDIT
   
@@ -596,21 +427,102 @@ void IceCubeFramework::onPostExchange() {
     _effector.updateState( getInputState() );
 
     // Unpack our transfer variables.
-    _square.setHighlight( (bool)(_squareHighlightedTransfer==0) );
-    _square.setMatrix( _squareMatrixTransfer.v );
+	//TODO Ross - test which ones of these automatically 'unpack'
+	static int currFileIndex = 0;
+
+	if(currFileIndex != m_fileIndex)
+	{
+		ct.vars.time->start = 999999;
+		ct.vars.time->end = 0;		
+		eventColors.clear();
+		event2Data.~DataInput();
+		event2Data.getText(string(eventFiles[m_fileIndex]));
+		findExtremeEventTimes();
+		playForward = true;
+		currFileIndex = m_fileIndex;
+	}
+
+	int size = 1;
+	ct.vars.time->val = *(int*)(getTransferField("timeCounter", AR_INT, size));
+	ct.swap(*(int*)(getTransferField("nextMenu", AR_INT, size)));
+
+	//need to handle events on slaves..
+	//the getTime() function is safe to call because syzygy automatically maintains synched time across nodes
+	ct.handleEvents("");
+	ct.update(getTime());
   }
+}
+
+void IceCubeFramework::drawTimeline(void)
+{
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix();
+	 
+	glLoadIdentity();
+	gluOrtho2D(-5.0f, 5.0f, -5.0f, 5.0f);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix();
+	glLoadIdentity();
+
+	glTranslatef(0.0, 4.8, -1.0);  //x=horizontal across screen; y=vertical across screen; z=does nothing important
+	glColor3f(0.55f, 0.55f, 0.95f);
+	glScalef(8.0, 0.1, 1.0);
+	glutSolidCube(1.0f);
+	glScalef(0.125, 10.0, 1.0);
+	glTranslatef(0.0, -4.8, 1.0); 
+
+	glTranslatef(4.0, 4.8, -0.5);
+	glColor3f(0.15f, 0.15f, 0.55f);
+	glRotatef(45.0f, 0, 0, 1);
+	glutSolidCube(0.2f);
+	glRotatef(-45.0f, 0, 0, 1);
+
+	glTranslatef(-8.0, 0.0, 0.0);
+	glRotatef(45.0f, 0, 0, 1);
+	glutSolidCube(0.2f);
+	glRotatef(-45.0f, 0, 0, 1);
+
+	if(ct.vars.time->val > ct.vars.time->end){ct.vars.time->val = ct.vars.time->end;}
+	if(ct.vars.time->val < ct.vars.time->start){ct.vars.time->val = ct.vars.time->start;}
+
+	glTranslatef(8*float((float(ct.vars.time->val)-float(ct.vars.time->start))/float(timeSpan+expansionTime)) , 0.0, 0.5);
+	//glColor3f(0.55f, 0.15f, 0.15f);
+	glColor3f(1.f, 1.f, 1.f);
+	glRotatef(45.0f, 0, 0, 1);
+	glutSolidCube(0.2f);
+	glRotatef(-45.0f, 0, 0, 1);
+
+	glPopMatrix();
+   glMatrixMode(GL_PROJECTION);
+   glPopMatrix();
+   glMatrixMode(GL_MODELVIEW);
 }
 
 void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   // Load the navigation matrix.
   loadNavMatrix();
+  
   // Draw stuff.
-  //glUseProgram(m_shaderProgram);
-  _square.draw();
+  glEnable(GL_COLOR_MATERIAL);
+  glEnable(GL_LIGHTING);
+
+  //draw axis (if debugging)
+  drawAxis();
+
+  //draw current events.
+  drawEvents();
+
+  // draw ice cube geometry
+  geometryData.draw(this, fDownScale);
+
+  if(getMaster())
+  {
+	drawTimeline();
+  }
+
+  //draw the wand
   _effector.draw();
-  //glColor3f(1.0f, 0.0f, 0.0f);
-  //glutSolidSphere(5.0f, 8, 8);
-  //glUseProgram(0);
+  
   ct.draw();
 }
 
@@ -652,6 +564,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
 			findExtremeEventTimes();
 			playForward = true;
+			m_fileIndex = 0;
 		}
 		if(keyInfo->getKey() == 119){  //w
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;
@@ -660,6 +573,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
 			findExtremeEventTimes();
 			playForward = true;
+			m_fileIndex = 1;
 		}
 		if(keyInfo->getKey() == 101){  //e
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;
@@ -668,6 +582,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e5.txt");
 			findExtremeEventTimes();
 			playForward = true;
+			m_fileIndex = 3;
 		}
 		if(keyInfo->getKey() == 114){  //r
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;
@@ -676,6 +591,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e6.txt");
 			findExtremeEventTimes();
 			playForward = true;
+			m_fileIndex = 4;
 		}
 		if(keyInfo->getKey() == 116){  //t
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;
@@ -684,6 +600,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");
 			findExtremeEventTimes();
 			playForward = true;
+			m_fileIndex = 5;
 		}
 		
 

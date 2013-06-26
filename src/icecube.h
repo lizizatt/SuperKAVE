@@ -6,6 +6,8 @@
 #include "arInteractableThing.h"
 #include "tdmenucontroller.h"
 
+#include "icecubeGeometry.h"
+#include "icecubeDataInput.h"
 // Class definitions & imlpementations. We'll have just one one class, a 2-ft colored square that
 // can be grabbed & dragged around. We'll also have an effector class for doing the grabbing
 //
@@ -65,18 +67,48 @@ class IceCubeFramework : public arMasterSlaveFramework {
 //    virtual void onKey( unsigned char key, int x, int y );
     virtual void onKey( arGUIKeyInfo* );
 //    virtual void onMouse( arGUIMouseInfo* );
+
+	float getScale(void) const { return fDownScale; }
+	void setScale(float fScale) { fDownScale = fScale; }
+
   private:
+	  
+	void drawAxis(void);
+	void drawEvents(void);
+	void drawTimeline(void);
+	void findExtremeEventTimes();
+
     // Our single object and effector
-    ColoredSquareIce _square;
     RodEffectorIce _effector;
 	GLint m_shaderProgram;
+	
+	IceCubeGeometry geometryData;
+	DataInput event2Data; 
+
+	int timeSpan;
+	int expansionTime;
+	
+	float largestCharge;
+	float smallestCharge;
+	float chargeSpan;
+	float fDownScale;
+
+	tdMenuController ct;
+	
+	struct color {
+		float red, green, blue;
+	};
+
+	vector<color> eventColors;
+	
+	static const unsigned int NUM_EVENT_FILES = 6;
+	static const char * eventFiles[NUM_EVENT_FILES];
+	static const std::string geometryFile;
 
     // Master-slave transfer variables
-    // All we need to explicity transfer in this program is the square's placement matrix and
-    // whether or not the it is highlighted (the effector's matrix can be updated by calling 
-    // updateState(), see below).
-    int _squareHighlightedTransfer;
-    arMatrix4 _squareMatrixTransfer;
+	bool playForward;
+	int m_fileIndex;
+	float speedAdjuster;
 };
 
 #endif

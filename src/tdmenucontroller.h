@@ -26,6 +26,8 @@ public:
 	arVector3 handlePointer();	//gets endpoint of laser pointer and handles effects of current pointer placement in menu
 	void handleEvents(string ext);	//checks for events within the menu and controller (and outside) and updates accordingly
 	arEffector * wand;	//used to track control device
+	int * getNextMenuPtr(void) { return &nextMenu; }
+
 private:
 	double lastTime;	//used to calculate time change since last update
 	vector<tdMenu*> menus;	//holds all menus

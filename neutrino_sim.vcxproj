@@ -286,7 +286,7 @@
     <ClCompile Include="..\sound\arTTS.cpp" />
     <ClCompile Include="src\icecube.cpp" />
     <ClCompile Include="src\icecubeDataInput.cpp" />
-    <ClCompile Include="src\icecubeGeometryInput.cpp" />
+    <ClCompile Include="src\icecubeGeometry.cpp" />
     <ClCompile Include="src\neutrinos.cpp" />
     <ClCompile Include="src\tdevents.cpp" />
     <ClCompile Include="src\tdmenu.cpp" />
@@ -514,7 +514,7 @@
     <ClInclude Include="..\sound\fmodStub.h" />
     <ClInclude Include="src\icecube.h" />
     <ClInclude Include="src\icecubeDataInput.h" />
-    <ClInclude Include="src\icecubeGeometryInput.h" />
+    <ClInclude Include="src\icecubeGeometry.h" />
     <ClInclude Include="src\tdevents.h" />
     <ClInclude Include="src\tdmenu.h" />
     <ClInclude Include="src\tdmenucontroller.h" />
