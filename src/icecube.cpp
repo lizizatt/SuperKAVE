@@ -31,7 +31,7 @@ const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
 const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
 const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
 
-bool paused = false;
+int spin = 0;
   
 const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = { "..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt",
 																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt",
@@ -78,9 +78,13 @@ void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
         }
         normalize(ab); normalize(ac); normalize(bc);
         drawtri(a, ab, ac, div-1, r);
-        //drawtri(b, bc, ab, div-1, r);
-        drawtri(c, ac, bc, div-1, r);
-        //drawtri(ab, bc, ac, div-1, r);  //<--Comment this line and sphere looks really cool!
+		if(div==1){
+			drawtri(b, bc, ab, div-1, r);
+			drawtri(c, ac, bc, div-1, r);
+		}
+		else{
+        drawtri(ab, bc, ac, div-1, r);  //<--Comment this line and sphere looks really cool!
+		}
     }  
 }
 
@@ -97,12 +101,12 @@ void RodEffectorIce::draw() const {
   glPushMatrix();
   glMultMatrixf(getCenterMatrix().v);
     // draw grey rectangular solid 2"x2"x5'
-    glScalef( 2./12, 2./12., 5. );
+    glScalef( 2./12, 2./12., 4. );
     glColor3f( .5,.5,.5 );
-    glutSolidCube(1.);
+    glutSolidCube(0.5);
     // superimpose slightly larger black wireframe (makes it easier to see shape)
     glColor3f(0,0,0);
-    glutWireCube(1.03);
+    glutWireCube(0.53);
   glPopMatrix();
 }
 
@@ -167,30 +171,31 @@ void IceCubeFramework::drawEvents(void)
 
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
-	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(ct.vars.time->val > event2Data.icecubeData.time[i]){
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((ct.vars.time->val - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
 			//cout << "diffZ = " << diffZ << endl;
-			if(diffX*diffX + diffY*diffY < 25 && diffZ*diffZ < 25){
+			if(diffX*diffX + diffY*diffY < 250000.f/(fDownScale*fDownScale) && diffZ*diffZ < 250000.f/(fDownScale*fDownScale)){
 				//cout << "diffZ = " << diffZ << endl;
 				glTranslatef(sphereX, sphereY, sphereZ);
 				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
 			
 				//Expansion animation of event data
-				glRotatef(0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
-				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				glRotatef(0.1*(spin- event2Data.icecubeData.time[i]), 0, 0, 1);
+				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(4, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
 				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
 				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
-				glRotatef(-0.1*(ct.vars.time->val - event2Data.icecubeData.time[i]), 0, 0, 1);
+				glRotatef(-0.1*(spin - event2Data.icecubeData.time[i]), 0, 0, 1);
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 			}
 		}
 	}
+	
 }
 
 void IceCubeFramework::findExtremeEventTimes(){
@@ -198,7 +203,7 @@ void IceCubeFramework::findExtremeEventTimes(){
 	largestCharge = 0;
 	smallestCharge = 999999;
 	chargeSpan = 0;
-	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(event2Data.icecubeData.time[i] > ct.vars.time->end){
 			ct.vars.time->end = (int)(event2Data.icecubeData.time[i]);
 		}
@@ -220,7 +225,7 @@ void IceCubeFramework::findExtremeEventTimes(){
 	ct.vars.time->val = ct.vars.time->start;
 	
 	color red;
-	for(int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		red.red=0.5f;red.green=0.0f;red.blue=1.0f;
 		
 		if(event2Data.icecubeData.time[i] <= ct.vars.time->start+timeSpan/4){
@@ -323,7 +328,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
   findExtremeEventTimes();
 
-  GLfloat fogDensity = 0.1f; 
+  GLfloat fogDensity = 0.001 * fDownScale; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
 	
 	GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
@@ -411,12 +416,15 @@ void IceCubeFramework::onPreExchange() {
 				ct.vars.time->val-=10;
 			}
 		}
+		spin += 10;
 		break;
 	case 2:
 		ct.vars.time->val -= 50;
+		spin -= 50;
 		break;
 	case 3:
 		ct.vars.time->val += 50;
+		spin += 50;
 		break;
 	default:
 		break;
@@ -586,21 +594,18 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
   } else if (state == AR_KEY_UP) {
     stateString = "UP"; 
 	if(keyInfo->getKey() == 112){  //p (play forwards)
-			paused = !paused;
 			speedAdjuster = 0;
 		}
 		if(keyInfo->getKey() == 111){  //o (play backwards)
 			ct.vars.playreverse = !ct.vars.playreverse;
 		}
 		if(keyInfo->getKey() == 108){  //l (speed up playing of event)
-			 paused = false;
 			if(speedAdjuster == -90 || speedAdjuster == 50){
 		speedAdjuster = 0.0f;
 	}
 	else{speedAdjuster = -90;}
 		}
 		if(keyInfo->getKey() == 107){  //k (slow down)
-			 paused = false;
 			if(speedAdjuster == 50 || speedAdjuster == -90){
 			speedAdjuster = 0.0f;
 		}

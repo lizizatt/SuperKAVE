@@ -64,7 +64,10 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 
 		int domString = m_doms[i].getDomString();
 
-		if((diffX*diffX + diffY*diffY)< 16.f && diffZ*diffZ < 20.f)
+		float horizDist = diffX*diffX + diffY*diffY;
+		float vertDist = diffZ*diffZ;
+
+		if(horizDist < 160000.f/(fDownScale*fDownScale) &&  vertDist < 200000.f/(fDownScale*fDownScale))
 		{	
 			if(domString > 78)
 			{
@@ -76,13 +79,24 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 			{
 				glColor3f(1.0f, 0.0f, 0.0f);
 				glTranslatef(sphereX, sphereY, sphereZ);
-				glutSolidSphere(0.55f/scaleDownSphere, 4, 4);
+				glutSolidSphere(0.55f/scaleDownSphere, 6, 6);
+				
+				
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 			}
 			else
 			{
 				glTranslatef(sphereX, sphereY, sphereZ);
-				glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+				if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.25f/scaleDownSphere, 5, 5);
+				}
+				else if(horizDist + vertDist < 40000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+				}
+				else{
+					glutSolidSphere(0.25f/scaleDownSphere, 3, 3);
+				}				
+				//glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 				
 				glBegin(GL_LINES);
