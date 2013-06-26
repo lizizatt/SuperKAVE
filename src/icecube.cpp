@@ -117,6 +117,8 @@ IceCubeFramework::IceCubeFramework() :
 
 void IceCubeFramework::drawAxis(void)
 {
+	glDisable (GL_DEPTH_TEST);
+
 	glLineWidth(5.f);
 
 	glPushMatrix();
@@ -142,6 +144,8 @@ void IceCubeFramework::drawAxis(void)
 	glPopMatrix();
 
 	glLineWidth(1.f);
+
+	glEnable(GL_DEPTH_TEST);
 }
 
 void IceCubeFramework::drawEvents(void)
@@ -269,7 +273,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   addTransferField("playForward", &playForward, AR_INT, 1);
   addTransferField("timeCounter", &ct.vars.time->val, AR_INT, 1);
   addTransferField("fileIndex", &m_fileIndex, AR_INT, 1);
-  addTransferField("nextMenu", ct.getNextMenuPtr(), AR_INT, 1);
+  //addTransferField("nextMenu", ct.getNextMenuPtr(), AR_INT, 1);
 
   // Setup navigation, so we can drive around with the joystick
   //
@@ -286,12 +290,11 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   setNavTransSpeed( 5. * 100/fDownScale );    ////////Changes velocity of user
   setNavRotSpeed( 30. );
   
-  /*const arMatrix4 ident;
+  const arMatrix4 ident;
   dsTransform( "sound scale", getNavNodeName(), ar_scaleMatrix(1) );
   int soundTransformID = dsTransform( "background matrix", "sound scale", ident );
-  //int dolphinSoundTransformID = dsTransform( "dolphin sound matrix", "sound scale", ident );
   (void)dsLoop("background song", "background matrix", "..\\..\\src\\neutrinos\\data\\icecube\\sounds\\background.mp3",
-    1, 1.0, arVector3(0,0,0));*/
+    1, 1.0, arVector3(0,0,0));
 
   return true;
 }
@@ -355,16 +358,14 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
 	glHint (GL_FOG_HINT, GL_NICEST);
 
-	GLfloat light_position[] = { 0.0, 0.0, 0.0, 0.0 };
-	GLfloat light_position2[] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
+	GLfloat light_position2[] = { 0.0, 1.0, 0.0, 0.0 };
 	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
 	glClearColor (0.0, 0.0, 0.0, 0.0);
 	glShadeModel (GL_SMOOTH);
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, light_diffuse);
 	glLightfv(GL_LIGHT1, GL_POSITION, light_position);
-
-	glShadeModel (GL_SMOOTH);
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, light_diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
@@ -444,7 +445,7 @@ void IceCubeFramework::onPostExchange() {
 
 	int size = 1;
 	ct.vars.time->val = *(int*)(getTransferField("timeCounter", AR_INT, size));
-	ct.swap(*(int*)(getTransferField("nextMenu", AR_INT, size)));
+	//ct.swap(*(int*)(getTransferField("nextMenu", AR_INT, size)));
 
 	//need to handle events on slaves..
 	//the getTime() function is safe to call because syzygy automatically maintains synched time across nodes
@@ -507,7 +508,9 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   glEnable(GL_LIGHTING);
 
   //draw axis (if debugging)
+#ifdef _DEBUG
   drawAxis();
+#endif
 
   //draw current events.
   drawEvents();

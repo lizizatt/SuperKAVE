@@ -42,7 +42,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\..\external\win32\fmod-4\include;..\..\..\external\win32\glut-3.7-vc\include;..\..\..\external\win32\glew-1.9.0\include;..\barrier;..\drivers;..\framework;..\graphics;..\interaction;..\language;..\math;..\model;..\phleet;..\sound;..\utilities</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>EnableSound;_CRT_SECURE_NO_WARNINGS;WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;EnableSound;_CRT_SECURE_NO_WARNINGS;WINNEUTRINO;NOFACTORY;AR_USE_WIN_32;_MBCS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>arPrecompiled.h</PrecompiledHeaderFile>
       <PrecompiledHeaderOutputFile>arPrecompiled.pch</PrecompiledHeaderOutputFile>

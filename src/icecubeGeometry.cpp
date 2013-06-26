@@ -57,7 +57,7 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 	//Draws the Icecube detector grid
 	for(unsigned int i=0; i < m_doms.size(); i++)
 	{
-		glColor3f(0.25f, 0.25f, 0.25f);
+		glColor3f(0.5f, 0.5f, 0.5f);
 
 		const arVector3 &sphere = m_doms[i].getPos();
 
@@ -71,7 +71,7 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 
 		int domString = m_doms[i].getDomString();
 
-		if(diffX*diffX + diffY*diffY< 16 && diffZ*diffZ < 20)
+		if((diffX*diffX + diffY*diffY)< 16.f && diffZ*diffZ < 20.f)
 		{	
 			if(domString > 78)
 			{
