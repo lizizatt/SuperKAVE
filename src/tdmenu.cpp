@@ -596,8 +596,8 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 	glMultMatrixf(menualign.v);
 
 
-
-
+	//Idea for alternate sphere drawing algorithm w/ resolution control
+	/*
 	glPushMatrix();
 	float diameter = 5;
 	float numLatitude = 10;
@@ -631,7 +631,7 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 		}
 		glEnd();
 	}
-
+	
 
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(0,diameter,0);
@@ -643,7 +643,7 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 	}
 	glEnd();
 	glPopMatrix();
-	
+	*/
 
 
 
