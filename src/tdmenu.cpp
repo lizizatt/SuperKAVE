@@ -594,6 +594,61 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 {
 	glPushMatrix();
 	glMultMatrixf(menualign.v);
+
+
+
+
+	glPushMatrix();
+	float diameter = 5;
+	float numLatitude = 10;
+	float numLongitude = 30;
+	float rad;
+	float radt;
+	float segment = 1/(2+numLatitude);
+	float theta;
+	glTranslatef(0,-diameter/2,5);
+	colorPanel();
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0,0,0);
+	rad = sin(acos(2*segment-1));
+	for(int i = 0; i <= numLongitude; i++)
+	{
+		theta = 2*M_PI*i/numLongitude;
+		glVertex3f(rad*sin(theta)*diameter/2,segment*diameter,rad*cos(theta)*diameter/2);
+	}
+	glEnd();
+
+	for(int i = 0; i < numLatitude; i++)
+	{
+		glBegin(GL_QUAD_STRIP);
+		rad = sin(acos(2*(1+i)*segment-1));
+		radt= sin(acos(2*(2+i)*segment-1));
+		for(int j = 0; j <= numLongitude; j++)
+		{
+			theta = 2*M_PI*j/numLongitude;
+			glVertex3f(rad*sin(theta)*diameter/2,(1+i)*segment*diameter,rad*cos(theta)*diameter/2);
+			glVertex3f(radt*sin(theta)*diameter/2,(2+i)*segment*diameter,radt*cos(theta)*diameter/2);
+		}
+		glEnd();
+	}
+
+
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0,diameter,0);
+	rad = sin(acos(2*segment-1));
+	for(int i = numLongitude; i >= 0; i--)
+	{
+		theta = 2*M_PI*i/numLongitude;
+		glVertex3f(rad*sin(theta)*diameter/2,(1-segment)*diameter,rad*cos(theta)*diameter/2);
+	}
+	glEnd();
+	glPopMatrix();
+	
+
+
+
+
+
 	for(int i = 0; i < panels.size(); i++)
 	{
 		panels[i]->draw();
