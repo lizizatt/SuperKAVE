@@ -25,13 +25,13 @@
 // Unit conversions.  Tracker (and cube screen descriptions) use feet.
 // Atlantis, for example, uses 1/2-millimeters, so the appropriate conversion
 // factor is 12*2.54*20.
-const float FEET_TO_LOCAL_UNITS = 1.; //Feet to meters
+const float IceCubeFramework::FEET_TO_LOCAL_UNITS = 1.f;
 
 // Near & far clipping planes.
-const float nearClipDistance = .1*FEET_TO_LOCAL_UNITS;
-const float farClipDistance = 100.*FEET_TO_LOCAL_UNITS;
+const float IceCubeFramework::nearClipDistance = .1f;
+const float IceCubeFramework::farClipDistance = 10000.f;
 
-int spin = 0;
+
   
 const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = { "..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt",
 																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt",
@@ -114,8 +114,8 @@ void RodEffectorIce::draw() const {
 
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
-    fDownScale(100.f), speedAdjuster(0.f), timeSpan(999999), expansionTime(0), playForward(true), 
-	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_fileIndex(0) 
+    fDownScale(1.f), speedAdjuster(0.f), timeSpan(999999), expansionTime(0), 
+	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_fileIndex(0), spin(0)
 {
 	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
 	  arTexture().readJPEG("", "", "", -1, true);
@@ -256,13 +256,18 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   // (re)initialize menu controller
   ct = tdMenuController(&_effector);
   
+  setUnitConversion(FEET_TO_LOCAL_UNITS);
+  setClipPlanes(nearClipDistance, farClipDistance);
+
   // Register shared memory.
   //  framework.addTransferField( char* name, void* address, arDataType type, int numElements ); e.g.
- 
-  addTransferField("playForward", &playForward, AR_INT, 1);
+  addTransferField("timeStart", &ct.vars.time->start, AR_INT, 1);
+  addTransferField("timeEnd", &ct.vars.time->end, AR_INT, 1);
   addTransferField("timeCounter", &ct.vars.time->val, AR_INT, 1);
+  addTransferField("playStatus", &ct.vars.playstatus, AR_INT, 1);
+  addTransferField("playReverse", &ct.vars.playreverse, AR_INT, 1);
   addTransferField("fileIndex", &m_fileIndex, AR_INT, 1);
-  //addTransferField("nextMenu", ct.getNextMenuPtr(), AR_INT, 1);
+  addTransferField("spin", &spin, AR_INT, 1);
 
   // Setup navigation, so we can drive around with the joystick
   //
@@ -278,6 +283,7 @@ bool IceCubeFramework::onStart( arSZGClient& /*cli*/ ) {
   // Set translation & rotation speeds to 5 ft/sec & 30 deg/sec (defaults)
   setNavTransSpeed( 5. * 100/fDownScale );    ////////Changes velocity of user
   setNavRotSpeed( 30. );
+  
   
   const arMatrix4 ident;
   dsTransform( "sound scale", getNavNodeName(), ar_scaleMatrix(1) );
@@ -335,7 +341,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   findExtremeEventTimes();
 
   GLfloat fogDensity = 0.001 * fDownScale; 
-	GLfloat fogColor[4] = {0.0, 0.0, 0.0, 1.0}; 
+	GLfloat fogColor[4] = {0.0, 0.0, 0.1, 1.0}; 
 	
 	GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
 	GLfloat mat_shininess[] = { 100.0 };
@@ -356,7 +362,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	GLfloat light_position[] = { 0.0, 0.0, 0.0, 1.0 };
 	GLfloat light_position2[] = { 0.0, 1.0, 0.0, 0.0 };
 	GLfloat light_diffuse[] = {1.0,1.0,1.0,1.0};
-	glClearColor (0.0, 0.0, 0.0, 0.0);
+	glClearColor (0.0, 0.0, 0.1, 0.0);
 	glShadeModel (GL_SMOOTH);
 
 	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE, light_diffuse);
@@ -366,7 +372,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
 
-	glLightfv(GL_LIGHT0, GL_POSITION, light_position2);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 
 	glEnable(GL_LIGHTING);
 	//glEnable(GL_LIGHT1);
@@ -436,9 +442,22 @@ void IceCubeFramework::onPreExchange() {
 		break;
 	}
 
-  
-  ct.handleEvents("");
-  ct.update(getTime());
+	/*printf("Before Event Handle***********\n");
+  	printf("start: %f, end: %f, current: %f\n", ct.vars.time->start, ct.vars.time->end, ct.vars.time->val);
+	printf("playing forward: %s\n", ct.vars.playreverse == 0 ? "yes" : "no");
+	printf("playing status: %d\n", ct.vars.playstatus);
+	printf("spin %d\n", spin);
+	printf("***********\n");*/
+
+	ct.handleEvents("");
+	ct.update(getTime());
+
+	/*printf("After Event Handle***********\n");
+	printf("start: %f, end: %f, current: %f\n", ct.vars.time->start, ct.vars.time->end, ct.vars.time->val);
+	printf("playing forward: %s\n", ct.vars.playreverse == 0 ? "yes" : "no");
+	printf("playing status: %d\n", ct.vars.playstatus);
+	printf("spin %d\n", spin);
+	printf("***********\n");*/
 }
 
 // Method called after transfer of data from master to slaves. Mostly used to
@@ -450,9 +469,9 @@ void IceCubeFramework::onPostExchange() {
     // Update effector's input state. On the slaves we only need the matrix
     // to be updated, for rendering purposes.
     _effector.updateState( getInputState() );
+	
+	//registered transfer variables automatically unpack!
 
-    // Unpack our transfer variables.
-	//TODO Ross - test which ones of these automatically 'unpack'
 	static int currFileIndex = 0;
 
 	if(currFileIndex != m_fileIndex)
@@ -463,18 +482,27 @@ void IceCubeFramework::onPostExchange() {
 		event2Data.~DataInput();
 		event2Data.getText(string(eventFiles[m_fileIndex]));
 		findExtremeEventTimes();
-		playForward = true;
 		currFileIndex = m_fileIndex;
 	}
-
-	int size = 1;
-	ct.vars.time->val = *(int*)(getTransferField("timeCounter", AR_INT, size));
-	//ct.swap(*(int*)(getTransferField("nextMenu", AR_INT, size)));
-
+	
 	//need to handle events on slaves..
 	//the getTime() function is safe to call because syzygy automatically maintains synched time across nodes
+	/*printf("Before Event Handle***********\n");
+  	printf("start: %f, end: %f, current: %f\n", ct.vars.time->start, ct.vars.time->end, ct.vars.time->val);
+	printf("playing forward: %s\n", ct.vars.playreverse == 0 ? "yes" : "no");
+	printf("playing status: %d\n", ct.vars.playstatus);
+	printf("spin %d\n", spin);
+	printf("***********\n");*/
+
 	ct.handleEvents("");
 	ct.update(getTime());
+
+	/*printf("After Event Handle***********\n");
+	printf("start: %f, end: %f, current: %f\n", ct.vars.time->start, ct.vars.time->end, ct.vars.time->val);
+	printf("playing forward: %s\n", ct.vars.playreverse == 0 ? "yes" : "no");
+	printf("playing status: %d\n", ct.vars.playstatus);
+	printf("spin %d\n", spin);
+	printf("***********\n");*/
   }
 }
 
@@ -541,9 +569,9 @@ void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
   //m_skybox.draw();
 
   //draw axis (if debugging)
-#ifdef _DEBUG
+//#ifdef _DEBUG
   drawAxis();
-#endif
+//#endif
 
   //draw current events.
   drawEvents();
@@ -626,7 +654,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
 			findExtremeEventTimes();
-			playForward = true;
 			m_fileIndex = 0;
 		}
 		if(keyInfo->getKey() == 119){  //w
@@ -635,7 +662,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e3.txt");
 			findExtremeEventTimes();
-			playForward = true;
 			m_fileIndex = 1;
 		}
 		if(keyInfo->getKey() == 101){  //e
@@ -644,7 +670,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e5.txt");
 			findExtremeEventTimes();
-			playForward = true;
 			m_fileIndex = 3;
 		}
 		if(keyInfo->getKey() == 114){  //r
@@ -653,7 +678,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e6.txt");
 			findExtremeEventTimes();
-			playForward = true;
 			m_fileIndex = 4;
 		}
 		if(keyInfo->getKey() == 116){  //t
@@ -662,7 +686,6 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");
 			findExtremeEventTimes();
-			playForward = true;
 			m_fileIndex = 5;
 		}
 		
