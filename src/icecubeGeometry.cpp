@@ -87,14 +87,26 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 			else
 			{
 				glTranslatef(sphereX, sphereY, sphereZ);
-				if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
+				if(horizDist + vertDist < 2000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.25f/scaleDownSphere, 6, 6);
+				}
+				else if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
 					glutSolidSphere(0.25f/scaleDownSphere, 5, 5);
+				}
+				else if(horizDist + vertDist < 25000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.25f/scaleDownSphere, 5, 4);
 				}
 				else if(horizDist + vertDist < 40000.f/(fDownScale*fDownScale)){
 					glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
 				}
-				else{
+				else if(horizDist + vertDist < 90000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.25f/scaleDownSphere, 4, 3);
+				}
+				else if(horizDist + vertDist < 120000.f/(fDownScale*fDownScale)){
 					glutSolidSphere(0.25f/scaleDownSphere, 3, 3);
+				}
+				else{
+					glutSolidSphere(0.25f/scaleDownSphere, 3, 2);
 				}				
 				//glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
 				glTranslatef(-sphereX, -sphereY, -sphereZ);

@@ -64,7 +64,7 @@ void normalize(GLfloat *a) {
     a[0]/=d; a[1]/=d; a[2]/=d;
 }
 
-void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
+void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, bool fill, float r) {
     if (div<=0) {
         glNormal3fv(a); glVertex3f(a[0]*r, a[1]*r, a[2]*r);
         glNormal3fv(b); glVertex3f(b[0]*r, b[1]*r, b[2]*r);
@@ -77,21 +77,23 @@ void drawtri(GLfloat *a, GLfloat *b, GLfloat *c, int div, float r) {
             bc[i]=(b[i]+c[i])/2;
         }
         normalize(ab); normalize(ac); normalize(bc);
-        drawtri(a, ab, ac, div-1, r);
-		if(div==1){
-			drawtri(b, bc, ab, div-1, r);
-			drawtri(c, ac, bc, div-1, r);
+        drawtri(a, ab, ac, div-1, fill, r);
+		if(!fill){
+			drawtri(b, bc, ab, div-1, fill, r);
+			drawtri(c, ac, bc, div-1, fill, r);
 		}
 		else{
-        drawtri(ab, bc, ac, div-1, r);  //<--Comment this line and sphere looks really cool!
+			drawtri(b, bc, ab, div-1, fill, r);
+			drawtri(c, ac, bc, div-1, fill, r);
+		    drawtri(ab, bc, ac, div-1, fill, r);  //<--Comment this line and sphere looks really cool!
 		}
     }  
 }
 
-void drawsphere(int ndiv, float radius=1.0) {
+void drawsphere(int ndiv, bool fill, float radius=1.0) {
     glBegin(GL_TRIANGLES);
     for (int i=0;i<20;i++)
-        drawtri(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], ndiv, radius);
+        drawtri(vdata[tindices[i][0]], vdata[tindices[i][1]], vdata[tindices[i][2]], ndiv, fill, radius);
     glEnd();
 }
 
@@ -186,11 +188,26 @@ void IceCubeFramework::drawEvents(void)
 				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
 			
 				//Expansion animation of event data
-				glRotatef(0.1*(spin- event2Data.icecubeData.time[i]), 0, 0, 1);
-				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(4, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
+				
+				if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){
+					glRotatef(5*(spin- event2Data.icecubeData.time[i]), 0, 0, 1);
+					glColor4f(3.5*eventColors.at(i).red, 3.5*eventColors.at(i).green, 3.5*eventColors.at(i).blue, 0.08);
+					drawsphere(2, false, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*1.5/scaleDownEventSphere));
+					glRotatef(5*(spin- event2Data.icecubeData.time[i]), 0, 0, 1);
+					glColor4f(3*eventColors.at(i).red, 3*eventColors.at(i).green, 3*eventColors.at(i).blue, 0.12);
+					drawsphere(2, false, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*1.25/scaleDownEventSphere));
+					glRotatef(-5*(spin - event2Data.icecubeData.time[i]), 0, 0, 1);
+					glColor4f(2.5*eventColors.at(i).red, 2.5*eventColors.at(i).green, 2.5*eventColors.at(i).blue, 0.15);
+					drawsphere(1, false, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor/scaleDownEventSphere));
+					glRotatef(-5*(spin - event2Data.icecubeData.time[i]), 0, 0, 1);
+				}
 				//if(ct.vars.time->val-event2Data.icecubeData.time[i] < expansionTime){drawsphere(1, ((ct.vars.time->val-event2Data.icecubeData.time[i])/expansionTime)*(chargeRadiusFactor*0.25f/scaleDownEventSphere));}
-				else{drawsphere(1, chargeRadiusFactor*0.25f/scaleDownEventSphere);}	
-				glRotatef(-0.1*(spin - event2Data.icecubeData.time[i]), 0, 0, 1);
+				else{
+					glRotatef(0.1*(spin- event2Data.icecubeData.time[i]), 0, 0, 1);
+					drawsphere(1, false, chargeRadiusFactor*0.25f/scaleDownEventSphere);
+					glRotatef(-0.1*(spin - event2Data.icecubeData.time[i]), 0, 0, 1);
+				}	
+				
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 			}
 		}
@@ -219,7 +236,7 @@ void IceCubeFramework::findExtremeEventTimes(){
 	}
 	chargeSpan = largestCharge - smallestCharge;
 	timeSpan = ct.vars.time->end - ct.vars.time->start;
-	expansionTime = timeSpan/(event2Data.icecubeData.xCoord.size());
+	expansionTime = 1.25*timeSpan/(event2Data.icecubeData.xCoord.size());
 	ct.vars.time->end += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
 	ct.vars.time->val = ct.vars.time->start;
@@ -419,7 +436,7 @@ void IceCubeFramework::onPreExchange() {
 		break;
 	case 1:
 		if(!ct.vars.playreverse){
-			if(ct.vars.time->val < ct.vars.time->end){
+			if(ct.vars.time->val < ct.vars.time->end + expansionTime){
 				ct.vars.time->val+=10;
 			}
 		}
