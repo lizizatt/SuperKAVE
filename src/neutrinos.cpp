@@ -9,7 +9,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
-#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+//#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
 
 #ifdef ICECUBE
 #include "icecube.h"
@@ -75,6 +75,16 @@ public:
 	dotVector(){};
 };
 
+class dataDisplay{ 
+public:
+	arVector3 myPos;  //location of very center
+	arMatrix4 myRotationMatrix;  //location outward of screen
+	vector<string> contents;  //contents, to be drawn from top to bottom, line by line
+	void drawDataDisplay(arMasterSlaveFramework& fw);
+};
+
+dataDisplay testDataDisplay;
+
 //Global variables
 bool debug = false;  //enables some useful print statements
 //menu variables
@@ -109,7 +119,7 @@ bool joyStickMoveDir = true;  //last joystick move direction, true = right, fals
 float ax, az;
 GLUquadricObj * quadObj;        //cylinder quadratic object.
 /*
-static float RADIUS = 17;     //Constants for sizing.
+static float RADIUS = 17;     //Constants for sizing IN METERS
 static float HEIGHT = 40;
 static float OUTERRADIUS = 17.61;  
 static float OUTERHEIGHT = 41.22;
@@ -117,7 +127,7 @@ static float PI = 3.141592;
 static float innerDotRad = 0.3;
 static float outerDotRad = 0.2;
 */
-static float RADIUS = 17 * 3.28;     //Constants for sizing.
+static float RADIUS = 17 * 3.28;     //Constants for sizing IN FEED
 static float HEIGHT = 40 * 3.28;
 static float OUTERRADIUS = 17.61 * 3.28;  
 static float OUTERHEIGHT = 41.22*  3.28;
@@ -141,10 +151,13 @@ bool colorByCharge = false;      //whether to color by charge or time
 ifstream dataFile;              //data input
 char* filename;
 bool doTimeCompressed = false;
+arVector3 deltaPosition, originalPosition;
+arVector3 deltaDirection, originalDirection;
 bool isTouchingVertex = false;
 bool isGrabbingVertex = false;
 int itemTouching = 0;  //0 corresponds to vertex, else subtract 1 and is index of cone
 arVector3 vertexOffset;
+bool doDataDisplay = true;
 //string bufferLine;  
 
 //PRE_PICKED COLOR ARRAYS
@@ -205,6 +218,132 @@ double abs(double in){
 	return in * -1.0;
 }
 #endif
+
+void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates position (if necessary) and draws
+
+	//figure out if we're touching the display
+	arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
+	double navX = myPosMatrix[12];
+	double navY = myPosMatrix[13];
+	double navZ = myPosMatrix[14];
+	
+	navY += 20;
+	double holder = navY;
+	navY = navZ;
+	navZ = holder;
+	//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
+	
+	arMatrix4 myHandMatrix = fw.getMatrix(1);
+	double handPosX = myHandMatrix[12];  //this is hand position
+	double handPosY = myHandMatrix[13];
+	double handPosZ = myHandMatrix[14];
+	
+	double handDirX = myHandMatrix[8];
+	double handDirY = myHandMatrix[9];
+	double handDirZ = myHandMatrix[10];
+	
+	double handUpX = myHandMatrix[4];
+	double handUpY = myHandMatrix[5];
+	double handUpZ = myHandMatrix[6];
+	
+	double finalX = -navX + handPosX + -2*handDirX;
+	double finalY = -navY + handPosZ + -2*handDirZ;
+	double finalZ = navZ + -handPosY + 2*handDirY;
+	
+	//figure out which item we're grabbing ... go for closest one
+	arVector3 handPos = arVector3(finalX, finalY, finalZ);
+	bool isTouching = false;
+	if(magnitude(subtract(handPos, myPos)) < 1){  //later do check with intersection of box
+		isTouching = true;
+		if(fw.getButton(5)){ //is grabbing
+			//update location based on hand movement
+			myPos = handPos;
+			myHandMatrix[12] = -2*handDirX;
+			myHandMatrix[13] = -2*handDirY;
+			myHandMatrix[14] = -2*handDirZ;
+			myHandMatrix[8] = -handUpX;
+			myHandMatrix[9] = -handUpY;
+			myHandMatrix[10] = -handUpZ;
+			myHandMatrix[4] = handDirX;
+			myHandMatrix[5] = handDirY;
+			myHandMatrix[6] = handDirZ;
+			
+			myRotationMatrix = myHandMatrix;
+		}
+	} else{
+		isTouching = false;
+	}
+		
+	glPushMatrix();
+	
+		
+		glTranslatef(myPos[0], myPos[1], myPos[2]);
+		
+		/*
+		arVector3 myRotationAxis = crossProduct(myDir, arVector3(0,0,-1));
+		float myRotationAngle = acos(dotProduct(myDir, arVector3(0,0,-1)));	
+		glRotatef(myRotationAngle*180.0/PI, myRotationAxis[0], myRotationAxis[1], myRotationAxis[2]);
+		
+		
+		
+		//now rotate to get up aligned
+		myRotationAxis = arVector3(0,0,-1);
+		cout << myDir[0] << " " << myDir[1] << " " << myDir[2] << "\n";
+		myRotationAngle = acos(myDir[1]);
+		if(myDir[1] < .5 || myDir[1] > -.5){
+			myRotationAngle = asin(myDir[0]);
+		}
+		glRotatef(myRotationAngle*180.0/PI, myRotationAxis[0], myRotationAxis[1], myRotationAxis[2]);
+		*/
+		
+		glRotatef(90,-1,0,0);
+		glMultMatrixf(myRotationMatrix.v);
+		glRotatef(90,-1,0,0);
+		
+		glScalef(3,5,.5);
+		glColor3f(.75,.75,.75);
+		glutSolidCube(1.0);
+		glColor3f(0,0,0);
+		glutWireCube(1.01);
+		glScalef(.9,.9,1.2);
+		glutSolidCube(1.0);
+		
+		if(isTouching){
+			glPushMatrix();
+				glColor4f(0,1,0,.5);
+				if(fw.getButton(5)){
+					glScalef(1.3,1.3,.5);
+				}else{
+					glScalef(1.2,1.2,.5);
+				}
+				glutSolidCube(1);
+				glColor3f(0,0,0);
+				glutWireCube(1.001);
+			glPopMatrix();
+		}	
+		
+		glTranslatef(-.4,.4,.52);
+		//now at upper left
+		
+		glColor3f(1,1,1);
+		//write text, line by line
+		glLineWidth(3.0);
+		for(int i = 0; i < contents.size(); i++){
+			string myString = contents[i];
+			glPushMatrix();
+			glScalef(.0004,.0004,.0004);  
+			for(int j = 0; j < myString.length(); j++){
+				char myChar = myString.at(j);
+				glutStrokeCharacter(GLUT_STROKE_ROMAN, myChar);
+			}
+			glPopMatrix();
+			glTranslatef(0,-.05,0);
+		}
+		glColor3f(1,1,1);
+		glutSolidCube(.1);
+	glPopMatrix();
+}
+
 
 //returns color of dots based on whether charge or time are the metrics for coloring.
 arVector3 dotColor(dot d) {
@@ -546,6 +685,11 @@ void drawScene(arMasterSlaveFramework& framework)
 		glutSolidSphere(.05,50,50);
 	glPopMatrix();
 	*/
+	
+	//draws data display
+	testDataDisplay.drawDataDisplay(framework);
+	
+	
 	//do cherenkov cones
 	if(!doTimeCompressed){  //only do the cherenkov cones themselves if we're not doing time compressed mode (would be too costly)
 		glPushMatrix(); //place particle and cherenkov cone
@@ -859,7 +1003,7 @@ void loadNextEvent(void) {
 					}
 					else{
 						char me[100];
-						sprintf(me,"%i",(int)currentDots.particleType[i]);
+						printf(me,"%i",(int)currentDots.particleType[i]);
 						text = me;
 					}
 					currentDots.particleName.push_back(text);
@@ -1740,8 +1884,11 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 			}
 		}
 		
-		if(minDist < .5)
+		if(minDist < .5){
 			isTouchingVertex = true;
+			originalPosition = arVector3(handPosX, handPosY, handPosZ);
+			originalDirection = arVector3(handDirX, handDirY, handDirZ);
+		}
 		else
 			isTouchingVertex = false;
 			
@@ -1881,6 +2028,7 @@ void display( arMasterSlaveFramework& fw ) {
 	currentDots = dotVectors[index];
 	//draws cylinder
 	drawScene(fw);
+	//draw data displays (if visible)
 	debugText("finished display");
 }
 
@@ -2073,6 +2221,10 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfo ) {
 
 int main(int argc, char** argv) {
 
+	testDataDisplay.contents.push_back("Test string one");
+	testDataDisplay.contents.push_back("Test string two");
+	testDataDisplay.myPos = arVector3(0,0,0);
+	testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 #ifndef ICECUBE
 	filename = "temp";
 	if(argc > 1){
