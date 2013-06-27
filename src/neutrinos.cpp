@@ -2108,8 +2108,8 @@ int main(int argc, char** argv) {
 #else
 	IceCubeFramework framework;
 	// Tell the framework what units we're using.
-	framework.setUnitConversion(FEET_TO_LOCAL_UNITS);
-	framework.setClipPlanes(nearClipDistance, farClipDistance);
+	//framework.setUnitConversion(FEET_TO_LOCAL_UNITS);
+	//framework.setClipPlanes(nearClipDistance, 10000.f);//farClipDistance);
 
 	if (!framework.init(argc, argv)) {
 		return 1;

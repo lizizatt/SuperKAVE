@@ -8,17 +8,12 @@
 
 #include "icecubeGeometry.h"
 #include "icecubeDataInput.h"
+
+#include "arOBJ.h"
+
 // Class definitions & imlpementations. We'll have just one one class, a 2-ft colored square that
 // can be grabbed & dragged around. We'll also have an effector class for doing the grabbing
 //
-class ColoredSquareIce : public arInteractableThing {
-  public:
-    // set the initial position of any ColoredSquare to 5 ft up & 2 ft. back
-    ColoredSquareIce() : arInteractableThing() {}
-    ~ColoredSquareIce() {}
-    void draw( arMasterSlaveFramework* fw=0 );
-};
-
 class RodEffectorIce : public arEffector {
   public:
     // set it to use matrix #1 (#0 is normally the user's head) and 3 buttons starting at 0 
@@ -84,9 +79,12 @@ class IceCubeFramework : public arMasterSlaveFramework {
 	
 	IceCubeGeometry geometryData;
 	DataInput event2Data; 
+	
+	arOBJRenderer m_skybox;
 
 	int timeSpan;
 	int expansionTime;
+	int spin;
 	
 	float largestCharge;
 	float smallestCharge;
@@ -105,8 +103,11 @@ class IceCubeFramework : public arMasterSlaveFramework {
 	static const char * eventFiles[NUM_EVENT_FILES];
 	static const std::string geometryFile;
 
+	static const float nearClipDistance;
+	static const float farClipDistance;
+	static const float FEET_TO_LOCAL_UNITS;
+
     // Master-slave transfer variables
-	bool playForward;
 	int m_fileIndex;
 	float speedAdjuster;
 };
