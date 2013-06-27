@@ -28,7 +28,9 @@ public:
 	virtual arVector3 handlePointer(arVector3 endpt){return arVector3(0,0,9001);}	//checks if pointer is on object, if so, can "hijack" pointer location
 	virtual void handleEvents(tdMenuController* ct, int menu, int panel, int object){}
 	virtual void change(int code, float value = 0, string msg = ""){}	//called by handleEvents function, used to alter values, flags, etc
+	virtual int getAction(){return this->actioncode;}
 protected:
+	int actioncode;	//objects that perform scripted actions (like buttons) are identified by codes
 };
 
 //A text pane, displays text
@@ -42,7 +44,7 @@ protected:
 class tdButton : public tdObject
 {
 public:
-	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1);
+	tdButton(float x = 0, float y = 0, float width = 1, float height = 1, float depth = 1, int actioncode = 0, string label = "", float textsize = 1, bool leftjust = false);
 	virtual void draw();
 	virtual void update(double time);
 	virtual arVector3 handlePointer(arVector3 endpt);
@@ -55,8 +57,11 @@ protected:
 	float height;
 	float cdepth;
 	float depth;
+	string label;
+	float textsize;
 	bool cursor;
 	bool pushed;
+	bool leftjust;	//used for lists to set text to be left-justified.
 };
 
 //A slider, can be dragged to set a float value
@@ -121,7 +126,7 @@ protected:
 };
 
 //The button icons displayed above the wand
-class tdIcon : public tdWandPanel
+class tdIcon : public tdObject
 {
 public:
 private:

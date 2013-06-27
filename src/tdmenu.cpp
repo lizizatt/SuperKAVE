@@ -6,6 +6,7 @@
 
 const float MENU_SPEED = 0.15 / 5;	//the speed at which menu animations run
 const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pellet is during open/close)
+const float TEXT_COMPRESSION = 1.5;	//how text is "squished" on the x-axis
 
 //color functions, alter to change color scheme
 void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.75);}
@@ -173,7 +174,7 @@ void tdDrawBox(float x, float y, float z, float w, float h, float d)
 //TDBUTTON METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdButton::tdButton(float x, float y, float width, float height, float depth)
+tdButton::tdButton(float x, float y, float width, float height, float depth, int actioncode, string label, float textsize, bool leftjust)
 {
 	this->x = x;
 	this->y = y;
@@ -183,11 +184,29 @@ tdButton::tdButton(float x, float y, float width, float height, float depth)
 	this->depth = depth;
 	this->cursor = false;
 	this->pushed = false;
+	this->actioncode = actioncode;
+	this->label = label;
+	this->textsize = textsize;
+	this->leftjust = leftjust;
 }
 
 void tdButton::draw()
 {
+	glDisable(GL_TEXTURE_2D);
+	glPushMatrix();
+	colorPanel();
 	tdDrawBox(x, y, cdepth/2, width, height, cdepth);
+	if(label != "")
+	{
+		glTranslatef(x-label.length()*textsize/(2.2728*TEXT_COMPRESSION),y-textsize/2,cdepth+0.01);
+		glScalef(textsize/(119.05*TEXT_COMPRESSION),textsize/119.05,textsize/119.05);
+		colorText();
+		for(int i = 0; i < label.length(); i++)
+			glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN,label[i]);
+		colorPanel();
+	}
+	glPopMatrix();
+	glEnable(GL_TEXTURE_2D);
 }
 
 void tdButton::update(double time)
@@ -221,9 +240,9 @@ arVector3 tdButton::handlePointer(arVector3 endpt)
 void tdButton::handleEvents(tdMenuController* ct, int menu, int panel, int object)
 {
 	if(cursor)
-		handleEvent(ct,menu,panel,object,TD_BUTTON_CURSOR,this);
+		tdHandleEvent(ct,menu,panel,object,TD_BUTTON_CURSOR,this);
 	else
-		handleEvent(ct,menu,panel,object,TD_BUTTON_IDLE,this);
+		tdHandleEvent(ct,menu,panel,object,TD_BUTTON_IDLE,this);
 }
 
 void tdButton::change(int code, float value, string msg)
@@ -232,6 +251,9 @@ void tdButton::change(int code, float value, string msg)
 	{
 	case TD_PUSH:
 		pushed = true;
+		break;
+	case TD_SETTEXT:
+		this->label = msg;
 		break;
 	default:
 		break;
@@ -257,10 +279,12 @@ tdSlider::tdSlider(float x, float y, slidval* val, float length, float height, f
 	this->cursor = false;
 	this->isGrab = false;
 	this->wasGrab = false;
+	this->actioncode = 0;
 }
 
 void tdSlider::draw()
 {
+	colorPanel();
 	glPushMatrix();
 	glMultMatrixf(pos.v);
 	glBegin(GL_QUAD_STRIP);
@@ -325,11 +349,11 @@ arVector3 tdSlider::handlePointer(arVector3 endpt)
 void tdSlider::handleEvents(tdMenuController* ct, int menu, int panel, int object)
 {
 	if(wasGrab)
-		handleEvent(ct,menu,panel,object,TD_SLIDER_DRAG,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_DRAG,this);
 	else if(cursor)
-		handleEvent(ct,menu,panel,object,TD_SLIDER_CURSOR,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_CURSOR,this);
 	else
-		handleEvent(ct,menu,panel,object,TD_SLIDER_IDLE,this);
+		tdHandleEvent(ct,menu,panel,object,TD_SLIDER_IDLE,this);
 }
 
 void tdSlider::change(int code, float value, string msg)
@@ -337,12 +361,11 @@ void tdSlider::change(int code, float value, string msg)
 	switch(code)
 	{
 	case TD_UPDATE:
-		cout << dpos;
 		dpos = (val->val - val->start) * length / (val->end - val->start);
 		break;
 	case TD_GRAB:
 		isGrab = true;
-		val->val = (cpos * (val->end - val->start) / length);
+		val->val = (cpos * (val->end - val->start) / length) + val->start;
 		break;
 	case TD_SETVAL:
 		dpos = value;
@@ -571,6 +594,61 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 {
 	glPushMatrix();
 	glMultMatrixf(menualign.v);
+
+
+	//Idea for alternate sphere drawing algorithm w/ resolution control
+	/*
+	glPushMatrix();
+	float diameter = 5;
+	float numLatitude = 10;
+	float numLongitude = 30;
+	float rad;
+	float radt;
+	float segment = 1/(2+numLatitude);
+	float theta;
+	glTranslatef(0,-diameter/2,5);
+	colorPanel();
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0,0,0);
+	rad = sin(acos(2*segment-1));
+	for(int i = 0; i <= numLongitude; i++)
+	{
+		theta = 2*M_PI*i/numLongitude;
+		glVertex3f(rad*sin(theta)*diameter/2,segment*diameter,rad*cos(theta)*diameter/2);
+	}
+	glEnd();
+
+	for(int i = 0; i < numLatitude; i++)
+	{
+		glBegin(GL_QUAD_STRIP);
+		rad = sin(acos(2*(1+i)*segment-1));
+		radt= sin(acos(2*(2+i)*segment-1));
+		for(int j = 0; j <= numLongitude; j++)
+		{
+			theta = 2*M_PI*j/numLongitude;
+			glVertex3f(rad*sin(theta)*diameter/2,(1+i)*segment*diameter,rad*cos(theta)*diameter/2);
+			glVertex3f(radt*sin(theta)*diameter/2,(2+i)*segment*diameter,radt*cos(theta)*diameter/2);
+		}
+		glEnd();
+	}
+	
+
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex3f(0,diameter,0);
+	rad = sin(acos(2*segment-1));
+	for(int i = numLongitude; i >= 0; i--)
+	{
+		theta = 2*M_PI*i/numLongitude;
+		glVertex3f(rad*sin(theta)*diameter/2,(1-segment)*diameter,rad*cos(theta)*diameter/2);
+	}
+	glEnd();
+	glPopMatrix();
+	*/
+
+
+
+
+
 	for(int i = 0; i < panels.size(); i++)
 	{
 		panels[i]->draw();

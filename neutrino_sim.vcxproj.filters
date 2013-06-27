@@ -639,16 +639,16 @@
     <ClCompile Include="src\icecubeDataInput.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\icecubeGeometryInput.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\tdmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\tdmenucontroller.cpp">
-      <Filter>Syzygy</Filter>
-    </ClCompile>
     <ClCompile Include="src\tdevents.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\tdmenucontroller.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\icecubeGeometry.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1316,9 +1316,6 @@
     <ClInclude Include="src\icecubeDataInput.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\icecubeGeometryInput.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\tdmenu.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -1326,6 +1323,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\tdevents.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\icecubeGeometry.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

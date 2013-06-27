@@ -14,9 +14,8 @@ public:
 	struct valuetable	//holds all values maintained by menu system
 	{
 		slidval* time;
-		//float time;		//time used by playback control
-		//float time_s;		//start time value
-		//float time_f;		//final time value
+		int playstatus;	//feedback to/from playback controls
+		bool playreverse;	//true if playing event backwards
 	}vars;
 	tdMenuController(){}	//default constructor doesn't do anything, need to give it a wand
 	tdMenuController(arEffector* wand);	//instantiates the menu controller AND sets up a hardcoded menu.
@@ -27,6 +26,8 @@ public:
 	arVector3 handlePointer();	//gets endpoint of laser pointer and handles effects of current pointer placement in menu
 	void handleEvents(string ext);	//checks for events within the menu and controller (and outside) and updates accordingly
 	arEffector * wand;	//used to track control device
+	int * getNextMenuPtr(void) { return &nextMenu; }
+
 private:
 	double lastTime;	//used to calculate time change since last update
 	vector<tdMenu*> menus;	//holds all menus

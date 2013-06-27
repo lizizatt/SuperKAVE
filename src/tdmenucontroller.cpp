@@ -2,7 +2,7 @@
 #define SZG_DO_NOT_EXPORT
 #include "tdmenucontroller.h"
 
-const float MENU_OFFSET = 10.0;	//the distance from the wand base to the menu center
+const float MENU_OFFSET = 5.0;	//the distance from the wand base to the menu center
 
 tdMenuController::tdMenuController(arEffector* wand)
 {
@@ -12,9 +12,8 @@ tdMenuController::tdMenuController(arEffector* wand)
 
 	//Initialize vars values
 	this->vars.time = new slidval(0,999999,0);
-	/*this->vars.time = 0;
-	this->vars.time_s = 999999;
-	this->vars.time_f = 0;*/
+	this->vars.playstatus = 0;
+	this->vars.playreverse = false;
 	/////////////////////////////////////////////////
 	//MENU LAYOUT SECTION: CHANGE TO CUSTOMIZE MENU//
 	/////////////////////////////////////////////////
@@ -29,7 +28,15 @@ tdMenuController::tdMenuController(arEffector* wand)
 
 	menu = new tdMenu();	//one big panel and two smaller ones
 	panel = new tdPanel(arVector3(0,5,0),10,15);
-	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1);
+	object = new tdButton(-1.2, 1, 1, 0.5, 0.1, TD_A_REWIND, "Rewind", 0.25);
+	panel->add(object);
+	object = new tdButton(0, 1, 1, 0.5, 0.1, TD_A_PLAYPAUSE, "Play", 0.25);
+	panel->add(object);
+	object = new tdButton(0, 0.25, 1, 0.5, 0.1, TD_A_REVERSE, "Reverse", 0.25);
+	panel->add(object);
+	object = new tdButton(1.2, 1, 1, 0.5, 0.1, TD_A_FASTFWD, "FastFwd", 0.25);
+	panel->add(object);
+	object = new tdButton(-1.5, -1.5, 0.5, 0.25, 0.1, TD_A_SWITCHMENU2, "menu 2", 0.1);
 	panel->add(object);
 	object = new tdSlider(0, 2, vars.time, 5, 0.5, 0.1, 0.5);
 	panel->add(object);
