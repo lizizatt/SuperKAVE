@@ -33,7 +33,7 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 	//cout << "time = " << ct.vars.time->val << endl;
 
 	//float fDownScale = 10.f;//10.f;
-	float scaleDownSphere = fDownScale/5;
+	float scaleDownSphere = fDownScale/1;
 	//fDownScale = 10.f;
 
 	//draw ground level ice...
@@ -67,7 +67,7 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 		float horizDist = diffX*diffX + diffY*diffY;
 		float vertDist = diffZ*diffZ;
 
-		if(horizDist < 160000.f/(fDownScale*fDownScale) &&  vertDist < 200000.f/(fDownScale*fDownScale))
+		if(horizDist < 8000.f/(fDownScale*fDownScale) &&  vertDist < 8000.f/(fDownScale*fDownScale))
 		{	
 			if(domString > 78)
 			{
@@ -87,27 +87,27 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 			else
 			{
 				glTranslatef(sphereX, sphereY, sphereZ);
-				if(horizDist + vertDist < 2000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 6, 6);
-				}
+				//if(horizDist + vertDist < 2000.f/(fDownScale*fDownScale)){
+					glutSolidSphere(0.165f/scaleDownSphere, 10, 10);
+				/*}
 				else if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 5, 5);
+					glutSolidSphere(0.165f/scaleDownSphere, 5, 5);
 				}
 				else if(horizDist + vertDist < 25000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 5, 4);
+					glutSolidSphere(0.165f/scaleDownSphere, 5, 4);
 				}
 				else if(horizDist + vertDist < 40000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+					glutSolidSphere(0.165f/scaleDownSphere, 4, 4);
 				}
 				else if(horizDist + vertDist < 90000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 4, 3);
+					glutSolidSphere(0.165f/scaleDownSphere, 4, 3);
 				}
 				else if(horizDist + vertDist < 120000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.25f/scaleDownSphere, 3, 3);
+					glutSolidSphere(0.165f/scaleDownSphere, 3, 3);
 				}
 				else{
-					glutSolidSphere(0.25f/scaleDownSphere, 3, 2);
-				}				
+					glutSolidSphere(0.165f/scaleDownSphere, 3, 2);
+				}*/				
 				//glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
 				

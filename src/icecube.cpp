@@ -182,7 +182,7 @@ void IceCubeFramework::drawEvents(void)
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
 			//cout << "diffZ = " << diffZ << endl;
-			if(diffX*diffX + diffY*diffY < 250000.f/(fDownScale*fDownScale) && diffZ*diffZ < 250000.f/(fDownScale*fDownScale)){
+			//if(diffX*diffX + diffY*diffY < 250000.f/(fDownScale*fDownScale) && diffZ*diffZ < 250000.f/(fDownScale*fDownScale)){
 				//cout << "diffZ = " << diffZ << endl;
 				glTranslatef(sphereX, sphereY, sphereZ);
 				//cout << "sphereX = " << event2Data.icecubeData.xCoord[i]/fDownScale << "; sphereY = " << event2Data.icecubeData.yCoord[i]/fDownScale << "; sphereZ = " << -event2Data.icecubeData.zCoord[i]/fDownScale << endl;
@@ -209,7 +209,7 @@ void IceCubeFramework::drawEvents(void)
 				}	
 				
 				glTranslatef(-sphereX, -sphereY, -sphereZ);
-			}
+			//}
 		}
 	}
 	
@@ -357,7 +357,7 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
 
   findExtremeEventTimes();
 
-  GLfloat fogDensity = 0.001 * fDownScale; 
+  GLfloat fogDensity = 0; //0.001 * fDownScale; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.1, 1.0}; 
 	
 	GLfloat mat_specular[] = { 0.2, 0.2, 0.2, 0.2 };
