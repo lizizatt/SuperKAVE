@@ -9,7 +9,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
-//#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
 
 #ifdef ICECUBE
 #include "icecube.h"
