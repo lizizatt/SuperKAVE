@@ -4,12 +4,24 @@
 #include "arInteractableThing.h"
 #include "tdevents.h"
 
+#define MENU_SPEED 0.03		//the speed at which menu animations run
+#define PANEL_THICKNESS 0.02	//how thick each panel is (and how big the pellet is during open/close)
+#define TEXT_COMPRESSION 1.5	//how text is "squished" on the x-axis
+#define BTNGAP 0.01	//the gaps between buttons
+
 struct slidval
 {
 	float start;
 	float val;
 	float end;
 	slidval(float start = 0,float val = 0,float end = 10):start(start),val(val),end(end){}
+};
+
+struct listval
+{
+	vector<string> items;
+	int selected;
+	listval(vector<string> items = vector<string>()):items(items),selected(-1){}
 };
 
 //matrix inverse function adapted from MAYA implementation of GLU library
@@ -108,14 +120,13 @@ public:
 protected:
 	arMatrix4 cmat;	//used to position the panel
 	arMatrix4 tmat;	//used to tilt the panel
+	float cwidth;	//current width and height excluding buffer
+	float cheight;
 	vector<tdObject*> objects;	//the objects appearing on this menu panel
 	arVector3 center;	//the center of the panel (relative to menu center)
 	float panew;	//the width and height of the "working pane"
 	float paneh;
 	int phase;		//used for animation, tells what phase of movement the menu is in
-private:
-	float cwidth;	//current width and height excluding buffer
-	float cheight;
 };
 
 //A panel that follows the wand
@@ -136,6 +147,17 @@ private:
 class tdListPanel : public tdPanel
 {
 public:
+	tdListPanel(listval* list = new listval(), float width = 1, float btnheight = 1, float btndepth = 1, float textsize = 1, int actioncode = 0, bool leftjust = false);
+	virtual void draw();
+	virtual void open();
+	virtual arVector3 handlePointer(arVector3 start, arVector3 unit);
+protected:
+	listval* list;
+	float btnheight;
+	float btndepth;
+	float textsize;
+	int actioncode;
+	bool leftjust;
 };
 
 //A full menu 'state' that contains panels, wand panels, and other things.

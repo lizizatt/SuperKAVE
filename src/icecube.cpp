@@ -102,14 +102,19 @@ void drawsphere(int ndiv, bool fill, float radius=1.0) {
 
 void RodEffectorIce::draw() const {
   glPushMatrix();
-  glMultMatrixf(getCenterMatrix().v);
+  glMultMatrixf(getBaseMatrix().v);
+  glColor3f(.5,.5,.5);
+  tdDrawBox(0,0,-0.5/2,0.01,0.01,0.5);
+  /*
+  glTranslatef(0,0,-2/3);
     // draw grey rectangular solid 2"x2"x5'
-    glScalef( 2./12, 2./12., 4. );
+    glScalef( 2./12, 2./12., 3 );
     glColor3f( .5,.5,.5 );
     glutSolidCube(0.5);
     // superimpose slightly larger black wireframe (makes it easier to see shape)
     glColor3f(0,0,0);
     glutWireCube(0.53);
+	*/
   glPopMatrix();
 }
 
