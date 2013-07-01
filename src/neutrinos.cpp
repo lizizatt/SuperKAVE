@@ -83,7 +83,6 @@ public:
 	void drawDataDisplay(arMasterSlaveFramework& fw);
 };
 
-dataDisplay testDataDisplay;
 
 //Global variables
 bool debug = false;  //enables some useful print statements
@@ -158,6 +157,7 @@ bool isGrabbingVertex = false;
 int itemTouching = 0;  //0 corresponds to vertex, else subtract 1 and is index of cone
 arVector3 vertexOffset;
 bool doDataDisplay = true;
+vector<dataDisplay> myDataDisplays;
 //string bufferLine;  
 
 //PRE_PICKED COLOR ARRAYS
@@ -253,7 +253,7 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	//figure out which item we're grabbing ... go for closest one
 	arVector3 handPos = arVector3(finalX, finalY, finalZ);
 	bool isTouching = false;
-	if(magnitude(subtract(handPos, myPos)) < 1){  //later do check with intersection of box
+	if(magnitude(subtract(handPos, myPos)) < 2.5){  //later do check with intersection of box
 		isTouching = true;
 		if(fw.getButton(5)){ //is grabbing
 			//update location based on hand movement
@@ -686,8 +686,11 @@ void drawScene(arMasterSlaveFramework& framework)
 	glPopMatrix();
 	*/
 	
-	//draws data display
-	testDataDisplay.drawDataDisplay(framework);
+	//draws data displays
+	cout << myDataDisplays.size();
+	for(int i = 0; i < myDataDisplays.size(); i++){
+		myDataDisplays[i].drawDataDisplay(framework);
+	}
 	
 	
 	//do cherenkov cones
@@ -1629,6 +1632,16 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.setNavTransSpeed( 15. );
 	//framework.setNavRotSpeed( 0.2 );  //sets it to not rotate at all so we can use left/right joystick as event controller
 
+	
+	
+	//initialize data displays
+	dataDisplay testDataDisplay;
+	testDataDisplay.contents.push_back("Test string one");
+	testDataDisplay.contents.push_back("Test string two");
+	testDataDisplay.myPos = arVector3(0,0,0);
+	testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+	myDataDisplays.push_back(testDataDisplay);
+	
 	return true;
 }
 
@@ -1695,6 +1708,8 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 				}
 			}
 			else{
+				doMenu = true;
+				/*
 				if(!doTimeCompressed){
 					if(index > 0){
 						index--;
@@ -1708,9 +1723,16 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 						autoPlay = 0;
 					}
 				}
+				*/
 			}
 		}
-		if(fw.getOnButton(1)){  //on red button, do nothing
+		if(fw.getOnButton(1)){  //on red button, spawn another menu  // PROBLEM:  if more than one is grabbed, they overlap and are unfixable
+			dataDisplay testDataDisplay;
+			testDataDisplay.contents.push_back("Test string one");
+			testDataDisplay.contents.push_back("Test string two");
+			testDataDisplay.myPos = arVector3(0,0,0);
+			testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+			myDataDisplays.push_back(testDataDisplay);
 		}
 		if(fw.getOnButton(2)){  // on green button, step event forward one, or if menus are up, step menuIndex forwar done  .. or, if time compressed, autoplay forward
 			if(doMenu){
@@ -1721,6 +1743,8 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 				}
 			}
 			else{
+				doMenu = true;
+				/*
 				if(!doTimeCompressed){
 					if(index < dotVectors.size() - 1){
 						index++;
@@ -1734,7 +1758,9 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 						autoPlay = 0;
 					}
 				}
+				*/
 			}
+			
 		}
 		if(fw.getOnButton(3)){ // on blue button, do nothing
 		}
@@ -1749,9 +1775,10 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		}
 		else
 		if(fw.getOnButton(5)){  //this is the master control button.  It turns on the menu, and selects menu items
-			if(!doMenu && !isTouchingVertex){
+			/*if(!doMenu && !isTouchingVertex){
 				doMenu = true;
-			}else if(doMenu && !isTouchingVertex){  //the menu is on, here write code to toggle menu items
+			}else */
+			if(doMenu && !isTouchingVertex){  //the menu is on, here write code to toggle menu items
 				if(doMainMenu){ //main menu
 					if(menuIndex == -2){
 						if(index > 0){
@@ -1833,6 +1860,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 			}
 		}
 
+		/*
 		//update menu index if we're in HUD Mode, based on hand orientation from z axis
 		if(doHUD){
 			//we need to figure out the orientation from the rotation matrix
@@ -1844,7 +1872,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 				cout <<"\n";
 			}
 			cout << "\n";
-		}
+		}*/
 		
 		//figure out if we're touching the vertex
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
@@ -2220,11 +2248,7 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfo ) {
 }
 
 int main(int argc, char** argv) {
-
-	testDataDisplay.contents.push_back("Test string one");
-	testDataDisplay.contents.push_back("Test string two");
-	testDataDisplay.myPos = arVector3(0,0,0);
-	testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+	
 #ifndef ICECUBE
 	filename = "temp";
 	if(argc > 1){
