@@ -177,6 +177,12 @@ void IceCubeFramework::drawEvents(void)
 	float sphereX, sphereY, sphereZ;
 	float diffX, diffY, diffZ;
 
+	cout << userPosition[13] << endl;
+
+	/*cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << userPosition[4] << ", " << endl;
+	cout << userPosition[5]  << ", " << userPosition[6] << ", " << userPosition[7] << ", " << userPosition[8] << ", " << userPosition[9] << ", " << endl;
+	cout << userPosition[10]  << ", " << userPosition[11] << ", " << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] << ") " << endl;*/
+
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
 	for(unsigned int i=startingEventIndex; i < event2Data.icecubeData.xCoord.size(); i++){
@@ -184,7 +190,7 @@ void IceCubeFramework::drawEvents(void)
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor =  log(1000*event2Data.icecubeData.charge[i] + 7);  //log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/100) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
 			//cout << "diffZ = " << diffZ << endl;
@@ -685,18 +691,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 		if(keyInfo->getKey() == 111){  //o (play backwards)
 			ct.vars.playreverse = !ct.vars.playreverse;
 		}
-		if(keyInfo->getKey() == 108){  //l (speed up playing of event)
-			if(speedAdjuster == -90 || speedAdjuster == 50){
-		speedAdjuster = 0.0f;
-	}
-	else{speedAdjuster = -90;}
-		}
-		if(keyInfo->getKey() == 107){  //k (slow down)
-			if(speedAdjuster == 50 || speedAdjuster == -90){
-			speedAdjuster = 0.0f;
-		}
-		else{speedAdjuster = 50.0f;}
-		}
+		
 		if(keyInfo->getKey() == 113){  //q
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;	
 			//ct.vars.playstatus
@@ -738,6 +733,36 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");
 			findExtremeEventTimes();
 			m_fileIndex = 5;
+		}
+		if(keyInfo->getKey() == 36){  //home key
+			/* Place user at (0, 0, 0) */
+		}
+		if(keyInfo->getKey() == 40){  //down arrow key
+			/* Rotate user about z axis */
+		}
+		if(keyInfo->getKey() == 39){  //right arrow key
+			/* Rotate user about y axis */
+		}
+		if(keyInfo->getKey() == 38){  //up arrow key
+			/* Rotate user about x axis */
+		}
+		if(keyInfo->getKey() == 108){  //l -- move user in positive z direction
+			
+		}
+		if(keyInfo->getKey() == 107){  //k -- move user in negative x direction
+			
+		}
+		if(keyInfo->getKey() == 105){  //i -- move user in positive x direction
+			
+		}
+		if(keyInfo->getKey() == 106){  //j -- move user in negative z direction
+			
+		}
+		if(keyInfo->getKey() == 117){  //u -- move user in positive y direction
+			
+		}
+		if(keyInfo->getKey() == 110){  //n -- move user in negative y direction
+			
 		}
 		
 

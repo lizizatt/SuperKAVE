@@ -62,96 +62,114 @@ void IceCubeGeometry::draw(arMasterSlaveFramework *fw, float fDownScale)
 		diffY = sphereY - userPosition[14]/3.281;
 		diffZ = 5 -sphereZ - userPosition[13]/3.281;
 
-		int domString = m_doms[i].getDomString();
+		if(userPosition[13]*fDownScale < 6200){          /////////////////////Below the surface
 
-		float horizDist = diffX*diffX + diffY*diffY;
-		float vertDist = diffZ*diffZ;
+								int domString = m_doms[i].getDomString();
 
-		if(horizDist < 8000.f/(fDownScale*fDownScale) &&  vertDist < 8000.f/(fDownScale*fDownScale))
-		{	
-			if(domString > 78)
-			{
-				glColor3f(1.0f, 1.0f, 1.0f);
-			}
+								float horizDist = diffX*diffX + diffY*diffY;
+								float vertDist = diffZ*diffZ;
 
-			int domModule = m_doms[i].getDomModule();
-			if(domModule > 60)
-			{
-				glColor3f(1.0f, 0.0f, 0.0f);
-				glTranslatef(sphereX, sphereY, sphereZ);
-				glutSolidSphere(0.55f/scaleDownSphere, 6, 6);
+								if(horizDist < 8000.f/(fDownScale*fDownScale) &&  vertDist < 8000.f/(fDownScale*fDownScale))
+								{	
+									if(domString > 78)
+									{
+										glColor3f(1.0f, 1.0f, 1.0f);
+									}
+
+									int domModule = m_doms[i].getDomModule();
+									if(domModule <= 60){
+										glTranslatef(sphereX, sphereY, sphereZ);
+										//if(horizDist + vertDist < 2000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 10, 10);
+										/*}
+										else if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 5, 5);
+										}
+										else if(horizDist + vertDist < 25000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 5, 4);
+										}
+										else if(horizDist + vertDist < 40000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 4, 4);
+										}
+										else if(horizDist + vertDist < 90000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 4, 3);
+										}
+										else if(horizDist + vertDist < 120000.f/(fDownScale*fDownScale)){
+											glutSolidSphere(0.165f/scaleDownSphere, 3, 3);
+										}
+										else{
+											glutSolidSphere(0.165f/scaleDownSphere, 3, 2);
+										}*/				
+										//glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
+										glTranslatef(-sphereX, -sphereY, -sphereZ);
 				
-				
-				glTranslatef(-sphereX, -sphereY, -sphereZ);
-			}
-			else
-			{
-				glTranslatef(sphereX, sphereY, sphereZ);
-				//if(horizDist + vertDist < 2000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 10, 10);
-				/*}
-				else if(horizDist + vertDist < 10000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 5, 5);
-				}
-				else if(horizDist + vertDist < 25000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 5, 4);
-				}
-				else if(horizDist + vertDist < 40000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 4, 4);
-				}
-				else if(horizDist + vertDist < 90000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 4, 3);
-				}
-				else if(horizDist + vertDist < 120000.f/(fDownScale*fDownScale)){
-					glutSolidSphere(0.165f/scaleDownSphere, 3, 3);
-				}
-				else{
-					glutSolidSphere(0.165f/scaleDownSphere, 3, 2);
-				}*/				
-				//glutSolidSphere(0.25f/scaleDownSphere, 4, 4);
-				glTranslatef(-sphereX, -sphereY, -sphereZ);
-				
-				glBegin(GL_LINES);
-				if(i < m_doms.size()-1 && domString == m_doms[i+1].getDomString())
-				{
-					const arVector3 &nextSphere = m_doms[i+1].getPos();
-					glColor3f(0.75f, 0.75f, 0.75f);
-					if(domModule == 60)
-					{
-						const arVector3 &lastSphere = m_doms[i-59].getPos();
-						glVertex3f(lastSphere.v[0]/fDownScale, lastSphere.v[1]/fDownScale, -lastSphere.v[2]/fDownScale);
-						glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
-					}
-					else
-					{
-						glVertex3f(sphereX, sphereY, sphereZ);
-						glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
-					}
-				}
-				glEnd();
-			}
+										glBegin(GL_LINES);
+										if(i < m_doms.size()-1 && domString == m_doms[i+1].getDomString())
+										{
+											const arVector3 &nextSphere = m_doms[i+1].getPos();
+											glColor3f(0.75f, 0.75f, 0.75f);
+											if(domModule == 60)
+											{
+												const arVector3 &lastSphere = m_doms[i-59].getPos();
+												glVertex3f(lastSphere.v[0]/fDownScale, lastSphere.v[1]/fDownScale, -lastSphere.v[2]/fDownScale);
+												glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
+											}
+											else
+											{
+												glVertex3f(sphereX, sphereY, sphereZ);
+												glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
+											}
+										}
+										glEnd();
+									}
+									
+								}
+								else
+								{
+									glBegin(GL_LINES);
+									if(i < m_doms.size()-1 && domString == m_doms[i+1].getDomString())
+									{
+										int domModule = m_doms[i].getDomModule();
+										const arVector3 &nextSphere = m_doms[i+1].getPos();
+										glColor3f(0.75f, 0.75f, 0.75f);
+										if(domModule == 60)
+										{
+											const arVector3 &lastSphere = m_doms[i-59].getPos();
+											glVertex3f(lastSphere.v[0]/fDownScale, lastSphere.v[1]/fDownScale, -lastSphere.v[2]/fDownScale);
+											glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
+										}
+										else
+										{
+											glVertex3f(sphereX, sphereY, sphereZ);
+											glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
+										}
+									}
+									glEnd();
+								}
 		}
-		else
-		{
-			glBegin(GL_LINES);
-			if(i < m_doms.size()-1 && domString == m_doms[i+1].getDomString())
-			{
-				int domModule = m_doms[i].getDomModule();
-				const arVector3 &nextSphere = m_doms[i+1].getPos();
-				glColor3f(0.75f, 0.75f, 0.75f);
-				if(domModule == 60)
-				{
-					const arVector3 &lastSphere = m_doms[i-59].getPos();
-					glVertex3f(lastSphere.v[0]/fDownScale, lastSphere.v[1]/fDownScale, -lastSphere.v[2]/fDownScale);
-					glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
-				}
-				else
-				{
-					glVertex3f(sphereX, sphereY, sphereZ);
-					glVertex3f(nextSphere.v[0]/fDownScale, nextSphere.v[1]/fDownScale, -nextSphere.v[2]/fDownScale);
-				}
-			}
-			glEnd();
+		else{                      /////////Above the surface
+								int domString = m_doms[i].getDomString();
+
+								float horizDist = diffX*diffX + diffY*diffY;
+
+								if(horizDist < 200000.f/(fDownScale*fDownScale))
+								{	
+									if(domString > 78)
+									{
+										glColor3f(1.0f, 1.0f, 1.0f);
+									}
+
+									int domModule = m_doms[i].getDomModule();
+									if(domModule > 60){              ///////////Above the surface
+										glColor3f(1.0f, 0.0f, 0.0f);
+										glTranslatef(sphereX, sphereY, sphereZ);
+										glutSolidSphere(0.165f/scaleDownSphere, 6, 6);
+				
+				
+										glTranslatef(-sphereX, -sphereY, -sphereZ);
+									}
+									
+								}								
 		}
 	}
 }
