@@ -31,6 +31,7 @@ const float IceCubeFramework::FEET_TO_LOCAL_UNITS = 1.f;
 const float IceCubeFramework::nearClipDistance = .1f;
 const float IceCubeFramework::farClipDistance = 10000.f;
 
+int startingEventIndex = 0;
 
   
 const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = { "..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt",
@@ -173,11 +174,11 @@ void IceCubeFramework::drawEvents(void)
 
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
-	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+	for(unsigned int i=startingEventIndex; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(ct.vars.time->val > event2Data.icecubeData.time[i]){
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
-			chargeRadiusFactor = log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
+			chargeRadiusFactor =  log(1000*event2Data.icecubeData.charge[i] + 7);  //log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
 			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
@@ -220,7 +221,31 @@ void IceCubeFramework::findExtremeEventTimes(){
 	largestCharge = 0;
 	smallestCharge = 999999;
 	chargeSpan = 0;
-	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
+	ct.vars.time->start = (int)(event2Data.icecubeData.time[0]);
+	ct.vars.time->end = (int)(event2Data.icecubeData.time[event2Data.icecubeData.time.size()-1]);
+	timeSpan = ct.vars.time->end - ct.vars.time->start;
+
+	//Check for outliers and remove them
+	if(event2Data.icecubeData.time.size() > 3){
+		for(int i=0; i<event2Data.icecubeData.time.size()/3; i++){
+			if(event2Data.icecubeData.time[i] < event2Data.icecubeData.time[i+1] - timeSpan/4){
+				startingEventIndex = i;
+				//event2Data.icecubeData.time.erase(event2Data.icecubeData.time.begin()+1);
+				/*event2Data.icecubeData.doms.erase(event2Data.icecubeData.doms.begin(), event2Data.icecubeData.doms.begin() + i);
+				event2Data.icecubeData.strings.erase(event2Data.icecubeData.strings.begin(), event2Data.icecubeData.strings.begin() + i);
+				event2Data.icecubeData.xCoord.erase(event2Data.icecubeData.xCoord.begin(), event2Data.icecubeData.xCoord.begin() + i);
+				event2Data.icecubeData.yCoord.erase(event2Data.icecubeData.yCoord.begin(), event2Data.icecubeData.yCoord.begin() + i);
+				event2Data.icecubeData.zCoord.erase(event2Data.icecubeData.zCoord.begin(), event2Data.icecubeData.zCoord.begin() + i);
+				event2Data.icecubeData.charge.erase(event2Data.icecubeData.charge.begin(), event2Data.icecubeData.charge.begin() + i);*/
+				i = event2Data.icecubeData.time.size() + 50;
+			}
+		}
+	}
+
+	ct.vars.time->start = (int)(event2Data.icecubeData.time[0]);
+	ct.vars.time->end = (int)(event2Data.icecubeData.time[event2Data.icecubeData.time.size()-1]);
+	timeSpan = ct.vars.time->end - ct.vars.time->start;
+	/*for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(event2Data.icecubeData.time[i] > ct.vars.time->end){
 			ct.vars.time->end = (int)(event2Data.icecubeData.time[i]);
 		}
@@ -233,9 +258,10 @@ void IceCubeFramework::findExtremeEventTimes(){
 		else if(event2Data.icecubeData.charge[i] < smallestCharge){
 			smallestCharge = event2Data.icecubeData.charge[i];
 		}
-	}
+	}*/
+	
 	chargeSpan = largestCharge - smallestCharge;
-	timeSpan = ct.vars.time->end - ct.vars.time->start;
+	
 	expansionTime = 1.25*timeSpan/(event2Data.icecubeData.xCoord.size());
 	ct.vars.time->end += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
@@ -356,6 +382,8 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   event2Data.getText(string(eventFiles[m_fileIndex]));
 
   findExtremeEventTimes();
+  smallestCharge = 0.01;
+  largestCharge = 275.0f;
 
   GLfloat fogDensity = 0; //0.001 * fDownScale; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.1, 1.0}; 
@@ -670,6 +698,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			eventColors.clear();
 			event2Data.~DataInput();
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e2.txt");
+			//event2Data.sortByTime();
 			findExtremeEventTimes();
 			m_fileIndex = 0;
 		}
