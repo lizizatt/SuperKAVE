@@ -9,7 +9,7 @@
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
 
-#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
+//#define ICECUBE					//Ross 6/11/2013 - comment this out to run Duke's Super-KAVE simulation, keep in to run IceCube simulation
 
 #ifdef ICECUBE
 #include "icecube.h"
@@ -77,11 +77,25 @@ public:
 
 class dataDisplay{ 
 public:
+	static int beingGrabbed;  //if -1, nothing is being grabbed.
+	static int numberDisplays;
+	int myIndex;  //given on initialization
+	arVector3 offset;  //used for movement.
+	arMatrix4 myOriginalRotationMatrix;
 	arVector3 myPos;  //location of very center
 	arMatrix4 myRotationMatrix;  //location outward of screen
 	vector<string> contents;  //contents, to be drawn from top to bottom, line by line
 	void drawDataDisplay(arMasterSlaveFramework& fw);
+	dataDisplay::dataDisplay();
 };
+
+dataDisplay::dataDisplay(){
+	myIndex = numberDisplays;
+	numberDisplays++;
+}
+
+int dataDisplay::beingGrabbed = -1;
+int dataDisplay::numberDisplays = 0;
 
 
 //Global variables
@@ -158,6 +172,7 @@ int itemTouching = 0;  //0 corresponds to vertex, else subtract 1 and is index o
 arVector3 vertexOffset;
 bool doDataDisplay = true;
 vector<dataDisplay> myDataDisplays;
+bool addNewDisplay;
 //string bufferLine;  
 
 //PRE_PICKED COLOR ARRAYS
@@ -184,6 +199,24 @@ arVector3 subtract(arVector3 a, arVector3 b){
 
 arVector3 add(arVector3 a, arVector3 b){
 	return arVector3(a[0]+b[0], a[1]+b[1], a[2]+b[2]);
+}
+
+arMatrix4 add(arMatrix4 a, arMatrix4 b){
+	arMatrix4 out;
+	for(int i = 0; i < 4; i++){
+		for(int j = 0; j < 4; j++){
+			out[i*4+j] = a[i*4+j] + b[i*4+j];
+		}
+	}
+}
+
+arMatrix4 subtract(arMatrix4 a, arMatrix4 b){
+	arMatrix4 out;
+	for(int i = 0; i < 4; i++){
+		for(int j = 0; j < 4; j++){
+			out[i*4+j] = a[i*4+j] - b[i*4+j];
+		}
+	}
 }
 
 #ifdef WINNEUTRINO
@@ -253,22 +286,29 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	//figure out which item we're grabbing ... go for closest one
 	arVector3 handPos = arVector3(finalX, finalY, finalZ);
 	bool isTouching = false;
-	if(magnitude(subtract(handPos, myPos)) < 2.5){  //later do check with intersection of box
+	bool isInRange = magnitude(subtract(handPos, myPos)) < 2.5;
+	if(isInRange && (beingGrabbed == -1 || beingGrabbed == myIndex)){  //are we in range and are we not already grabbing one?  grab it
 		isTouching = true;
+		myHandMatrix[12] = -2*handDirX;
+		myHandMatrix[13] = -2*handDirY;
+		myHandMatrix[14] = -2*handDirZ;
+		myHandMatrix[8] = -handUpX;
+		myHandMatrix[9] = -handUpY;
+		myHandMatrix[10] = -handUpZ;
+		myHandMatrix[4] = handDirX;
+		myHandMatrix[5] = handDirY;
+		myHandMatrix[6] = handDirZ;
+		if(fw.getOnButton(5)){ //we just started grabbing, set offset (currentPos - handPos)
+			offset = subtract(myPos, handPos);
+			myOriginalRotationMatrix = myRotationMatrix;
+		}
 		if(fw.getButton(5)){ //is grabbing
+			beingGrabbed = myIndex;
 			//update location based on hand movement
-			myPos = handPos;
-			myHandMatrix[12] = -2*handDirX;
-			myHandMatrix[13] = -2*handDirY;
-			myHandMatrix[14] = -2*handDirZ;
-			myHandMatrix[8] = -handUpX;
-			myHandMatrix[9] = -handUpY;
-			myHandMatrix[10] = -handUpZ;
-			myHandMatrix[4] = handDirX;
-			myHandMatrix[5] = handDirY;
-			myHandMatrix[6] = handDirZ;
-			
+			myPos = add(handPos, offset);
 			myRotationMatrix = myHandMatrix;
+		} else { //not grabbing anymore
+			beingGrabbed = -1;
 		}
 	} else{
 		isTouching = false;
@@ -687,7 +727,6 @@ void drawScene(arMasterSlaveFramework& framework)
 	*/
 	
 	//draws data displays
-	cout << myDataDisplays.size();
 	for(int i = 0; i < myDataDisplays.size(); i++){
 		myDataDisplays[i].drawDataDisplay(framework);
 	}
@@ -1614,6 +1653,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("isGrabbingVertex",&isGrabbingVertex,AR_INT,1);
 	framework.addTransferField("itemTouching",&itemTouching ,AR_INT,1);
 	framework.addTransferField("starttransfer", &triggerDepressed, AR_INT, 1);
+	framework.addTransferField("addNewDisplayTransfer", &addNewDisplay, AR_INT, 1);
 
 
 	// Setup navigation, so we can drive around with the joystick
@@ -1690,6 +1730,10 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 			autoPlay = 0;
 		}
 
+		
+		//initialize per-frame values
+		addNewDisplay = false;
+		
 		//button mapping for reference:
 		// 0 = yellow
 		// 1 = red
@@ -1726,13 +1770,8 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 				*/
 			}
 		}
-		if(fw.getOnButton(1)){  //on red button, spawn another menu  // PROBLEM:  if more than one is grabbed, they overlap and are unfixable
-			dataDisplay testDataDisplay;
-			testDataDisplay.contents.push_back("Test string one");
-			testDataDisplay.contents.push_back("Test string two");
-			testDataDisplay.myPos = arVector3(0,0,0);
-			testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-			myDataDisplays.push_back(testDataDisplay);
+		if(fw.getOnButton(1)){  //on red button, tell the system that another menu will be spawned in post
+			addNewDisplay = true;
 		}
 		if(fw.getOnButton(2)){  // on green button, step event forward one, or if menus are up, step menuIndex forwar done  .. or, if time compressed, autoplay forward
 			if(doMenu){
@@ -1983,6 +2022,16 @@ void postExchange( arMasterSlaveFramework& fw ) {
 			dotVectors[index].doDisplay[modifiedCherenkovConeIndex] = !currentDots.doDisplay[modifiedCherenkovConeIndex];
 		}
 	}
+	
+	if(addNewDisplay){
+		dataDisplay testDataDisplay;
+		testDataDisplay.contents.push_back("Test string one");
+		testDataDisplay.contents.push_back("Test string two");
+		testDataDisplay.myPos = arVector3(0,0,0);
+		testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+		myDataDisplays.push_back(testDataDisplay);
+	}
+	
 	//handle vertex motion
 	if(isGrabbingVertex){
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
