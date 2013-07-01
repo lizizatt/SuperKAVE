@@ -25,6 +25,6 @@ public:
 	float maxCharge, minCharge;
 
 	void getText(string filename);
-	void getExtremeCharges();
+	void getExtremeTimes();
 	void sortByTime();
 };

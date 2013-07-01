@@ -46,13 +46,50 @@ void DataInput::getText(string filename){
 	//	cout<< " DOMS: " << icecubeData.doms[i]<< "String : " << icecubeData.strings[i] << " x: " << icecubeData.xCoord[i] << " y: " << icecubeData.yCoord[i] << " z: " << icecubeData.zCoord[i] <<  " charge: " << icecubeData.charge[i] <<  " time: " << icecubeData.time[i] << endl;
 	//}
 	cout << "initialized icecube event data" <<endl;
+
+	sortByTime();
 	
 }
 
-void DataInput::getExtremeCharges(){
+void DataInput::getExtremeTimes(){
 
 }
 
 void DataInput::sortByTime(){
+
+	eventData temp;
+
+	for(unsigned int i=0; i<icecubeData.time.size(); i++){
+		if(i==0){
+			temp.time.push_back(icecubeData.time.at(i));
+			temp.doms.push_back(icecubeData.doms.at(i));
+			temp.strings.push_back(icecubeData.strings.at(i));
+			temp.xCoord.push_back(icecubeData.xCoord.at(i));
+			temp.yCoord.push_back(icecubeData.yCoord.at(i));
+			temp.zCoord.push_back(icecubeData.zCoord.at(i));
+			temp.charge.push_back(icecubeData.charge.at(i));
+		}
+		else{
+			for(unsigned int j=0; j<temp.time.size(); j++){
+				if(temp.time.at(j) > icecubeData.time.at(i)){
+					temp.time.insert(temp.time.begin() + j, icecubeData.time.at(i));
+					temp.doms.insert(temp.doms.begin() + j, icecubeData.doms.at(i));
+					temp.strings.insert(temp.strings.begin() + j, icecubeData.strings.at(i));
+					temp.xCoord.insert(temp.xCoord.begin() + j, icecubeData.xCoord.at(i));
+					temp.yCoord.insert(temp.yCoord.begin() + j, icecubeData.yCoord.at(i));
+					temp.zCoord.insert(temp.zCoord.begin() + j, icecubeData.zCoord.at(i));
+					temp.charge.insert(temp.charge.begin() + j, icecubeData.charge.at(i));
+
+					j = temp.time.size() + 50;
+				}
+			}
+		}
+	}
+
+	icecubeData = temp;
+
+	for(int i=0; i<icecubeData.time.size(); i++){
+		cout << "time[" << i << "] = " << icecubeData.time.at(i) << "; " << endl;
+	}
 
 }

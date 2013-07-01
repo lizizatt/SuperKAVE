@@ -16,6 +16,8 @@ public:
 		slidval* time;
 		int playstatus;	//feedback to/from playback controls
 		bool playreverse;	//true if playing event backwards
+		slidval* zoom;	//zoom scaling for array
+		bool drawCables;	//can deactivate drawing the DOM cables
 	}vars;
 	tdMenuController(){}	//default constructor doesn't do anything, need to give it a wand
 	tdMenuController(arEffector* wand);	//instantiates the menu controller AND sets up a hardcoded menu.

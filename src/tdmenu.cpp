@@ -4,9 +4,6 @@
 #include "arGlut.h"
 
 
-const float MENU_SPEED = 0.15 / 5;	//the speed at which menu animations run
-const float PANEL_THICKNESS = 0.1;	//how thick each panel is (and how big the pellet is during open/close)
-const float TEXT_COMPRESSION = 1.5;	//how text is "squished" on the x-axis
 
 //color functions, alter to change color scheme
 void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.75);}
@@ -288,21 +285,21 @@ void tdSlider::draw()
 	glPushMatrix();
 	glMultMatrixf(pos.v);
 	glBegin(GL_QUAD_STRIP);
-	for(int i = 100; i >= 0; i--)
+	for(int i = 20; i >= 0; i--)
 	{
-		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
-		glVertex3f(length/2+width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/20)/1.5,depth*sin(i*M_PI/20)/1.5);
+		glVertex3f(length/2+width/2,depth*cos(i*M_PI/20)/1.5,depth*sin(i*M_PI/20)/1.5);
 	}
 	glEnd();
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(-length/2-depth/2-width/2,0,0);
-	for(int i = 100; i >= 0; i--)
-		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+	for(int i = 20; i >= 0; i--)
+		glVertex3f(-length/2-width/2,depth*cos(i*M_PI/20)/1.5,depth*sin(i*M_PI/20)/1.5);
 	glEnd();
 	glBegin(GL_TRIANGLE_FAN);
 	glVertex3f(length/2+depth/2+width/2,0,0);
-	for(int i = 0; i < 101; i++)
-		glVertex3f(length/2+width/2,depth*cos(i*M_PI/100)/1.5,depth*sin(i*M_PI/100)/1.5);
+	for(int i = 0; i < 21; i++)
+		glVertex3f(length/2+width/2,depth*cos(i*M_PI/20)/1.5,depth*sin(i*M_PI/20)/1.5);
 	glEnd();
 	tdDrawBox(cpos-length/2,0,depth/2,width,height,depth);
 
@@ -414,13 +411,8 @@ void tdPanel::draw()
 		glMultMatrixf(cmat.v);
 		glMultMatrixf(tmat.v);
 		//draw the panel
-		//glPushMatrix();	
-		//glScalef(PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS);
-		//glTranslatef(0,0,-0.5);
 		colorPanel();
-		//glutSolidCube(1);
 		tdDrawBox(0, 0, -PANEL_THICKNESS/2, PANEL_THICKNESS + cwidth, PANEL_THICKNESS + cheight, PANEL_THICKNESS);
-		//glPopMatrix();
 		if(cwidth > 0 && cheight > 0)
 		{
 			//glMultMatrixf(ar_translationMatrix(-cwidth/2, -cheight/2,0).v);	//would set origin to bottom-left corner
@@ -568,7 +560,110 @@ void tdPanel::handleEvents(tdMenuController* ct, int menu, int panel)
 //TDLISTPANEL METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
+tdListPanel::tdListPanel(listval* list, float width, float btnheight, float btndepth, float textsize, int actioncode, bool leftjust)
+{
+	this->center = arVector3(0,0,0);
+	this->panew = width;
+	this->paneh = 0;
+	this->phase = 0;
+	this->cwidth = 0;
+	this->cheight = 0;
+	this->cmat = ar_identityMatrix();
+	this->tmat = ar_identityMatrix();
+	this->objects = vector<tdObject*>();
+	this->list = list;
+	this->btnheight = btnheight;
+	this->btndepth = btndepth;
+	this->textsize = textsize;
+	this->actioncode = actioncode;
+	this->leftjust = leftjust;
+}
 
+void tdListPanel::draw()
+{
+	if(phase != 0)
+	{
+		glEnable(GL_CULL_FACE);
+		glEnable(GL_BLEND);
+		glDisable(GL_LIGHTING);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glPushMatrix();	//move to panel position
+		glMultMatrixf(cmat.v);
+		glMultMatrixf(tmat.v);
+		colorPanel();
+		if(cwidth > 0 && cheight > 0)
+		{
+			glScalef(cwidth/panew, cheight/paneh, 1);	//proportions drawing matrix to panel's current state of compression
+			tdDrawBox(0,((objects.size()+0.5)*btnheight+BTNGAP)/2,btndepth/2,panew,(btnheight+BTNGAP)/2,btndepth);
+			for(int i = 0; i < objects.size(); i++)
+			{
+				objects[i]->draw();
+			}
+			tdDrawBox(0,-((objects.size()+0.5)*btnheight+BTNGAP)/2,btndepth/2,panew,(btnheight+BTNGAP)/2,btndepth);
+		}
+		else
+			tdDrawBox(0,0,btndepth/2,cwidth,cheight,btndepth);
+		glPopMatrix();
+		glDisable(GL_BLEND);
+		glDisable(GL_CULL_FACE);
+		glEnable(GL_LIGHTING);
+	}
+}
+
+void tdListPanel::open()
+{
+	//TODO (NOTE: this instantiates the buttons and sets the final size as well)
+	if(phase == 0)
+	{
+		phase = 1;
+		objects = vector<tdObject*>();	//clears list
+		int size = list->items.size();
+		for(int i = 0; i < size; i++)
+		{
+			add(new tdButton(0,((size-1.0)/2-i)*btnheight,panew,btnheight-BTNGAP,btndepth,actioncode,list->items[i],textsize,leftjust));
+		}
+		paneh = btnheight * (size + 1);
+	}
+	else if(phase == 5) phase = 1;
+	else if(phase == 4) phase = 2;
+}
+
+arVector3 tdListPanel::handlePointer(arVector3 start, arVector3 unit)
+{
+	arVector3 nstart = start;
+	nstart = invert(cmat) * nstart;
+	nstart = invert(tmat) * nstart;
+	arVector3 nunit = unit;
+	nunit = invert(cmat) * nunit;
+	nunit = invert(tmat) * nunit;
+	arVector3 endpt = arVector3();
+	arVector3 dir = nunit - nstart;
+	if(dir.v[2] < 0 && nstart.v[2] > 0)	//check if pointer is in front of menu panel and not pointing backwards/sideways
+	{
+		float mag = nstart.v[2] / -dir.v[2];
+		endpt = arVector3(nstart.v[0]+dir.v[0]*mag, nstart.v[1]+dir.v[1]*mag, nstart.v[2]+dir.v[2]*mag);
+		if(abs(endpt.v[0]) < (PANEL_THICKNESS + cwidth) / 2 && abs(endpt.v[1]) < (PANEL_THICKNESS + cheight) / 2)
+		{
+			bool changed = false;
+			arVector3 newend;
+			for(int i = 0; i < objects.size(); i++)
+			{
+				newend = objects[i]->handlePointer(endpt);
+				if(newend.v[2] != 9001)
+				{
+					endpt = newend;
+					changed = true;
+				}
+			}
+			if(!changed)
+				endpt.v[2] += btndepth;
+			endpt = tmat * endpt;
+			endpt = cmat * endpt;
+			return endpt;
+		}
+	}
+	return arVector3(0,0,9001);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //TDMENU METHODS
