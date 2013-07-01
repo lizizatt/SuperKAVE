@@ -234,7 +234,7 @@ void IceCubeFramework::findExtremeEventTimes(){
 	if(event2Data.icecubeData.time.size() > 3){
 		for(int i=0; i<event2Data.icecubeData.time.size()/3; i++){
 			if(event2Data.icecubeData.time[i] < event2Data.icecubeData.time[i+1] - timeSpan/4){
-				startingEventIndex = i;
+				startingEventIndex = i+1;
 				//event2Data.icecubeData.time.erase(event2Data.icecubeData.time.begin()+1);
 				/*event2Data.icecubeData.doms.erase(event2Data.icecubeData.doms.begin(), event2Data.icecubeData.doms.begin() + i);
 				event2Data.icecubeData.strings.erase(event2Data.icecubeData.strings.begin(), event2Data.icecubeData.strings.begin() + i);
@@ -247,8 +247,8 @@ void IceCubeFramework::findExtremeEventTimes(){
 		}
 	}
 
-	ct.vars.time->start = (int)(event2Data.icecubeData.time[0]);
-	ct.vars.time->end = (int)(event2Data.icecubeData.time[event2Data.icecubeData.time.size()-1]);
+	ct.vars.time->start = (int)(event2Data.icecubeData.time[startingEventIndex]);
+	//ct.vars.time->end = (int)(event2Data.icecubeData.time[event2Data.icecubeData.time.size()-1]);
 	timeSpan = ct.vars.time->end - ct.vars.time->start;
 	/*for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
 		if(event2Data.icecubeData.time[i] > ct.vars.time->end){
