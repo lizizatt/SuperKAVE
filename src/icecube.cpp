@@ -31,6 +31,8 @@ const float IceCubeFramework::FEET_TO_LOCAL_UNITS = 1.f;
 const float IceCubeFramework::nearClipDistance = .1f;
 const float IceCubeFramework::farClipDistance = 10000.f;
 
+float avgX, avgY, avgZ;
+
 int startingEventIndex = 0;
 
   
@@ -42,6 +44,10 @@ const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = {
 																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt" };
 
 const string IceCubeFramework::geometryFile = string("..\\..\\src\\neutrinos\\data\\icecube\\geometry\\Icecube_Geometry_Data.txt");
+
+arOBJRenderer myObj;
+
+arMatrix4 userPosition;
 
 /////////////////////////////////////Sphere drawing algorithm////////////////////////////////////////////////
 
@@ -155,16 +161,21 @@ void IceCubeFramework::drawAxis(void)
 
 void IceCubeFramework::drawEvents(void)
 {
-	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
+	userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
 	//cout << "userPosition (x,y,z) = (" << userPosition[12] << ", " << userPosition[14] << ", " << userPosition[13] << ")" << endl; //12 (initial x direction), 13 (vertical), 14 (initial z direction) to get user's position
   //fw->getMatrix(0); //12 (some 2D movement), 13 (vertical), 14 to get user's position
 	//fw->getMatrix(0);
 	//cout << "uP[0] = " << uP[0] << endl;
 
+	
 
 	//drawsphere(1, 1.0f);
 
 	float scaleDownEventSphere = fDownScale/10;
+
+	//Draws obj model
+	//myObj.draw();
+
 
 	int numDrawn = 0;
 	
@@ -177,11 +188,12 @@ void IceCubeFramework::drawEvents(void)
 	float sphereX, sphereY, sphereZ;
 	float diffX, diffY, diffZ;
 
-	cout << userPosition[13] << endl;
+	//cout << userPosition[13] << endl;
 
-	/*cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << userPosition[4] << ", " << endl;
-	cout << userPosition[5]  << ", " << userPosition[6] << ", " << userPosition[7] << ", " << userPosition[8] << ", " << userPosition[9] << ", " << endl;
-	cout << userPosition[10]  << ", " << userPosition[11] << ", " << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] << ") " << endl;*/
+	/*cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << endl;
+	cout << userPosition[4] << ", " << userPosition[5]  << ", " << userPosition[6] << ", " << userPosition[7] << ", " << endl;
+	cout << userPosition[8] << ", " << userPosition[9] << ", " << userPosition[10]  << ", " << userPosition[11] << ", " << endl;
+	cout << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] <<  ", " << userPosition[15] << ") " << endl;*/
 
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
@@ -277,6 +289,8 @@ void IceCubeFramework::findExtremeEventTimes(){
 	ct.vars.time->end += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
 	ct.vars.time->val = ct.vars.time->start;
+
+	float sumX = 0, sumY = 0, sumZ = 0;
 	
 	color red;
 	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
@@ -297,7 +311,17 @@ void IceCubeFramework::findExtremeEventTimes(){
 		}
 		eventColors.push_back(red);
 
+		sumX += event2Data.icecubeData.xCoord[i];
+		sumY += event2Data.icecubeData.yCoord[i];
+		sumZ += event2Data.icecubeData.zCoord[i];
+
 	}
+
+	avgX = sumX/event2Data.icecubeData.xCoord.size();
+	avgY = sumY/event2Data.icecubeData.xCoord.size();
+	avgZ = sumZ/event2Data.icecubeData.xCoord.size();
+
+	cout << "avgX = " << avgX << "; avgY = " << avgY << "; avgZ = " << avgZ << "; " << endl;
 }
 
 void IceCubeFramework::attachOffscreenTexture(GLuint textureId)
@@ -411,6 +435,16 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   findExtremeEventTimes();
   smallestCharge = 0.01;
   largestCharge = 275.0f;
+
+  /*Reads in obj model
+  if (!myObj.readOBJ( "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\charizard.obj",
+                    "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\.",
+                    "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\." )){
+						cout << "obj failed to load" << endl;
+  }
+  */
+  
+  
 
   GLfloat fogDensity = 0; //0.001 * fDownScale; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.1, 1.0}; 
@@ -755,6 +789,22 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 		}
 		if(keyInfo->getKey() == 36){  //home key
 			/* Place user at (0, 0, 0) */
+			userPosition[12] = 0.0f;
+			userPosition[13] = 0.0f;
+			userPosition[14] = 0.0f;
+			ar_setNavMatrix(userPosition);
+		}
+		if(keyInfo->getKey() == 13){  //enter key
+			/* Place user at (avgX, avgY, avgZ) */
+			/*
+			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
+			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
+			*/
+
+			userPosition[12] = 3.281*avgX/fDownScale;
+			userPosition[13] = 3.281*(avgZ+5)/fDownScale;
+			userPosition[14] = 3.281*avgY/fDownScale;
+			ar_setNavMatrix(userPosition);
 		}
 		if(keyInfo->getKey() == 40){  //down arrow key
 			/* Rotate user about z axis */
