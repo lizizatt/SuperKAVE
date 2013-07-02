@@ -123,7 +123,7 @@ void RodEffectorIce::draw() const {
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
     fDownScale(1.f), speedAdjuster(0.f), timeSpan(999999), expansionTime(0), 
-	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_fileIndex(0), spin(0)
+	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_offscreenFramebuffer(0), m_fileIndex(0), spin(0)
 {
 	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
 	  arTexture().readJPEG("", "", "", -1, true);
@@ -292,6 +292,22 @@ void IceCubeFramework::findExtremeEventTimes(){
 		eventColors.push_back(red);
 
 	}
+}
+
+void IceCubeFramework::attachOffscreenTexture(GLuint textureId)
+{
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureId, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_offscreenFramebuffer);
+}
+
+void IceCubeFramework::detachOffscreenTexture(void)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void IceCubeFramework::makeOffscreenFramebuffer(void)
+{
+	glGenFramebuffers(1, &m_offscreenFramebuffer);
 }
 
 // onStart callback method (called in arMasterSlaveFramework::start()
@@ -601,10 +617,13 @@ void IceCubeFramework::drawTimeline(void)
    glMatrixMode(GL_MODELVIEW);
 }
 
-void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
+void IceCubeFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   // Load the navigation matrix.
   loadNavMatrix();
   
+  //if we're going to do some offscreen rendering action, need to save what buffer we're eventually going to draw the composited buffer to.
+  GLenum drawBuf = vp.getDrawBuffer();
+
   // Draw stuff.
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_LIGHTING);

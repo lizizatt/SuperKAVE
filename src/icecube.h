@@ -73,10 +73,19 @@ class IceCubeFramework : public arMasterSlaveFramework {
 	void drawTimeline(void);
 	void findExtremeEventTimes();
 
+	//Ross 7/2/2013
+	void attachOffscreenTexture(GLuint textureId);
+	void detachOffscreenTexture(void);
+	void makeOffscreenFramebuffer(void);
+	
+
     // Our single object and effector
     RodEffectorIce _effector;
 	GLint m_shaderProgram;
 	
+	//Ross 7/2/2013
+	GLuint m_offscreenFramebuffer;
+
 	IceCubeGeometry geometryData;
 	DataInput event2Data; 
 	
