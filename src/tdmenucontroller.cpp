@@ -22,6 +22,7 @@ tdMenuController::tdMenuController(arEffector* wand)
 
 	tdMenu* menu;
 	tdPanel* panel;
+	tdWandPanel* wpanel;
 	tdObject* object;
 	slidval* sv = new slidval();
 
@@ -29,28 +30,30 @@ tdMenuController::tdMenuController(arEffector* wand)
 	menus.push_back(menu);
 
 	menu = new tdMenu();	//one big panel and two smaller ones
-	panel = new tdPanel(arVector3(0,1,0),2,4);
-	object = new tdButton(-0.5, 1, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_REWIND, "Rewind", 0.1);
+	panel = new tdPanel(arVector3(0,0,0),2,3);
+	object = new tdButton(-0.5, 0.75, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_REWIND, "Rewind", 0.1);
 	panel->add(object);
-	object = new tdButton(0, 1, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_PLAYPAUSE, "Play", 0.1);
+	object = new tdButton(0, 0.75, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_PLAYPAUSE, "Play", 0.1);
 	panel->add(object);
-	object = new tdButton(0, 0.75, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_REVERSE, "Reverse", 0.1);
+	object = new tdButton(0, 0.5, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_REVERSE, "Reverse", 0.1);
 	panel->add(object);
-	object = new tdButton(0.5, 1, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_FASTFWD, "FastFwd", 0.1);
+	object = new tdButton(0.5, 0.75, 0.5-BTNGAP, 0.25-BTNGAP, 0.05, TD_A_FASTFWD, "FastFwd", 0.1);
 	panel->add(object);
-	object = new tdButton(0, -1.5, 0.5, 0.25, 0.05, TD_A_SWITCHMENU2, "menu 2", 0.1);
-	panel->add(object);
-	object = new tdSlider(0, 1.5, vars.time, 1.5, 0.25, 0.05, 0.25);
+	object = new tdSlider(0, 1, vars.time, 1.5, 0.25, 0.05, 0.25);
 	panel->add(object);
 	menu->addPanel(panel);
-	panel = new tdPanel(arVector3(-10,10,2),5,5);
+	panel = new tdPanel(arVector3(-2,1,0.5),1,2);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),M_PI/6));
 	menu->addPanel(panel);
-	panel = new tdPanel(arVector3(10,10,2),5,5);
+	panel = new tdPanel(arVector3(2,1,0.5),1,2);
+	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),-M_PI/6));
+	object = new tdButton(0, 0.75, 0.5, 0.25, 0.05, TD_A_SWITCHMENU2, "menu 2", 0.1);
+	panel->add(object);
 	menu->addPanel(panel);
 	menus.push_back(menu);
 
 	menu = new tdMenu();	//menu with a bunch of panels side by side
-	panel = new tdPanel(arVector3(-20*sin(0.523),1,20-20*cos(0.523)),1,2);
+	/*panel = new tdPanel(arVector3(-20*sin(0.523),1,20-20*cos(0.523)),1,2);
 	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),0.523));
 	menu->addPanel(panel);
 	panel = new tdPanel(arVector3(-20*sin(0.262),1,20-20*cos(0.262)),2,4);
@@ -64,9 +67,14 @@ tdMenuController::tdMenuController(arEffector* wand)
 	panel = new tdPanel(arVector3(20*sin(0.523),1,20-20*cos(0.523)),5,8);
 	panel->tilt(ar_rotationMatrix(arVector3(0,1,0),-0.523));
 	menu->addPanel(panel);
+	*/
 	string blah[] = {"item1", "item2", "item3"};
 	panel = new tdListPanel(new listval(vector<string>(blah,blah+sizeof(blah)/sizeof(string))), 3, 1, 0.2, 0.25, 0, false);
 	menu->addPanel(panel);
+	wpanel = new tdWandPanel();
+	object = new tdButton(0,0,0.5,1,0.1);
+	wpanel->add(object);
+	menu->addWandPanel(wpanel);
 	menus.push_back(menu);
 
 	activeMenu = 0;
