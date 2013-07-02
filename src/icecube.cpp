@@ -174,6 +174,7 @@ void IceCubeFramework::drawEvents(void)
 	float scaleDownEventSphere = fDownScale/10;
 
 	//Draws obj model
+	glColor3f(0.2f, 0.2f, 1.0f);
 	//myObj.draw();
 
 
@@ -188,12 +189,14 @@ void IceCubeFramework::drawEvents(void)
 	float sphereX, sphereY, sphereZ;
 	float diffX, diffY, diffZ;
 
-	//cout << userPosition[13] << endl;
+	//cout << userPosition[13] << endl;	
 
-	/*cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << endl;
+	/*
+	cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << endl;
 	cout << userPosition[4] << ", " << userPosition[5]  << ", " << userPosition[6] << ", " << userPosition[7] << ", " << endl;
 	cout << userPosition[8] << ", " << userPosition[9] << ", " << userPosition[10]  << ", " << userPosition[11] << ", " << endl;
-	cout << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] <<  ", " << userPosition[15] << ") " << endl;*/
+	cout << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] <<  ", " << userPosition[15] << ") " << endl;
+	*/
 
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
@@ -436,13 +439,13 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   smallestCharge = 0.01;
   largestCharge = 275.0f;
 
-  /*Reads in obj model
+  //Reads in obj model
   if (!myObj.readOBJ( "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\charizard.obj",
                     "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\.",
                     "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\." )){
 						cout << "obj failed to load" << endl;
   }
-  */
+  
   
   
 
@@ -814,6 +817,11 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 		}
 		if(keyInfo->getKey() == 38){  //up arrow key
 			/* Rotate user about x axis */
+			userPosition[2] += 0.1;
+			userPosition[2] = fmod((float)(userPosition[2]), 3.1415f);
+			userPosition[8] -= 0.1;
+			userPosition[8] = fmod((float)(userPosition[8]), 3.1415f);
+			ar_setNavMatrix(userPosition);
 		}
 		if(keyInfo->getKey() == 108){  //l -- move user in positive z direction
 			
