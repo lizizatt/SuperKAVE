@@ -1,13 +1,14 @@
 #include "arPrecompiled.h"
 #define SZG_DO_NOT_EXPORT
 #include "tdmenu.h"
+#include "tdmenucontroller.h"
 #include "arGlut.h"
 
 
 
 //color functions, alter to change color scheme
-void colorPanel()	{glColor4f(0.4, 0.8, 1.0, 0.75);}
-void colorText()	{glColor4f(1.0, 1.0, 1.0, 1.0);}
+#define colorPanel()	glColor4f(0.4, 0.8, 1.0, 0.5)
+#define colorText()		glColor4f(1.0, 1.0, 1.0, 1.0)
 
 //Code adapted from MESA implementation of GLU library
 arMatrix4 invert(arMatrix4 m)
@@ -548,19 +549,155 @@ void tdPanel::handleEvents(tdMenuController* ct, int menu, int panel)
 //TDWANDPANEL METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
+tdWandPanel::tdWandPanel()
+{
+	this->objects = vector<tdObject*>();
+	this->cwidth = 0;
+	this->phase = 0;
+	this->panew = 0.5;
+}
 
+void tdWandPanel::add(tdObject* o)
+{
+	this->objects.push_back(o);
+}
+
+void tdWandPanel::genIcon(int button, int code, int icon)
+{
+	float x;
+	switch(button)
+	{
+	case TD_BUTTON_1:
+		x = -0.375*panew;
+		break;
+	case TD_BUTTON_2:
+		x = -0.125*panew;
+		break;
+	case TD_BUTTON_3:
+		x = 0.125*panew;
+		break;
+	case TD_BUTTON_4:
+		x = 0.375*panew;
+		break;
+	}
+	this->objects.push_back(new tdIcon(button,x,0,0.15*panew,panew*0.2,0.05,code,icon);
+}
+
+void tdWandPanel::draw()
+{
+	if(cwidth != 0)
+	{
+		glPushMatrix();
+		glScalef(cwidth/panew,1,1);
+		for(int i = 0; i < objects.size(); i++)
+			objects[i]->draw();
+		glPopMatrix();
+	}
+}
+
+void tdWandPanel::update(double time)
+{
+	switch(phase)
+	{
+	case 0:
+		cwidth = 0;
+		break;
+	case 1:
+		cwidth += MENU_SPEED * time;
+		if(cwidth > panew)
+		{
+			cwidth = panew;
+			phase = 2;
+		}
+		break;
+	case 2:
+		cwidth = panew;
+		break;
+	case 3:
+		cwidth -= MENU_SPEED * time;
+		if(cwidth <= 0)
+		{
+			cwidth = 0;
+			phase = 0;
+		}
+		break;
+	default:
+		phase = 0;
+		break;
+	}
+	for(int i = 0; i < objects.size(); i++)
+		objects[i]->update(time);
+}
+
+void tdWandPanel::open()
+{
+	if(phase == 0 || phase == 3)
+		phase = 1;
+}
+
+void tdWandPanel::close()
+{
+	if(phase == 1 || phase == 2)
+		phase = 3;
+}
+
+bool tdWandPanel::isActive()
+{
+	return phase != 0;
+}
+
+bool tdWandPanel::isOpen()
+{
+	return phase == 2;
+}
+
+void tdWandPanel::handleEvents(tdMenuController* ct, int menu)
+{
+	for(int i = 0; i < objects.size(); i++)
+		objects[i]->handleEvents(ct,menu,-1,i);
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //TDICON METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
+tdIcon::tdIcon(int button, float x, float y, float z, float width, float depth, int code, int icon)
+{
+	this->button = button;
+	this->x = x;
+	this->y = y;
+	this->z = z;
+	this->width = width;
+	this->depth = depth;
+	this->code = code;
+	this->icon = icon;
+}
 
+void tdIcon::draw()
+{
+	//TODO
+}
+
+void tdIcon::update(double time)
+{
+	//TODO
+}
+
+void tdIcon::handleEvents(tdMenuController* ct, int menu, int panel, int object)
+{
+	//TODO
+}
+
+void tdIcon::change(int code, float value, string msg)
+{
+	//TODO
+}
 
 ////////////////////////////////////////////////////////////////////////////////
 //TDLISTPANEL METHODS
 ////////////////////////////////////////////////////////////////////////////////
 
-tdListPanel::tdListPanel(listval* list, float width, float btnheight, float btndepth, float textsize, int actioncode, bool leftjust)
+tdListPanel::tdListPanel(listval* list, float width, float btnheight, float btndepth, float textsize, int returnMenu, bool leftjust)
 {
 	this->center = arVector3(0,0,0);
 	this->panew = width;
@@ -575,7 +712,7 @@ tdListPanel::tdListPanel(listval* list, float width, float btnheight, float btnd
 	this->btnheight = btnheight;
 	this->btndepth = btndepth;
 	this->textsize = textsize;
-	this->actioncode = actioncode;
+	this->returnMenu = returnMenu;
 	this->leftjust = leftjust;
 }
 
@@ -620,7 +757,7 @@ void tdListPanel::open()
 		int size = list->items.size();
 		for(int i = 0; i < size; i++)
 		{
-			add(new tdButton(0,((size-1.0)/2-i)*btnheight,panew,btnheight-BTNGAP,btndepth,actioncode,list->items[i],textsize,leftjust));
+			add(new tdButton(0,((size-1.0)/2-i)*btnheight,panew,btnheight-BTNGAP,btndepth,TD_A_LISTBUTTON,list->items[i],textsize,leftjust));
 		}
 		paneh = btnheight * (size + 1);
 	}
@@ -665,6 +802,12 @@ arVector3 tdListPanel::handlePointer(arVector3 start, arVector3 unit)
 	return arVector3(0,0,9001);
 }
 
+void tdListPanel::respond(tdMenuController* ct, int menu, int panel, int object)
+{
+	list->selected = object;
+	ct->swap(returnMenu);
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //TDMENU METHODS
 ////////////////////////////////////////////////////////////////////////////////
@@ -682,7 +825,7 @@ void tdMenu::addPanel(tdPanel* p)
 
 void tdMenu::addWandPanel(tdWandPanel* p)
 {
-	//TODO
+	wandPanels.push_back(p);
 }
 
 void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
@@ -753,7 +896,7 @@ void tdMenu::draw(arMatrix4 menualign, arMatrix4 wandalign)
 	glMultMatrixf(wandalign.v);
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i]->draw();
+		wandPanels[i]->draw();
 	}
 	glPopMatrix();
 }
@@ -766,7 +909,7 @@ void tdMenu::update(double time)
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i]->update(time);
+		wandPanels[i]->update(time);
 	}
 }
 
@@ -778,7 +921,7 @@ void tdMenu::open()
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i]->open();
+		wandPanels[i]->open();
 	}
 }
 
@@ -790,7 +933,7 @@ void tdMenu::close()
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//wandPanels[i]->close();
+		wandPanels[i]->close();
 	}
 }
 
@@ -802,7 +945,7 @@ bool tdMenu::isActive()
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//if(wandPanels[i]->isActive()) return true;
+		if(wandPanels[i]->isActive()) return true;
 	}
 	return false;
 }
@@ -815,9 +958,9 @@ bool tdMenu::isOpen()
 	}
 	for(int i = 0; i < wandPanels.size(); i++)
 	{
-		//if(!wandPanels[i]->isOpen()) return false;
+		if(!wandPanels[i]->isOpen()) return false;
 	}
-	return false;
+	return true;
 }
 
 arVector3 tdMenu::handlePointer(arVector3 start, arVector3 unit)
@@ -842,6 +985,9 @@ void tdMenu::handleEvents(tdMenuController* ct, int menu)
 	for(int i = 0; i < panels.size(); i++)
 		if(panels[i]->isOpen())
 			panels[i]->handleEvents(ct, menu, i);
+	for(int i = 0; i < wandPanels.size(); i++)
+		if(wandPanels[i]->isOpen())
+			wandPanels[i]->handleEvents(ct, menu);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
