@@ -2,12 +2,8 @@
 #define TDMENU_H_
 
 #include "arInteractableThing.h"
+#include "tdcodes.h"
 #include "tdevents.h"
-
-#define MENU_SPEED 0.03		//the speed at which menu animations run
-#define PANEL_THICKNESS 0.02	//how thick each panel is (and how big the pellet is during open/close)
-#define TEXT_COMPRESSION 1.5	//how text is "squished" on the x-axis
-#define BTNGAP 0.01	//the gaps between buttons
 
 struct slidval
 {
@@ -107,6 +103,7 @@ class tdPanel
 {
 public:
 	tdPanel(arVector3 center = arVector3(0,0,0), float width = 0, float height = 0);
+	tdObject* getObject(int i) { return objects[i]; }
 	virtual void tilt(arMatrix4 matrix);	//rotates the panel after it is positioned
 	virtual void add(tdObject* o);	//adds an object
 	virtual void draw();
@@ -117,6 +114,7 @@ public:
 	virtual bool isOpen();	//checks if panel is in open state
 	virtual arVector3 handlePointer(arVector3 start, arVector3 unit);
 	virtual void handleEvents(tdMenuController* ct, int menu, int panel);
+	virtual void respond(tdMenuController* ct, int menu, int panel, int object) {}	//some menus respond to actions by their objects
 protected:
 	arMatrix4 cmat;	//used to position the panel
 	arMatrix4 tmat;	//used to tilt the panel
@@ -129,34 +127,62 @@ protected:
 	int phase;		//used for animation, tells what phase of movement the menu is in
 };
 
-//A panel that follows the wand
+//A "panel" that follows the wand, contains icons and possibly other things
 class tdWandPanel
 {
 public:
+	tdWandPanel();
+	virtual void add(tdObject* o);	//adds an object
+	virtual void genIcon(int button, int code, int icon);	//generates and adds icon to panel
+	virtual void draw();
+	virtual void update(double time);
+	virtual void open();
+	virtual void close();
+	virtual bool isActive();
+	virtual bool isOpen();
+	virtual void handleEvents(tdMenuController* ct, int menu);
 protected:
+	vector<tdObject*> objects;
+	float panew;	//the maximum width of the panel(controller width)
+	float cwidth;	//current width of panel
+	int phase;
 };
 
 //The button icons displayed above the wand
 class tdIcon : public tdObject
 {
 public:
-private:
+	tdIcon(int button, float x, float y, float z, float width, float depth, int code, int icon);
+	virtual void draw();
+	virtual void update(double time);
+	virtual void handleEvents(tdMenuController* ct, int menu, int panel, int object);
+	virtual void change(int code, float value = 0, string msg = "");
+protected:
+	int button;
+	float x;
+	float y;
+	float z;
+	float width;
+	float depth;
+	int code;
+	int icon;
 };
 
 //A list of text items
 class tdListPanel : public tdPanel
 {
 public:
-	tdListPanel(listval* list = new listval(), float width = 1, float btnheight = 1, float btndepth = 1, float textsize = 1, int actioncode = 0, bool leftjust = false);
+	tdListPanel(listval* list = new listval(), float width = 1, float btnheight = 1, float btndepth = 1, float textsize = 1, int returnMenu = 0, bool leftjust = false);
 	virtual void draw();
 	virtual void open();
 	virtual arVector3 handlePointer(arVector3 start, arVector3 unit);
+	virtual void respond(tdMenuController* ct, int menu, int panel, int object);
 protected:
 	listval* list;
 	float btnheight;
 	float btndepth;
 	float textsize;
-	int actioncode;
+	int returnMenu;
 	bool leftjust;
 };
 
@@ -165,6 +191,7 @@ class tdMenu
 {
 public:
 	tdMenu();
+	tdPanel* getPanel(int i) { return panels[i]; }
 	virtual void addPanel(tdPanel* p);
 	virtual void addWandPanel(tdWandPanel* p);
 	virtual void draw(arMatrix4 menualign, arMatrix4 wandalign);

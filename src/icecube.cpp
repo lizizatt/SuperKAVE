@@ -31,6 +31,8 @@ const float IceCubeFramework::FEET_TO_LOCAL_UNITS = 1.f;
 const float IceCubeFramework::nearClipDistance = .1f;
 const float IceCubeFramework::farClipDistance = 10000.f;
 
+float avgX, avgY, avgZ;
+
 int startingEventIndex = 0;
 
   
@@ -42,6 +44,10 @@ const char * IceCubeFramework::eventFiles[IceCubeFramework::NUM_EVENT_FILES] = {
 																				"..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt" };
 
 const string IceCubeFramework::geometryFile = string("..\\..\\src\\neutrinos\\data\\icecube\\geometry\\Icecube_Geometry_Data.txt");
+
+arOBJRenderer myObj;
+
+arMatrix4 userPosition;
 
 /////////////////////////////////////Sphere drawing algorithm////////////////////////////////////////////////
 
@@ -123,7 +129,7 @@ void RodEffectorIce::draw() const {
 IceCubeFramework::IceCubeFramework() :
   arMasterSlaveFramework(),
     fDownScale(1.f), speedAdjuster(0.f), timeSpan(999999), expansionTime(0), 
-	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_fileIndex(0), spin(0)
+	largestCharge(0), smallestCharge(999999), chargeSpan(0), m_shaderProgram(-1), m_offscreenFramebuffer(0), m_fileIndex(0), spin(0)
 {
 	  arMasterSlaveFramework().setUnitConversion(FEET_TO_LOCAL_UNITS);
 	  arTexture().readJPEG("", "", "", -1, true);
@@ -155,16 +161,22 @@ void IceCubeFramework::drawAxis(void)
 
 void IceCubeFramework::drawEvents(void)
 {
-	arMatrix4 userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
+	userPosition = ar_getNavMatrix();  //userPosition[0] is the rotation of the user
 	//cout << "userPosition (x,y,z) = (" << userPosition[12] << ", " << userPosition[14] << ", " << userPosition[13] << ")" << endl; //12 (initial x direction), 13 (vertical), 14 (initial z direction) to get user's position
   //fw->getMatrix(0); //12 (some 2D movement), 13 (vertical), 14 to get user's position
 	//fw->getMatrix(0);
 	//cout << "uP[0] = " << uP[0] << endl;
 
+	
 
 	//drawsphere(1, 1.0f);
 
 	float scaleDownEventSphere = fDownScale/10;
+
+	//Draws obj model
+	glColor3f(0.2f, 0.2f, 1.0f);
+	//myObj.draw();
+
 
 	int numDrawn = 0;
 	
@@ -177,6 +189,15 @@ void IceCubeFramework::drawEvents(void)
 	float sphereX, sphereY, sphereZ;
 	float diffX, diffY, diffZ;
 
+	//cout << userPosition[13] << endl;	
+
+	/*
+	cout << "userPosition matrix = (" << userPosition[0]  << ", " << userPosition[1] << ", " << userPosition[2] << ", " << userPosition[3] << ", " << endl;
+	cout << userPosition[4] << ", " << userPosition[5]  << ", " << userPosition[6] << ", " << userPosition[7] << ", " << endl;
+	cout << userPosition[8] << ", " << userPosition[9] << ", " << userPosition[10]  << ", " << userPosition[11] << ", " << endl;
+	cout << userPosition[12] << ", " << userPosition[13] << ", " << userPosition[14] <<  ", " << userPosition[15] << ") " << endl;
+	*/
+
 	//DisplaySphere(5, false, 0);
 	//Draws the event data
 	for(unsigned int i=startingEventIndex; i < event2Data.icecubeData.xCoord.size(); i++){
@@ -184,7 +205,7 @@ void IceCubeFramework::drawEvents(void)
 			//Transparency changing with amount of time event has been drawn
 			//glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, event2Data.icecubeData.time[i]/ct.vars.time->val);
 			chargeRadiusFactor =  log(1000*event2Data.icecubeData.charge[i] + 7);  //log(143*(event2Data.icecubeData.charge[i] - smallestCharge)/chargeSpan + 7);
-			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/50) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
+			glColor4f(eventColors.at(i).red, eventColors.at(i).green, eventColors.at(i).blue, sin((spin - event2Data.icecubeData.time[i])/100) + 1.6);    //a = 0.1 + (largestCharge - event2Data.icecubeData.charge[i])*(largestCharge - event2Data.icecubeData.charge[i])/(chargeSpan*chargeSpan));
 			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
 			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
 			//cout << "diffZ = " << diffZ << endl;
@@ -271,6 +292,8 @@ void IceCubeFramework::findExtremeEventTimes(){
 	ct.vars.time->end += expansionTime;
 	if(timeSpan < 0.1){timeSpan = 1;}
 	ct.vars.time->val = ct.vars.time->start;
+
+	float sumX = 0, sumY = 0, sumZ = 0;
 	
 	color red;
 	for(unsigned int i=0; i < event2Data.icecubeData.xCoord.size(); i++){
@@ -291,7 +314,33 @@ void IceCubeFramework::findExtremeEventTimes(){
 		}
 		eventColors.push_back(red);
 
+		sumX += event2Data.icecubeData.xCoord[i];
+		sumY += event2Data.icecubeData.yCoord[i];
+		sumZ += event2Data.icecubeData.zCoord[i];
+
 	}
+
+	avgX = sumX/event2Data.icecubeData.xCoord.size();
+	avgY = sumY/event2Data.icecubeData.xCoord.size();
+	avgZ = sumZ/event2Data.icecubeData.xCoord.size();
+
+	cout << "avgX = " << avgX << "; avgY = " << avgY << "; avgZ = " << avgZ << "; " << endl;
+}
+
+void IceCubeFramework::attachOffscreenTexture(GLuint textureId)
+{
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, textureId, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, m_offscreenFramebuffer);
+}
+
+void IceCubeFramework::detachOffscreenTexture(void)
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void IceCubeFramework::makeOffscreenFramebuffer(void)
+{
+	glGenFramebuffers(1, &m_offscreenFramebuffer);
 }
 
 // onStart callback method (called in arMasterSlaveFramework::start()
@@ -389,6 +438,16 @@ void IceCubeFramework::onWindowStartGL( arGUIWindowInfo* ) {
   findExtremeEventTimes();
   smallestCharge = 0.01;
   largestCharge = 275.0f;
+
+  //Reads in obj model
+  if (!myObj.readOBJ( "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\charizard.obj",
+                    "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\.",
+                    "..\\..\\..\\..\\Users\\csuplinski\\Downloads\\Charizard\\." )){
+						cout << "obj failed to load" << endl;
+  }
+  
+  
+  
 
   GLfloat fogDensity = 0; //0.001 * fDownScale; 
 	GLfloat fogColor[4] = {0.0, 0.0, 0.1, 1.0}; 
@@ -601,10 +660,13 @@ void IceCubeFramework::drawTimeline(void)
    glMatrixMode(GL_MODELVIEW);
 }
 
-void IceCubeFramework::onDraw( arGraphicsWindow& /*win*/, arViewport& /*vp*/ ) {
+void IceCubeFramework::onDraw( arGraphicsWindow& win, arViewport& vp ) {
   // Load the navigation matrix.
   loadNavMatrix();
   
+  //if we're going to do some offscreen rendering action, need to save what buffer we're eventually going to draw the composited buffer to.
+  GLenum drawBuf = vp.getDrawBuffer();
+
   // Draw stuff.
   glEnable(GL_COLOR_MATERIAL);
   glEnable(GL_LIGHTING);
@@ -685,18 +747,7 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 		if(keyInfo->getKey() == 111){  //o (play backwards)
 			ct.vars.playreverse = !ct.vars.playreverse;
 		}
-		if(keyInfo->getKey() == 108){  //l (speed up playing of event)
-			if(speedAdjuster == -90 || speedAdjuster == 50){
-		speedAdjuster = 0.0f;
-	}
-	else{speedAdjuster = -90;}
-		}
-		if(keyInfo->getKey() == 107){  //k (slow down)
-			if(speedAdjuster == 50 || speedAdjuster == -90){
-			speedAdjuster = 0.0f;
-		}
-		else{speedAdjuster = 50.0f;}
-		}
+		
 		if(keyInfo->getKey() == 113){  //q
 			ct.vars.time->start = 999999;ct.vars.time->end = 0;	
 			//ct.vars.playstatus
@@ -738,6 +789,57 @@ void IceCubeFramework::onKey( arGUIKeyInfo* keyInfo ) {
 			event2Data.getText("..\\..\\src\\neutrinos\\data\\icecube\\eventData\\e7.txt");
 			findExtremeEventTimes();
 			m_fileIndex = 5;
+		}
+		if(keyInfo->getKey() == 36){  //home key
+			/* Place user at (0, 0, 0) */
+			userPosition[12] = 0.0f;
+			userPosition[13] = 0.0f;
+			userPosition[14] = 0.0f;
+			ar_setNavMatrix(userPosition);
+		}
+		if(keyInfo->getKey() == 13){  //enter key
+			/* Place user at (avgX, avgY, avgZ) */
+			/*
+			sphereX=event2Data.icecubeData.xCoord[i]/fDownScale;sphereY=event2Data.icecubeData.yCoord[i]/fDownScale;sphereZ=-event2Data.icecubeData.zCoord[i]/fDownScale;
+			diffX = sphereX - userPosition[12]/3.281;diffY = sphereY - userPosition[14]/3.281;diffZ = 5 - sphereZ - userPosition[13]/3.281;
+			*/
+
+			userPosition[12] = 3.281*avgX/fDownScale;
+			userPosition[13] = 3.281*(avgZ+5)/fDownScale;
+			userPosition[14] = 3.281*avgY/fDownScale;
+			ar_setNavMatrix(userPosition);
+		}
+		if(keyInfo->getKey() == 40){  //down arrow key
+			/* Rotate user about z axis */
+		}
+		if(keyInfo->getKey() == 39){  //right arrow key
+			/* Rotate user about y axis */
+		}
+		if(keyInfo->getKey() == 38){  //up arrow key
+			/* Rotate user about x axis */
+			userPosition[2] += 0.1;
+			userPosition[2] = fmod((float)(userPosition[2]), 3.1415f);
+			userPosition[8] -= 0.1;
+			userPosition[8] = fmod((float)(userPosition[8]), 3.1415f);
+			ar_setNavMatrix(userPosition);
+		}
+		if(keyInfo->getKey() == 108){  //l -- move user in positive z direction
+			
+		}
+		if(keyInfo->getKey() == 107){  //k -- move user in negative x direction
+			
+		}
+		if(keyInfo->getKey() == 105){  //i -- move user in positive x direction
+			
+		}
+		if(keyInfo->getKey() == 106){  //j -- move user in negative z direction
+			
+		}
+		if(keyInfo->getKey() == 117){  //u -- move user in positive y direction
+			
+		}
+		if(keyInfo->getKey() == 110){  //n -- move user in negative y direction
+			
 		}
 		
 

@@ -88,8 +88,8 @@ void DataInput::sortByTime(){
 
 	icecubeData = temp;
 
-	for(int i=0; i<icecubeData.time.size(); i++){
+	/*for(int i=0; i<icecubeData.time.size(); i++){
 		cout << "time[" << i << "] = " << icecubeData.time.at(i) << "; " << endl;
-	}
+	}*/
 
 }

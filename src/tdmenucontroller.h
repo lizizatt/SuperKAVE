@@ -2,10 +2,10 @@
 #define TDMENUCONTROLLER_H_
 
 #include "arInteractableThing.h"
+#include "tdcodes.h"
 #include "tdmenu.h"
 #include <vector>
 #include "arMasterSlaveFramework.h"
-
 
 //This class controls the menu system and its behavior. To alter the menu configuration, change the MenuController constructor and handleEvents functions
 class tdMenuController
@@ -29,7 +29,7 @@ public:
 	void handleEvents(string ext);	//checks for events within the menu and controller (and outside) and updates accordingly
 	arEffector * wand;	//used to track control device
 	int * getNextMenuPtr(void) { return &nextMenu; }
-
+	tdMenu* getMenu(int i) { return menus[i]; }
 private:
 	double lastTime;	//used to calculate time change since last update
 	vector<tdMenu*> menus;	//holds all menus

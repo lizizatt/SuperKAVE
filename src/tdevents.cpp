@@ -1,3 +1,5 @@
+#include "arPrecompiled.h"
+#define SZG_DO_NOT_EXPORT
 #include "tdevents.h"
 #include "tdmenucontroller.h"
 #include "tdmenu.h"
@@ -53,13 +55,6 @@ void tdDoAction(tdMenuController* ct, int menu, int panel, int object, tdObject*
 		else
 			ct->vars.playstatus = 0;
 		break;
-		/*
-	case TD_A_BACKSKIP:
-		ct->vars.time->val -= 100;
-		break;
-	case TD_A_FWDSKIP:
-		ct->vars.time->val += 100;
-		break;*/
 	case TD_A_REWIND:
 		if(ct->vars.playstatus == 0)
 			ct->vars.time->val -= 1000;
@@ -78,6 +73,11 @@ void tdDoAction(tdMenuController* ct, int menu, int panel, int object, tdObject*
 		break;
 	case TD_A_REVERSE:
 		ct->vars.playreverse = !ct->vars.playreverse;
+		break;
+
+		//Special codes:
+	case TD_A_LISTBUTTON:
+		ct->getMenu(menu)->getPanel(panel)->respond(ct,menu,panel,object);
 		break;
 	default:
 		break;
