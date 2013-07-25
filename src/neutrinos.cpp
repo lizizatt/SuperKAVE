@@ -29,6 +29,7 @@
 #include <time.h>
 #endif
 
+
 // The class containing all the relevant information about each dot
 class dot {
 public:
@@ -54,6 +55,7 @@ class dotVector {  //a dotVector is an individual event.
 public:
 	double startTime;
 	double endTime;
+	double minTime, maxTime;
 	double length;
 	vector<double> particleType;  //each particleType as a double, which is encoded as GEANT particle code (http://hepunx.rl.ac.uk/BFROOT/www/Computing/Environment/NewUser/htmlbug/node51.html)
 	vector<string> particleName;  //just for ease of access, if we know what the type is (eg, muon electron pion) we'll write it in here, else we'll just enter "???"
@@ -75,8 +77,23 @@ public:
 	dotVector(){};
 };
 
+class textItem{
+public:
+	arVector3 myColor;
+	string myString;
+	textItem(string ins, arVector3 ins2){
+		myString = ins;
+		myColor = ins2;
+	}
+	textItem(string ins){
+		myString = ins;
+		myColor = arVector3(1,1,1);
+	}
+};
+
 class dataDisplay{ 
 public:
+	bool isVisible;
 	static int beingGrabbed;  //if -1, nothing is being grabbed.
 	static int numberDisplays;
 	int myIndex;  //given on initialization
@@ -84,7 +101,7 @@ public:
 	arMatrix4 myOriginalRotationMatrix;
 	arVector3 myPos;  //location of very center
 	arMatrix4 myRotationMatrix;  //location outward of screen
-	vector<string> contents;  //contents, to be drawn from top to bottom, line by line
+	vector<textItem> contents;  //contents, to be drawn from top to bottom, line by line
 	void drawDataDisplay(arMasterSlaveFramework& fw);
 	dataDisplay::dataDisplay();
 };
@@ -98,11 +115,55 @@ int dataDisplay::beingGrabbed = -1;
 int dataDisplay::numberDisplays = 0;
 
 
+
+class menuItem{  //knows how to draw itself, and what to do if its clicked.
+public:
+	menuItem::menuItem(){
+	}
+	char * content[10];
+	int index;
+	int numLines;
+	int startOffSetX;
+	int startOffSetY;
+	float scale;
+	void drawSelf( bool highlighted);
+	void (*onClick)();
+};
+
+
+
+class menu{
+public:
+	menu * parent;
+	vector<menu> children;
+	vector<menuItem> myItems;  //all of my items, each knowing how to draw itself given an index (center is 0, numbers to sides are offsets)
+	menu::menu(){
+	}
+	void drawSelf(arMasterSlaveFramework& fw);  
+};
+
+
+
 //Global variables
 bool debug = false;  //enables some useful print statements
 //menu variables
+clock_t lastButtonPress;
+double buttonPressThreshold = .1;
+bool b0;
+bool b1;
+bool b2;
+bool b3;
+bool b4;
+bool b5;
+menu currentMenu;
+menu nextMenu;
+menu mainMenu;
+menu optionsMenu;
+menu visMenu;
+menu displaysMenu;
+menu timeMenu;
 bool doHUD = false;  //outdated
-bool doMenu = true;  //whether or not the menu is currently displayed
+bool doMenu = false;  //whether or not the menu is currently displayed
 bool doMainMenu = true; 
 bool doOptionsMenu = false;
 bool doLoadMenu = false;
@@ -161,6 +222,9 @@ arVector3 l_position;
 dot tempDot;                    //dot held between loading new events. This is a one-dot buffer
 bool stored = false;            //Telling us whether a dot is stored in tempDot
 bool colorByCharge = false;      //whether to color by charge or time
+bool doTimePlayback = true;
+double eventBegan = 0;
+double elapsedTime = 0;
 ifstream dataFile;              //data input
 char* filename;
 bool doTimeCompressed = false;
@@ -173,12 +237,12 @@ arVector3 vertexOffset;
 bool doDataDisplay = true;
 vector<dataDisplay> myDataDisplays;
 bool addNewDisplay;
+bool doWristBoundTime = false;
+double wristRotation = 0;  //wrist rotation, in degrees
+double menuDist = 3;
+arVector3 menuPosition; //offset from rotation matrix
+arMatrix4 menuRotationMatrix;
 //string bufferLine;  
-
-//PRE_PICKED COLOR ARRAYS
-int red_values [] =		{132	,74,	22,		4,		4,		6,		40,		115,	193,	249,	253,	249,	219,	219,	219,	219};  //r
-int green_values [] =	{4		,12,	4,		124,	175,	184,	183,	114,	193,	249,	213,	191,	143,	129,	102,	33};    //g
-int blue_values [] =	{186	,178,	186,	186,	186,	86,		7,		0,		6,		21,		80,		1,		12,		12,		12,		12};   //b
 
 
 
@@ -253,7 +317,6 @@ double abs(double in){
 #endif
 
 void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates position (if necessary) and draws
-
 	//figure out if we're touching the display
 	arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
 	double navX = myPosMatrix[12];
@@ -275,6 +338,10 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	double handDirY = myHandMatrix[9];
 	double handDirZ = myHandMatrix[10];
 	
+	double handRightX = myHandMatrix[0];
+	double handRightY = myHandMatrix[1];
+	double handRightZ = myHandMatrix[2];
+	
 	double handUpX = myHandMatrix[4];
 	double handUpY = myHandMatrix[5];
 	double handUpZ = myHandMatrix[6];
@@ -286,8 +353,11 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	//figure out which item we're grabbing ... go for closest one
 	arVector3 handPos = arVector3(finalX, finalY, finalZ);
 	bool isTouching = false;
-	bool isInRange = magnitude(subtract(handPos, myPos)) < 2.5;
-	if(isInRange && (beingGrabbed == -1 || beingGrabbed == myIndex)){  //are we in range and are we not already grabbing one?  grab it
+	bool isInRange = true;
+	arVector3 myDir(myRotationMatrix[8], myRotationMatrix[9], myRotationMatrix[10]);
+	isInRange = isInRange && dotProduct(subtract(handPos, myPos + .5*myDir), subtract(handPos, myPos - .5*myDir)) < 1;
+	
+	if( !isVisible || (isInRange && (beingGrabbed == -1 || beingGrabbed == myIndex))){  //are we in range and are we not already grabbing one?  grab it
 		isTouching = true;
 		myHandMatrix[12] = -2*handDirX;
 		myHandMatrix[13] = -2*handDirY;
@@ -309,6 +379,11 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 			myRotationMatrix = myHandMatrix;
 		} else { //not grabbing anymore
 			beingGrabbed = -1;
+		}	
+		if(!isVisible){  //if invisible, parent onto spawn location and then stop before we render it
+			myPos = add(handPos, 5*myIndex*arVector3(handRightX, handRightY, handRightZ));
+			myRotationMatrix = myHandMatrix;
+			return;
 		}
 	} else{
 		isTouching = false;
@@ -318,23 +393,6 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	
 		
 		glTranslatef(myPos[0], myPos[1], myPos[2]);
-		
-		/*
-		arVector3 myRotationAxis = crossProduct(myDir, arVector3(0,0,-1));
-		float myRotationAngle = acos(dotProduct(myDir, arVector3(0,0,-1)));	
-		glRotatef(myRotationAngle*180.0/PI, myRotationAxis[0], myRotationAxis[1], myRotationAxis[2]);
-		
-		
-		
-		//now rotate to get up aligned
-		myRotationAxis = arVector3(0,0,-1);
-		cout << myDir[0] << " " << myDir[1] << " " << myDir[2] << "\n";
-		myRotationAngle = acos(myDir[1]);
-		if(myDir[1] < .5 || myDir[1] > -.5){
-			myRotationAngle = asin(myDir[0]);
-		}
-		glRotatef(myRotationAngle*180.0/PI, myRotationAxis[0], myRotationAxis[1], myRotationAxis[2]);
-		*/
 		
 		glRotatef(90,-1,0,0);
 		glMultMatrixf(myRotationMatrix.v);
@@ -369,7 +427,8 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 		//write text, line by line
 		glLineWidth(3.0);
 		for(int i = 0; i < contents.size(); i++){
-			string myString = contents[i];
+			string myString = contents[i].myString;
+			glColor3f(contents[i].myColor[0], contents[i].myColor[1], contents[i].myColor[2]);
 			glPushMatrix();
 			glScalef(.0004,.0004,.0004);  
 			for(int j = 0; j < myString.length(); j++){
@@ -384,6 +443,9 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	glPopMatrix();
 }
 
+int red_values [] =		{132	,74,	22,		4,		4,		6,		40,		115,	193,	249,	253,	249,	219,	219,	219,	219};  //r
+int green_values [] =	{4		,12,	4,		124,	175,	184,	183,	114,	193,	249,	213,	191,	143,	129,	102,	33};    //g
+int blue_values [] =	{186	,178,	186,	186,	186,	86,		7,		0,		6,		21,		80,		1,		12,		12,		12,		12};   //b
 
 //returns color of dots based on whether charge or time are the metrics for coloring.
 arVector3 dotColor(dot d) {
@@ -413,40 +475,6 @@ arVector3 dotColor(dot d) {
 		green = green_values[section] / 255.0;
 	} else {
 		float value = d.time;
-		/*
-		if(value > 1125) section = 16;
-		else if (value > 1110) section = 14;
-		else if (value > 1095) section = 13;
-		else if (value > 1080) section = 12;
-		else if (value > 1065) section = 11;
-		else if (value > 1050) section = 10;
-		else if (value > 1035) section = 9;
-		else if (value > 1020) section = 8;
-		else if (value > 1005) section = 7;
-		else if (value > 990) section = 6;
-		else if (value > 975) section = 5;
-		else if (value > 960) section = 4;
-		else if (value > 945) section = 3;
-		else if (value > 930) section = 2;
-		else if (value > 915) section = 1;
-		*/
-		/*
-		if(value < 1001) section = 16;
-		else if (value < 1012) section = 14;
-		else if (value < 1023) section = 13;
-		else if (value < 1034) section = 12;
-		else if (value < 1045) section = 11;
-		else if (value < 1056) section = 10;
-		else if (value < 1067) section = 9;
-		else if (value < 1078) section = 8;
-		else if (value < 1089) section = 7;
-		else if (value < 1100) section = 6;
-		else if (value < 1111) section = 5;
-		else if (value < 1122) section = 4;
-		else if (value < 1133) section = 3;
-		else if (value < 1144) section = 2;
-		else if (value < 1155) section = 1;
-		*/
 		if(value < 893) section = 15;
 		else if (value < 909) section = 14;
 		else if (value < 925) section = 13;
@@ -473,6 +501,18 @@ arVector3 dotColor(dot d) {
 
 //logic for drawing a circle on the edge of the cylinder.
 void drawCircle(dot d, bool doOuterCircle) {  //outerCircle is for outer detector, adds the square around the dot
+	//if(d.time > elapsedTime*100 && doTimePlayback){
+	//	return;
+	//}
+	
+	if(doWristBoundTime){  //use wrist rotation value to figure out whether or not to draw this dot
+		//-70 = 0, 70 = maxTime
+		double wristRotationLocal = (wristRotation + 90) / 180.0;  //now scaled from 0 to 1
+		double cTime = (d.time-currentDots.minTime) / currentDots.maxTime;  //now scaled from 0-1
+		if(cTime > wristRotationLocal)
+			return;
+	}
+	
 	bool top = (d.angle[0]==0 && d.angle[1]==0) ? true : false;
 	float cx = d.cx;
 	float cy = d.cy;
@@ -498,13 +538,6 @@ void drawCircle(dot d, bool doOuterCircle) {  //outerCircle is for outer detecto
 	}
 	if(top)
 	{
-		/*    for(j = 0.0; j < 2 * PI; j += PI / 180.0 * 22.5) {
-		newx = cx + DOTRAD * sin(j);
-		newy = cy + DOTRAD * cos(j);
-		glVertex3f(cx,cy,cz);
-		glVertex3f(newx, newy, cz);
-		}    
-		*/
 		glPushMatrix();
 		glTranslatef(cx,cy,cz);
 		if(doOuterCircle){
@@ -514,29 +547,21 @@ void drawCircle(dot d, bool doOuterCircle) {  //outerCircle is for outer detecto
 			glVertex3f(-.6f,-.6f,0);
 			glVertex3f(-.6+.2*radiusScaleFactor,-.6+.2*radiusScaleFactor,0);
 			glVertex3f(-.6+.2*radiusScaleFactor,.6-.2*radiusScaleFactor,0);
-			//glVertex3f(-.4f,-.4f,0);
-			//glVertex3f(-.4f,.4f,0);
 
 			glVertex3f(-.6f,-.6f,0);
 			glVertex3f(.6f,-.6f,0);
 			glVertex3f(.6-.2*radiusScaleFactor,-.6+.2*radiusScaleFactor,0);
 			glVertex3f(-.6+.2*radiusScaleFactor,-.6+.2*radiusScaleFactor,0);
-			//glVertex3f(.4f,-.4f,0);
-			//glVertex3f(-.4f,-.4f,0);
 
 			glVertex3f(.6f,-.6f,0);
 			glVertex3f(.6f,.6f,0);
 			glVertex3f(.6-.2*radiusScaleFactor,.6-.2*radiusScaleFactor,0);
 			glVertex3f(.6-.2*radiusScaleFactor,-.6+.2*radiusScaleFactor,0);
-			//glVertex3f(.4f,.4f,0);
-			//glVertex3f(.4f,-.4f,0);
 
 			glVertex3f(.6f,.6f,0);
 			glVertex3f(-.6f,.6f,0);
 			glVertex3f(-.6+.2*radiusScaleFactor,.6-.2*radiusScaleFactor,0);
 			glVertex3f(.6-.2*radiusScaleFactor,.6-.2*radiusScaleFactor,0);
-			//glVertex3f(-.4f,.4f,0);
-			//glVertex3f(.4f,.4f,0);
 			glEnd();
 		}
 		gluDisk(quadObj,0,radius,subdivisions,1);
@@ -544,15 +569,6 @@ void drawCircle(dot d, bool doOuterCircle) {  //outerCircle is for outer detecto
 	}
 	else {
 		float theta = atan2(cy,cx);
-		/*
-		for(j = 0.0; j < 2 * PI; j += PI / 180.0 * 22.5) {
-		newx = cx + sin(theta) * DOTRAD * cos(j);
-		newy = cy - cos(theta) * DOTRAD * cos(j);
-		newz = cz + DOTRAD * sin(j);
-		glVertex3f(cx,cy,cz);
-		glVertex3f(newx, newy, newz);
-		}
-		*/
 		glPushMatrix();
 		glTranslatef(cx,cy,cz);
 		glRotatef(90,0,1,0);
@@ -906,6 +922,21 @@ void drawScene(arMasterSlaveFramework& framework)
 	//   glutSwapBuffers(); //this is not necessary in syzygy.  This crashes things in syzygy.  -jaz
 }
 
+//takes a vector of dots and organizes it by time, lowest first and highest last
+vector<dot> organizeByTime(vector<dot> dots){
+	for(int i = 0; i < dots.size(); i++){
+		int minSoFar = i;
+		for(int j = i+1; j < dots.size(); j++){
+			if(dots[j].time < dots[minSoFar].time){
+				minSoFar = j;
+			}
+		}
+		dot holder = dots[i];
+		dots[i] = dots[minSoFar];
+		dots[minSoFar] = holder;
+	}
+	return dots;
+}
 
 /*  logic to fill a dotVector.  Reads from the file and populates a dotVector until it hits a NEXTEVENT line, where it will do the physics calculation for each final particle to determine cone angle, and then stores the dot vector and exits */
 void loadNextEvent(void) {
@@ -917,6 +948,8 @@ void loadNextEvent(void) {
 	float time;
 	float vx, vy,vz;
 	vector<float> particleType, dx, dy, dz, momentum, id;
+	
+	double maxTime, minTime;  //max and min times set at 1 standard deviation
 
 	//float particleType, dx, dy, dz, momentum, id;
 	float particleType2, dx2, dy2, dz2, momentum2, id2;
@@ -1153,10 +1186,50 @@ void readInFile(arMasterSlaveFramework& fw){
 		currentDots.length = currentDots.endTime - currentDots.startTime;
 		newDotVectors.push_back(currentDots);
 		dotVectors = newDotVectors;
+		
+		//and now that dotVectors contains compressed items, set the "time" value for each dot to be its current value plus its events start time
+		for(int i = 0; i < dotVectors.size(); i++){
+			for(int j = 0; j < dotVectors[i].dots.size(); j++){
+				dotVectors[i].dots[j].time += dotVectors[i].startTime;
+			}
+			for(int j = 0; j < dotVectors[i].outerDots.size(); j++){
+				dotVectors[i].outerDots[j].time += dotVectors[i].startTime;
+			}
+		}
 	}
 
 	index = 0;
 
+	//order the particles in their vectors by time
+	for(int i = 0; i < dotVectors.size(); i++){
+		dotVectors[i].dots = organizeByTime(dotVectors[i].dots);
+		dotVectors[i].outerDots = organizeByTime(dotVectors[i].outerDots);
+	}
+	
+	//find the standard deviations, set maxTime and minTime
+	//calculate mean
+	for(int i = 0; i < dotVectors.size(); i++){
+		float mean = 0;
+		for(int j = 0; j < dotVectors[i].dots.size(); j++){
+			mean += dotVectors[i].dots[j].time;
+		}
+		mean = mean / (double) dotVectors[i].dots.size();
+		
+		vector<float> deviances;
+		for(int j = 0; j < dotVectors[i].dots.size(); j++){
+			deviances.push_back( dotVectors[i].dots[j].time - mean);
+			deviances[j] = deviances[j]*deviances[j];
+		}	
+		float sumOfDeviances = 0;
+		for(int j = 0; j < deviances.size(); j++){
+			sumOfDeviances += deviances[i];
+		}
+		float stdSquared = sumOfDeviances / (double)(dotVectors[i].dots.size());
+		float std = sqrt(stdSquared);
+		
+		dotVectors[i].minTime = mean - 1 * std;
+		dotVectors[i].maxTime = mean + 1 * std;
+	}
 
 	//now, we turn on display for first listed final state particle of each event
 	//we do it here and not in Loadevent because I was getting a weird bug trying to do it there and got lazy
@@ -1190,7 +1263,7 @@ bool updateMenuIndexState(int i){
 }
 
 //function to draw a display.  Helper function for the GUI.  This will draw one display  with given parameters.
-void drawDisplay(int index, bool highlighted, char * content[10],int numLines, int startOffSetX, int startOffSetY, float scale){
+void menuItem::drawSelf(bool highlighted){
 	glPushMatrix();  //do one display ... test process
 	//for rotations, let's say we're 2 units away from the hand.
 	glColor3f(.75,.75,.75);
@@ -1245,144 +1318,121 @@ void drawDisplay(int index, bool highlighted, char * content[10],int numLines, i
 	glPopMatrix();
 }
 
-void doInterface(arMasterSlaveFramework& framework){\
-	// framework.setEyeSpacing( 0.0f );
-	/*
-	if(doHUD){ 
-		//if we're doing the HUD (which is now disabled and not accessible from in program), we'll do the matrix pushing here.
-		glMultMatrixf(ar_getNavMatrix().v);
-		glMultMatrixf(framework.getMatrix(0).v);
+void menu::drawSelf(arMasterSlaveFramework& fw){
+	//figure out which one is selected
+	int selected = menuIndex;  //should directly index to myItems.size()
+	if(fw.getOnButton(5) && (clock() / (double) CLOCKS_PER_SEC - lastButtonPress / (double) CLOCKS_PER_SEC) > buttonPressThreshold){
+		bool found = false;
+		for(int i = 0; i < myItems.size(); i++){
+			if(myItems[i].index == selected){
+				selected = i;
+				found = true;
+				break;
+			}
+		}
+		if(found){
+			nextMenu = children[selected];
+			(*myItems[selected].onClick)();
+		} else { //we aren't selecting anything at the moment
+			nextMenu = mainMenu;
+		}
 	}
-	*/
+	glPushMatrix();
+		glMultMatrixf(menuRotationMatrix.v);
+		glTranslatef(menuPosition[0], menuPosition[1], menuPosition[2]);	
+		for(int i = 0; i < myItems.size(); i++){
+			myItems[i].drawSelf(selected == myItems[i].index);
+		}
+	glPopMatrix();
 	
-	bool state = false;  //this is used to determine where the green box goes
-	char * content[10];  //no more than 10 items per line.  Gets illegible if we try to get too much smaller
-	int indexVal;
-	if(doOptionsMenu){  //hardcoded menus.
-		state = updateMenuIndexState(-2);  //each of these updateMenuIndexState lines is checking if this is currently the selected item.  If it is, this becomes true, and passes in to the drawDisplay function which adds a green box to it.  Honestly there's no reason I couldn't have just done this from within drawDisplay entirely, but it isn't computationally expensive anyhow.  TODO, make that smarter.
-		content[0] = "Main";
-		content[1] = "Menu";
-		drawDisplay(-2,state, content ,2,0,50, 2);
+}
 
-		state = updateMenuIndexState(-1);
-		content[0] = "Toggle";
-		content[1] = "Outer";
-		content[2] = "Detector";
-		drawDisplay(-1,state, content ,3,-35,150, 1.5);
-
-		state = updateMenuIndexState(0);
-		content[0] = " Toggle";
-		content[1] = "Cherenkov";
-		content[2] = "Radiation";
-		drawDisplay(0,state, content ,3,-140,150, 1.5);
-
-		state = updateMenuIndexState(1);
-		content[0] = "  Q/T";
-		content[1] = " Toggle";
-		drawDisplay(1,state, content ,2,-300,100, 2);
-
-		state = updateMenuIndexState(2);
-		content[0] = "Scale";
-		content[1] = "Radius";
-		content[2] = "By Q";
-		drawDisplay(2,state, content ,3,-75,200, 1.8);
+void toggleColorFunc(){
+	myDataDisplays.pop_back();
+	if(!doScaleByCharge){
+		dataDisplay colorKeyCharge;
+		colorKeyCharge.contents.push_back(textItem("Color Key Charge:", arVector3(1,1,1)));
+		float values []= {26.7, 23.3, 20.2, 17.3, 14.7, 12.2, 10, 8, 6.2, 4.7, 3.3, 2.2, 1.3, .7, .2};
+		int sections []= {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+		for(int i = 0; i < sizeof(values)/4; i++){
+			int section = sections[i];
+			char dest[50];
+			sprintf(dest, "%f MeV", values[i]);
+			colorKeyCharge.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
+		}
+		colorKeyCharge.myPos = arVector3(0,0,0);
+		colorKeyCharge.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+		colorKeyCharge.isVisible = myDataDisplays[0].isVisible;
+		myDataDisplays.push_back(colorKeyCharge);
+	} else{
+		dataDisplay colorKeyTime;
+		colorKeyTime.contents.push_back(textItem("Color Key Time:", arVector3(1,1,1)));
+		float values2 [] = {893, 909, 925, 941, 957, 973, 989, 1005, 1021, 1037, 1053, 1069, 1085, 1101, 1117};
+		int sections2 [] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+		for(int i = 0; i < sizeof(values2)/4; i++){
+		int section = sections2[i];
+		char dest[50];
+		sprintf(dest, "%f ns", values2[i]);
+		colorKeyTime.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
+		}
+		colorKeyTime.myPos = arVector3(0,0,0);
+		colorKeyTime.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+		colorKeyTime.isVisible = myDataDisplays[0].isVisible;
+		myDataDisplays.push_back(colorKeyTime);
 	}
-	if(doCherenkovConeMenu){
-		state = updateMenuIndexState(-2);
-		if(cherenkovConeMenuIndex == 0){
-			content[0] = "Main";
-			content[1] = "Menu";
-			drawDisplay(-2,state, content ,2,0,50, 2);
-		}
-		else{
-			content[0] = "Back";
-			drawDisplay(-2,state,content,1,0,-50,2);
-		}
+	//switch global value
+	colorByCharge = !colorByCharge;
+}
 
-		int numHold = 3;  //this is 3.  If we don't have anything to write on a display, set it to 0.  We know all the other ones after that will also be 0
-		//special case, if there are 4 (or less) particles, we don't need a "more" button
-		if(currentDots.particleType.size() <= 4){
-			for(int l = -1; l<=2;l++){
-				state = updateMenuIndexState(l);
-				indexVal = cherenkovConeMenuIndex*3+(l+1);
-				if(indexVal >= currentDots.particleType.size()){
-					numHold = 0;
-				}
-				content[0] = (char*)currentDots.particleName[indexVal].c_str();
-				char dest[50];
-				sprintf(dest, "%i MeV", (int)currentDots.energy[indexVal]);
-				content[1] = dest;
-				if(currentDots.doDisplay[indexVal]){
-					content[2] = "On";
-				}else{
-					content[2] = "Off";
-				}
-				drawDisplay(l,state, content ,numHold,-100,100, 1.2);
-			}
-		}
-		else{
-			for(int l = -1; l<=1;l++){
-				state = updateMenuIndexState(l);
-				indexVal = cherenkovConeMenuIndex*3+(l+1);
-				if(indexVal >= currentDots.particleType.size()){
-					numHold = 0;
-				}
-				content[0] = (char*)currentDots.particleName[indexVal].c_str();
-				char dest[50];
-				sprintf(dest, "~%i MeV", (int)currentDots.energy[indexVal]);
-				content[1] = dest;
-				if(currentDots.doDisplay[indexVal]){
-					content[2] = "On";
-				}else{
-					content[2] = "Off";
-				}
-				drawDisplay(l,state, content ,numHold,-100,100, 1.1);
-			}
-			/*
-			state = updateMenuIndexState(0);
-			drawDisplay(0,state, content ,0,0,0, 1);
+void toggleScaleFunc(){
+	doScaleByCharge = !doScaleByCharge;
+}
 
-			state = updateMenuIndexState(1);
-			drawDisplay(1,state, content ,0,0,0, 1);
-			*/
+void toggleODFunc(){
+	doCylinderDivider = !doCylinderDivider;
+}
 
-			state = updateMenuIndexState(2);
-			content[0] = "Next";
-			if(numHold == 3){
-				drawDisplay(2,state, content ,1,0,0, 2);
-			}else{
-				drawDisplay(2,state,content,0,0,0,2);
-			}
-		}
+void eventNumberDecrement(){
+	if(index != 0){
+		index--;
 	}
-	if(doMainMenu){  //main menu
-		state = updateMenuIndexState(-2);
-		content[0] = " -";
-		content[1] = "Event";
-		content[2] = " -";
-		drawDisplay(-2,state,content,3,0,200,2);
+}
 
-		state = updateMenuIndexState(-1);
-		content[0] = "Options";
-		drawDisplay(-1,state,content,1,-125,-75,2);
+void goToChild(){
+	currentMenu = nextMenu;
+}
 
-		state = updateMenuIndexState(0);
-		content[0] = "Exit";
-		content[1] = "Menu";
-		drawDisplay(0,state, content ,2,0,100,2);
+void toggleCherenkovLines(){
+	doCherenkovCone = !doCherenkovCone;
+}
 
-		state = updateMenuIndexState(1);
-		content[0] = "Cherenkov";
-		content[1] = " Cones";
-		drawDisplay(1,state,content,2,-130,50, 1.5);
-
-		state = updateMenuIndexState(2);
-		content[0] = " +";
-		content[1] = "Event";
-		content[2] = " +";
-		drawDisplay(2,state,content,3,0,200, 2);
+void eventNumberIncrement(){
+	if(index != dotVectors.size() - 1){
+		index++;
 	}
-	glLineWidth(1.0);
+}
+
+void closeMenuFunc(){
+	doMenu = false;
+}
+
+void mainMenuFunc(){
+	currentMenu = mainMenu;
+	debugText("Switched to main menu \n");
+}
+
+void toggleColorKey(){
+	myDataDisplays[0].isVisible = !myDataDisplays[0].isVisible;
+}
+
+void toggleWristMotion(){
+	doWristBoundTime = !doWristBoundTime;
+	debugText("Did Toggle Wrist Motion \n");
+}
+
+void doInterface(arMasterSlaveFramework& framework){
+
+	(currentMenu).drawSelf(framework);
 }
 
 
@@ -1599,19 +1649,6 @@ void RodEffector::draw(arMasterSlaveFramework& framework) const {
 	glLineWidth(1.0);
 	glPopMatrix();
 
-	//now for individual displays, again hardcoded for the moment.  Sorry again.
-	if(doMenu){
-		if(doHUD){
-			glPushMatrix();
-			doInterface(framework);
-			glPopMatrix();
-		}else{
-			glPushMatrix();
-			glMultMatrixf( getCenterMatrix().v );
-			doInterface(framework);
-			glPopMatrix();
-		}	
-	}
 	debugText("Ended drawing wand");
 
 }
@@ -1654,6 +1691,11 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("itemTouching",&itemTouching ,AR_INT,1);
 	framework.addTransferField("starttransfer", &triggerDepressed, AR_INT, 1);
 	framework.addTransferField("addNewDisplayTransfer", &addNewDisplay, AR_INT, 1);
+	framework.addTransferField("doTimePlaybackTransfer", &doTimePlayback, AR_INT, 1);
+	framework.addTransferField("tt1r", &elapsedTime, AR_DOUBLE, 1);
+	framework.addTransferField("tt2r", &eventBegan, AR_DOUBLE, 1);
+	framework.addTransferField("b5", &b5, AR_INT, 1);
+	framework.addTransferField("doWrist", &doWristBoundTime, AR_INT, 1);
 
 
 	// Setup navigation, so we can drive around with the joystick
@@ -1675,12 +1717,242 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	
 	
 	//initialize data displays
-	dataDisplay testDataDisplay;
-	testDataDisplay.contents.push_back("Test string one");
-	testDataDisplay.contents.push_back("Test string two");
-	testDataDisplay.myPos = arVector3(0,0,0);
-	testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-	myDataDisplays.push_back(testDataDisplay);
+	//two displays, one for color key, one for neutrino information
+	
+	dataDisplay colorKeyTime;
+	colorKeyTime.contents.push_back(textItem("Color Key Time:", arVector3(1,1,1)));
+	float values2 [] = {893, 909, 925, 941, 957, 973, 989, 1005, 1021, 1037, 1053, 1069, 1085, 1101, 1117};
+	int sections2 [] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+	for(int i = 0; i < sizeof(values2)/4; i++){
+		int section = sections2[i];
+		char dest[50];
+		sprintf(dest, "%f ns", values2[i]);
+		colorKeyTime.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
+	}
+	colorKeyTime.myPos = arVector3(0,0,0);
+	colorKeyTime.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+	colorKeyTime.isVisible = false;
+	myDataDisplays.push_back(colorKeyTime);
+	
+	
+	//initialize menus
+	
+
+	
+	menuItem eventMinus;
+	eventMinus.index = -2;
+	eventMinus.numLines = 3;
+	eventMinus.startOffSetX = 0;
+	eventMinus.startOffSetY = 200;
+	eventMinus.scale = 2;
+	eventMinus.content[0] = " -";
+	eventMinus.content[1] = "Event";
+	eventMinus.content[2] = " -";
+	eventMinus.onClick = &eventNumberDecrement;
+	mainMenu.myItems.push_back(eventMinus);
+	
+	menuItem optionsItem;
+	optionsItem.index = -1;
+	optionsItem.numLines = 1;
+	optionsItem.startOffSetX = -50;
+	optionsItem.startOffSetY = 0;
+	optionsItem.scale = 1.75;
+	optionsItem.content[0] = "Options";
+	optionsItem.onClick = &goToChild;
+	mainMenu.myItems.push_back(optionsItem);
+	
+	menuItem closeMenu;
+	closeMenu.index = 0;
+	closeMenu.numLines = 2;		
+	closeMenu.content[0] = "Exit";
+	closeMenu.content[1] = "Menu";
+	closeMenu.startOffSetX = 0;
+	closeMenu.startOffSetY = 100;
+	closeMenu.scale = 2;
+	(closeMenu.onClick) = &closeMenuFunc;
+	mainMenu.myItems.push_back(closeMenu);
+	
+	menuItem displaysItem;
+	displaysItem.index = 1;
+	displaysItem.numLines = 2;
+	displaysItem.startOffSetX = -50;
+	displaysItem.startOffSetY = 50;
+	displaysItem.scale = 1.75;
+	displaysItem.content[0] = "Time";
+	displaysItem.content[1] = "Playback";
+	displaysItem.onClick = &goToChild;
+	mainMenu.myItems.push_back(displaysItem);
+	
+	menuItem eventPlus;
+	eventPlus.index = 2;
+	eventPlus.numLines = 3;
+	eventPlus.startOffSetX = 0;
+	eventPlus.startOffSetY = 200;
+	eventPlus.scale = 2;
+	eventPlus.content[0] = " +";
+	eventPlus.content[1] = "Event";
+	eventPlus.content[2] = " +";
+	eventPlus.onClick = &eventNumberIncrement;
+	mainMenu.myItems.push_back(eventPlus);
+	
+	
+	//populate options menu
+	menuItem goBack;
+	goBack.index = -1;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	optionsMenu.myItems.push_back(goBack);
+	
+	menuItem displaysMenuItem;
+	displaysMenuItem.index = 0;
+	displaysMenuItem.numLines = 2;		
+	displaysMenuItem.content[0] = "Displays";
+	displaysMenuItem.content[1] = " Menu";
+	displaysMenuItem.startOffSetX = -150;
+	displaysMenuItem.startOffSetY = 100;
+	displaysMenuItem.scale = 2;
+	(displaysMenuItem.onClick) = &goToChild;
+	optionsMenu.myItems.push_back(displaysMenuItem);
+	
+	menuItem visMenuItem;
+	visMenuItem.index = 1;
+	visMenuItem.numLines = 2;		
+	visMenuItem.content[0] = "Vis";
+	visMenuItem.content[1] = "Menu";
+	visMenuItem.startOffSetX = 0;
+	visMenuItem.startOffSetY = 100;
+	visMenuItem.scale = 2;
+	(visMenuItem.onClick) = &goToChild;
+	optionsMenu.myItems.push_back(visMenuItem);
+	
+	
+	//populate vis menu
+	goBack.index = -2;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	visMenu.myItems.push_back(goBack);
+	
+	menuItem doRadiation;
+	doRadiation.index = -1;
+	doRadiation.numLines = 2;		
+	doRadiation.content[0] = "Draw";
+	doRadiation.content[1] = "Radiation";
+	doRadiation.startOffSetX = 0;
+	doRadiation.startOffSetY = 100;
+	doRadiation.scale = 1.5;
+	(doRadiation.onClick) = &toggleCherenkovLines;
+	visMenu.myItems.push_back(doRadiation);
+	
+	
+	menuItem toggleColor;
+	toggleColor.index = 0;
+	toggleColor.numLines = 2;		
+	toggleColor.content[0] = "Toggle";
+	toggleColor.content[1] = "Color";
+	toggleColor.startOffSetX = 0;
+	toggleColor.startOffSetY = 100;
+	toggleColor.scale = 2;
+	(toggleColor.onClick) = &toggleColorFunc;
+	visMenu.myItems.push_back(toggleColor);
+	
+	
+	menuItem toggleScale;
+	toggleScale.index = 1;
+	toggleScale.numLines = 3;		
+	toggleScale.content[0] = "Scale";
+	toggleScale.content[1] = "By";
+	toggleScale.content[2] = "Charge";
+	toggleScale.startOffSetX = 0;
+	toggleScale.startOffSetY = 100;
+	toggleScale.scale = 1.5;
+	(toggleScale.onClick) = &toggleScaleFunc;
+	visMenu.myItems.push_back(toggleScale);
+	
+	
+	menuItem toggleOD;
+	toggleOD.index = 2;
+	toggleOD.numLines = 2;		
+	toggleOD.content[0] = "Toggle";
+	toggleOD.content[1] = "OD";
+	toggleOD.startOffSetX = 0;
+	toggleOD.startOffSetY = 100;
+	toggleOD.scale = 2;
+	(toggleOD.onClick) = &toggleODFunc;
+	visMenu.myItems.push_back(toggleOD);
+	
+	
+	//populate displays menu
+	goBack.index = -1;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	displaysMenu.myItems.push_back(goBack);
+	
+	menuItem toggleKey;
+	toggleKey.index = 0;
+	toggleKey.numLines = 3;		
+	toggleKey.content[0] = "Toggle";
+	toggleKey.content[1] = "Color";
+	toggleKey.content[2] = " Key";
+	toggleKey.startOffSetX = 0;
+	toggleKey.startOffSetY = 100;
+	toggleKey.scale = 1.5;
+	(toggleKey.onClick) = &toggleColorKey;
+	displaysMenu.myItems.push_back(toggleKey);
+	
+	
+	//populate timeMenu
+	goBack.index = -1;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	timeMenu.myItems.push_back(goBack);
+	
+	menuItem activateWrist;
+	activateWrist.index = 0;
+	activateWrist.numLines = 3;		
+	activateWrist.content[0] = "Toggle";
+	activateWrist.content[1] = "Wrist";
+	activateWrist.content[2] = "Binding";
+	activateWrist.startOffSetX = 0;
+	activateWrist.startOffSetY = 200;
+	activateWrist.scale = 1.5;
+	(activateWrist.onClick) = &toggleWristMotion;
+	timeMenu.myItems.push_back(activateWrist);
+	
+	timeMenu.children.push_back(mainMenu);
+	timeMenu.children.push_back(mainMenu);
+	optionsMenu.children.push_back(displaysMenu);
+	optionsMenu.children.push_back(displaysMenu);
+	optionsMenu.children.push_back(visMenu);
+	mainMenu.children.push_back(optionsMenu);
+	mainMenu.children.push_back(optionsMenu);
+	mainMenu.children.push_back(optionsMenu);
+	mainMenu.children.push_back(timeMenu);
+	mainMenu.children.push_back(timeMenu);
+	
+	
+	
+	
+	currentMenu = mainMenu;
 	
 	return true;
 }
@@ -1713,6 +1985,9 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 	void preExchange( arMasterSlaveFramework& fw ) {
 		debugText("started preExchange");
 
+		
+		menuIndex = menuIndex % (currentMenu).myItems.size();
+		
 		// Do stuff on master before data is transmitted to slaves.
 
 		// handle joystick-based navigation (drive around). The resulting
@@ -1724,12 +1999,16 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 
 		//update our global time (recoreded on master)
 		currentTime = clock()/(double)CLOCKS_PER_SEC;
+		
+		//update elapsed time
+		elapsedTime = clock()/(double)CLOCKS_PER_SEC - eventBegan;
 
 		//handle autoplay end-stopping (For supernova mode)
 		if(index == 0 || index == dotVectors.size()-1){
 			autoPlay = 0;
 		}
 
+		
 		
 		//initialize per-frame values
 		addNewDisplay = false;
@@ -1743,176 +2022,10 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		// 5 = back button (master)
 
 		//do button presses
-		if(fw.getOnButton(0)){  // on yellow button, step event back one if menus aren't up, step menu index back one if menus are up...replace stepping with autoplay if we're doing time compression
-			if(doMenu){
-				if(!(menuIndex < -1)){
-					menuIndex--;
-				} else {
-					menuIndex = 2;
-				}
-			}
-			else{
-				doMenu = true;
-				/*
-				if(!doTimeCompressed){
-					if(index > 0){
-						index--;
-					}
-					autoPlay = 0;
-				} else {
-					if(autoPlay == 0){
-						autoPlay = -1;
-					}
-					else if(autoPlay == 1){
-						autoPlay = 0;
-					}
-				}
-				*/
-			}
-		}
-		if(fw.getOnButton(1)){  //on red button, tell the system that another menu will be spawned in post
-			addNewDisplay = true;
-		}
-		if(fw.getOnButton(2)){  // on green button, step event forward one, or if menus are up, step menuIndex forwar done  .. or, if time compressed, autoplay forward
-			if(doMenu){
-				if(!(menuIndex > 1)){
-					menuIndex++;
-				} else {
-					menuIndex = -2;
-				}
-			}
-			else{
-				doMenu = true;
-				/*
-				if(!doTimeCompressed){
-					if(index < dotVectors.size() - 1){
-						index++;
-					}
-					autoPlay = 0;
-				}else{
-					if(autoPlay == 0){
-						autoPlay = 1;
-					}
-					else if(autoPlay == -1){
-						autoPlay = 0;
-					}
-				}
-				*/
-			}
-			
-		}
-		if(fw.getOnButton(3)){ // on blue button, do nothing
-		}
-		if(fw.getOnButton(4)){  //on joystick button press (todo:  joystick compressed + left/right will autoplay)
-		}
-		if(!fw.getButton(5)){
-			isGrabbingVertex = false;
-		}
-		if(fw.getButton(5) && isTouchingVertex){
-			isGrabbingVertex = true;
-			doMenu = false;
-		}
-		else
-		if(fw.getOnButton(5)){  //this is the master control button.  It turns on the menu, and selects menu items
-			/*if(!doMenu && !isTouchingVertex){
-				doMenu = true;
-			}else */
-			if(doMenu && !isTouchingVertex){  //the menu is on, here write code to toggle menu items
-				if(doMainMenu){ //main menu
-					if(menuIndex == -2){
-						if(index > 0){
-							index--;
-						}
-						autoPlay = 0;
-					}
-					if(menuIndex == -1){
-						doOptionsMenu = true;
-						doMainMenu = false;
-					}
-					if(menuIndex == 0){
-						doMenu = false;
-					}
-					if(menuIndex == 1){
-						doCherenkovConeMenu = true;
-						doMainMenu = false;
-					}
-					if(menuIndex == 2){
-						if(index < dotVectors.size() - 1){
-							index++;
-						}
-						autoPlay = 0;
-					}
-				}
-				else if(doOptionsMenu){
-					if(menuIndex == -2){
-						doOptionsMenu = false;
-						doMainMenu = true;
-					}
-					if(menuIndex == -1){
-						doCylinderDivider = !doCylinderDivider;
-					}
-					if(menuIndex == 0){
-						doCherenkovCone = !doCherenkovCone;
-					}
-					if(menuIndex == 1){
-						colorByCharge = !colorByCharge;
-					}
-					if(menuIndex == 2){
-						doScaleByCharge = !doScaleByCharge;
-					}
-				}
-				else if(doCherenkovConeMenu){  //
-					if(menuIndex == -2){
-						if(cherenkovConeMenuIndex == 0){
-							doCherenkovConeMenu = false;
-							doMainMenu = true;
-						}
-						else{
-							cherenkovConeMenuIndex--;
-						}
-					}
-					if(menuIndex == -1){
-						if((cherenkovConeMenuIndex * 3 + 0) < currentDots.particleType.size()){
-							dotVectors[index].doDisplay[cherenkovConeMenuIndex*3 + 0] = !currentDots.doDisplay[cherenkovConeMenuIndex*3 + 0];
-							modifiedCherenkovConeIndex = cherenkovConeMenuIndex*3 + 0;
-						}
-					}
-					if(menuIndex == 0){
-						if((cherenkovConeMenuIndex * 3 + 1) < currentDots.particleType.size()){
-							dotVectors[index].doDisplay[cherenkovConeMenuIndex*3 + 1] = !currentDots.doDisplay[cherenkovConeMenuIndex*3 + 1];
-							modifiedCherenkovConeIndex = cherenkovConeMenuIndex*3 + 1;
-						}
-					}
-					if(menuIndex == 1){
-						if((cherenkovConeMenuIndex * 3 + 2) < currentDots.particleType.size()){
-							dotVectors[index].doDisplay[cherenkovConeMenuIndex*3 + 2] = !currentDots.doDisplay[cherenkovConeMenuIndex*3 + 2];
-							modifiedCherenkovConeIndex = cherenkovConeMenuIndex*3 + 2;
-						}
-					}
-					if(menuIndex == 2){
-						if(cherenkovConeMenuIndex <= (currentDots.particleType.size()-1) / 3){
-							cherenkovConeMenuIndex++;
-						}
-					}
-				}
-
-			}
-		}
-
-		/*
-		//update menu index if we're in HUD Mode, based on hand orientation from z axis
-		if(doHUD){
-			//we need to figure out the orientation from the rotation matrix
-			for(int i =0; i < 4;i++){
-				for(int j = 0; j < 4; j++){
-					cout << fw.getMatrix(1).v[j+i*4];
-					cout << " ";
-				}
-				cout <<"\n";
-			}
-			cout << "\n";
-		}*/
 		
+		b5 = fw.getOnButton(5);
+
+
 		//figure out if we're touching the vertex
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
 		double navX = myPosMatrix[12];
@@ -1932,6 +2045,10 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		double handDirX = myHandMatrix[8];
 		double handDirY = myHandMatrix[9];
 		double handDirZ = myHandMatrix[10];
+		
+		double handUpX = myHandMatrix[4];
+		double handUpY = myHandMatrix[5];
+		double handUpZ = myHandMatrix[6];
 		
 		double finalX = -navX + handPosX + -2*handDirX;
 		double finalY = -navY + handPosZ + -2*handDirZ;
@@ -1959,49 +2076,71 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		else
 			isTouchingVertex = false;
 			
+		//figure out wrist rotation, which is the angle between ( <0,1,0> + handDir ) and <handUp>
+		arVector3 upHolder = arVector3(0,1,0);
+		arVector3 handUp = arVector3(handUpX, handUpY, handUpZ);
+		double angleHolder = acos(dotProduct(normalize(handUp), normalize(upHolder)));
+		if( dotProduct(crossProduct(handUp, upHolder),arVector3(handDirX, handDirY, handDirZ)) > 0)
+			wristRotation = angleHolder * 180.0 / PI;
+		else 
+			wristRotation = -angleHolder* 180.0 / PI;
 
+
+
+		//update menuIndex (based on raycasting)
+		arVector3 lineOrigin(handPosX, handPosY, handPosZ);
+		arVector3 lineDirection(handDirX, handDirY, handDirZ);
+		arVector3 pointOnPlane(menuRotationMatrix[12], menuRotationMatrix[13], menuRotationMatrix[14]);
+		arVector3 planeNormal(menuRotationMatrix[8],menuRotationMatrix[9], menuRotationMatrix[10]);
+		pointOnPlane = pointOnPlane - 3 * planeNormal;
+		planeNormal = normalize(planeNormal);
+		lineDirection = normalize(lineDirection);
+		
+		float d = dotProduct( arVector3(pointOnPlane - lineOrigin), planeNormal);
+		d = d / dotProduct(lineDirection, planeNormal);
+		
+		arVector3 intersectionPoint = d * lineDirection + lineOrigin;
+		
+		//now intersectionpoint - pointonplane should be the offset in a combination of x and y vectors, and offset of the keyboard components  (do fine tuning here)
+		float yvalue = dotProduct(intersectionPoint-pointOnPlane, normalize(arVector3(menuRotationMatrix[4], menuRotationMatrix[5], menuRotationMatrix[6])));
+		float xvalue = dotProduct(intersectionPoint-pointOnPlane, normalize(arVector3(menuRotationMatrix[0], menuRotationMatrix[1], menuRotationMatrix[2])));
+		
+		if(yvalue > .5 || yvalue < -.5){
+			menuIndex = -100;
+		}else{
+			menuIndex = (int) (xvalue-.5);
+		}
+		
+		
 		triggerDepressed = fw.getButton(5);
 
-		//in load stage we'll go ahead and write the START TIMES and END TIMES of all events, and precalculate the EVENT LENGTH
-		//which multiplied by TimeScaleFactor will be the waitTime for each frame
-
-		/* //this will autoplay forward / back based on joystick left/right.  No longer active
-		if((currentTime - timeHolder1) > currentDots.length*timeScaleFactor){
-		//tests joystick state along axis 0 (left/right)
-		if(fw.getAxis(0) > threshold){
-		autoPlay = 0;
-		if(index < dotVectors.size() - 1){
-		index++;
-		timeHolder1 = currentTime;
+		if(!fw.getButton(5)){
+			isGrabbingVertex = false;
 		}
-		}
-		if(fw.getAxis(0) < -1.0*threshold){
-		autoPlay = 0;
-		if(index > 0){
-		index--;
-		timeHolder1 = currentTime;
-		}
-		}
-		}
-		*/
-
-		//more autoplay nonsense
-		if(autoPlay == -1 && index >= dotVectors.size()-1){
-			index = dotVectors.size()-2;
-		}
-		if(currentTime - timeHolder1 > currentDots.length*timeScaleFactor){
-			if(autoPlay == -1){
-				if(index > 0){
-					index--;
-					timeHolder1 = currentTime;
+		if(fw.getButton(5) && isTouchingVertex){
+			isGrabbingVertex = true;
+			doMenu = false;
+		}		
+		if(fw.getOnButton(5) && doMenu && !isGrabbingVertex){
+			bool found = false;
+			for(int i = 0; i < currentMenu.myItems.size(); i++){
+				if(menuIndex == currentMenu.myItems[i].index){
+					found = true;
+					continue;
 				}
 			}
-			else if(autoPlay == 1){
-				if(index < dotVectors.size() - 1){
-					index++;
-					timeHolder1 = currentTime;
-				}
+			doMenu = found;
+		}
+		else if(fw.getOnButton(5) && !isGrabbingVertex){  //this is the master control button.  It turns on the menu, and selects menu items
+			if(!doMenu && !isTouchingVertex){
+				doMenu = true;
+				menuPosition = arVector3(0,0,-menuDist);
+				menuRotationMatrix = fw.getMatrix(1) * ar_getNavInvMatrix();
+				lastButtonPress = clock();
 			}
+		}
+		if(isGrabbingVertex && isTouchingVertex){
+			doMenu = false;
 		}
 		
 		debugText("ended preexchange");
@@ -2025,37 +2164,41 @@ void postExchange( arMasterSlaveFramework& fw ) {
 	
 	if(addNewDisplay){
 		dataDisplay testDataDisplay;
-		testDataDisplay.contents.push_back("Test string one");
-		testDataDisplay.contents.push_back("Test string two");
+		testDataDisplay.contents.push_back(textItem("Test string one"));
+		testDataDisplay.contents.push_back(textItem("Test string two"));
 		testDataDisplay.myPos = arVector3(0,0,0);
 		testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 		myDataDisplays.push_back(testDataDisplay);
-	}
-	
+	}	
 	//handle vertex motion
-	if(isGrabbingVertex){
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
-		double navX = myPosMatrix[12];
-		double navY = myPosMatrix[13];
-		double navZ = myPosMatrix[14];
-		navY += 20;
-		double holder = navY;
-		navY = navZ;
-		navZ = holder;
-		//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
-		
-		arMatrix4 myHandMatrix = fw.getMatrix(1);
-		double handPosX = myHandMatrix[12];  //this is hand position
-		double handPosY = myHandMatrix[13];
-		double handPosZ = myHandMatrix[14];
-		
-		double handDirX = myHandMatrix[8];
-		double handDirY = myHandMatrix[9];
-		double handDirZ = myHandMatrix[10];
-		
-		double finalX = -navX + handPosX + -2*handDirX;
-		double finalY = -navY + handPosZ + -2*handDirZ;
-		double finalZ = navZ + -handPosY + 2*handDirY;
+	double navX = myPosMatrix[12];
+	double navY = myPosMatrix[13];
+	double navZ = myPosMatrix[14];
+	navY += 20;
+	double holder = navY;
+	navY = navZ;
+	navZ = holder;
+	//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
+	
+	arMatrix4 myHandMatrix = fw.getMatrix(1);
+	double handPosX = myHandMatrix[12];  //this is hand position
+	double handPosY = myHandMatrix[13];
+	double handPosZ = myHandMatrix[14];
+	
+	double handDirX = myHandMatrix[8];
+	double handDirY = myHandMatrix[9];
+	double handDirZ = myHandMatrix[10];
+	
+	double handUpX = myHandMatrix[4];
+	double handUpY = myHandMatrix[5];
+	double handUpZ = myHandMatrix[6];
+	
+	double finalX = -navX + handPosX + -2*handDirX;
+	double finalY = -navY + handPosZ + -2*handDirZ;
+	double finalZ = navZ + -handPosY + 2*handDirY;
+	if(isGrabbingVertex){
+
 			
 		if(itemTouching == 0){
 			//set vertex position to hand position
@@ -2094,6 +2237,22 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		}
 	}
 	modifiedCherenkovConeIndex = -1;
+	
+	if(b5){
+			menuPosition = arVector3(0,0,-menuDist);
+			menuRotationMatrix = fw.getMatrix(1) * ar_getNavInvMatrix();
+	}
+	
+				
+	//figure out wrist rotation, which is the angle between ( <0,1,0> + handDir ) and <handUp>
+	arVector3 upHolder = arVector3(0,1,0);
+	arVector3 handUp = arVector3(handUpX, handUpY, handUpZ);
+	double angleHolder = acos(dotProduct(normalize(handUp), normalize(upHolder)));
+	if( dotProduct(crossProduct(handUp, upHolder),arVector3(handDirX, handDirY, handDirZ)) > 0)
+		wristRotation = angleHolder * 180.0 / PI;
+	else 
+		wristRotation = -angleHolder* 180.0 / PI;
+
 }
 
 void display( arMasterSlaveFramework& fw ) {
@@ -2105,6 +2264,10 @@ void display( arMasterSlaveFramework& fw ) {
 	currentDots = dotVectors[index];
 	//draws cylinder
 	drawScene(fw);
+	
+	if(doMenu){
+		doInterface(fw);
+	}
 	//draw data displays (if visible)
 	debugText("finished display");
 }
@@ -2129,7 +2292,7 @@ void keypress( arMasterSlaveFramework& fw, arGUIKeyInfo* keyInfo ) {
 			autoPlay = 1;
 		}
 		if(keyInfo->getKey() == 111){  //o
-			autoPlay = -1;
+			doWristBoundTime = !doWristBoundTime;
 		}
 		if(keyInfo->getKey() == 98){  //pressing "n" will load the next event until there are no more, at which point the program will close
 			//   loadNextEvent();
@@ -2327,16 +2490,8 @@ int main(int argc, char** argv) {
 	framework.setWindowEventCallback( windowEvent );
 	framework.setEyeSpacing( 0.00001f );
 	// also setExitCallback(), setUserMessageCallback()
-	// in demo/arMasterSlaveFramework.h
-
-	/*				test code for generating clock times
-	clock_t startt = clock();
-	while(true){
-	clock_t timed = clock();
-	printf("%f",(timed-startt)/(double)CLOCKS_PER_SEC);
-	printf("\n");
-	}
-	*/
+	// in demo/arMasterSlaveFramework.
+	
 
 	if (!framework.init(argc, argv)) {
 		return 1;
