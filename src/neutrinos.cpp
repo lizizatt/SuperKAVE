@@ -121,6 +121,7 @@ public:
 	menuItem::menuItem(){
 	}
 	char * content[10];
+
 	int index;
 	int numLines;
 	int startOffSetX;
@@ -317,72 +318,65 @@ double abs(double in){
 #endif
 
 void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates position (if necessary) and draws
-	//figure out if we're touching the display
-	arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
-	double navX = myPosMatrix[12];
-	double navY = myPosMatrix[13];
-	double navZ = myPosMatrix[14];
-	
-	navY += 20;
-	double holder = navY;
-	navY = navZ;
-	navZ = holder;
-	//now navx, navy, navz are in coordinates of cylinder ... that being, y and z are flipped
-	
-	arMatrix4 myHandMatrix = fw.getMatrix(1);
-	double handPosX = myHandMatrix[12];  //this is hand position
-	double handPosY = myHandMatrix[13];
-	double handPosZ = myHandMatrix[14];
-	
-	double handDirX = myHandMatrix[8];
-	double handDirY = myHandMatrix[9];
-	double handDirZ = myHandMatrix[10];
-	
-	double handRightX = myHandMatrix[0];
-	double handRightY = myHandMatrix[1];
-	double handRightZ = myHandMatrix[2];
-	
-	double handUpX = myHandMatrix[4];
-	double handUpY = myHandMatrix[5];
-	double handUpZ = myHandMatrix[6];
-	
-	double finalX = -navX + handPosX + -2*handDirX;
-	double finalY = -navY + handPosZ + -2*handDirZ;
-	double finalZ = navZ + -handPosY + 2*handDirY;
-	
+	//figure out if we're touching the displa
 	//figure out which item we're grabbing ... go for closest one
-	arVector3 handPos = arVector3(finalX, finalY, finalZ);
+	
+	
+	
+	
 	bool isTouching = false;
 	bool isInRange = true;
-	arVector3 myDir(myRotationMatrix[8], myRotationMatrix[9], myRotationMatrix[10]);
-	isInRange = isInRange && dotProduct(subtract(handPos, myPos + .5*myDir), subtract(handPos, myPos - .5*myDir)) < 1;
+		
+	arMatrix4 rotationMatrixHolder = ar_getNavMatrix() * fw.getMatrix(1);
+	//this is exact hand position / orientation
+	double dirX = rotationMatrixHolder[8];
+	double dirY = rotationMatrixHolder[9];
+	double dirZ = rotationMatrixHolder[10];
+	rotationMatrixHolder[12] -= dirX;
+	rotationMatrixHolder[13] -= dirY;
+	rotationMatrixHolder[14] -= dirZ;
+	arMatrix4 nextDisplayRotMat = rotationMatrixHolder;
+	nextDisplayRotMat[12] -= 3*dirX;
+	nextDisplayRotMat[13] -= 3*dirY;
+	nextDisplayRotMat[14] -= 3*dirZ;
+	
+	arVector3 handPos = arVector3(rotationMatrixHolder[12], rotationMatrixHolder[13], rotationMatrixHolder[14]);
+	arVector3 displayCenter = arVector3(myRotationMatrix[12], myRotationMatrix[13], myRotationMatrix[14]);
+	arVector3 displayX = arVector3(myRotationMatrix[0], myRotationMatrix[1], myRotationMatrix[2]);
+	arVector3 displayY = arVector3(myRotationMatrix[4], myRotationMatrix[5], myRotationMatrix[6]);
+	arVector3 displayZ = arVector3(myRotationMatrix[8], myRotationMatrix[9], myRotationMatrix[10]);
+	
+	isInRange = dotProduct( dotProduct((handPos - (displayCenter + displayX * 1.5)), displayX) * displayX, dotProduct((handPos - (displayCenter - displayX * 1.5)), displayX) * displayX) < 0; 
+	isInRange = isInRange && dotProduct( dotProduct((handPos - (displayCenter + displayY * 2.5)), displayY) * displayY, dotProduct((handPos - (displayCenter - displayY * 2.5)), displayY) * displayY) < 0; 
+	isInRange = isInRange && dotProduct( dotProduct((handPos - (displayCenter + displayZ * 3.2)), displayZ) * displayZ, dotProduct((handPos - (displayCenter - displayZ * .5)), displayZ) * displayZ) < 0; 
+	//isInRange = magnitude(subtract(handPos, arVector3(myRotationMatrix[12], myRotationMatrix[13], myRotationMatrix[14]))) < 5;
+	
 	
 	if( !isVisible || (isInRange && (beingGrabbed == -1 || beingGrabbed == myIndex))){  //are we in range and are we not already grabbing one?  grab it
 		isTouching = true;
-		myHandMatrix[12] = -2*handDirX;
-		myHandMatrix[13] = -2*handDirY;
-		myHandMatrix[14] = -2*handDirZ;
-		myHandMatrix[8] = -handUpX;
-		myHandMatrix[9] = -handUpY;
-		myHandMatrix[10] = -handUpZ;
-		myHandMatrix[4] = handDirX;
-		myHandMatrix[5] = handDirY;
-		myHandMatrix[6] = handDirZ;
+		/*
 		if(fw.getOnButton(5)){ //we just started grabbing, set offset (currentPos - handPos)
 			offset = subtract(myPos, handPos);
 			myOriginalRotationMatrix = myRotationMatrix;
 		}
+		*/
 		if(fw.getButton(5)){ //is grabbing
 			beingGrabbed = myIndex;
 			//update location based on hand movement
-			myPos = add(handPos, offset);
-			myRotationMatrix = myHandMatrix;
+			//myPos = add(handPos, offset);
+			myRotationMatrix = nextDisplayRotMat;
 		} else { //not grabbing anymore
 			beingGrabbed = -1;
 		}	
 		if(!isVisible){  //if invisible, parent onto spawn location and then stop before we render it
-			myPos = add(handPos, 5*myIndex*arVector3(handRightX, handRightY, handRightZ));
-			myRotationMatrix = myHandMatrix;
+			//	myPos = add(handPos, 5*myIndex*arVector3(handRightX, handRightY, handRightZ));
+			double sideX = rotationMatrixHolder[0];
+			double sideY = rotationMatrixHolder[1];
+			double sideZ = rotationMatrixHolder[2];
+			nextDisplayRotMat[12] += 4*sideX;
+			nextDisplayRotMat[13] += 4*sideY;
+			nextDisplayRotMat[14] += 4*sideZ;
+			myRotationMatrix = nextDisplayRotMat;
 			return;
 		}
 	} else{
@@ -394,9 +388,8 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 		
 		glTranslatef(myPos[0], myPos[1], myPos[2]);
 		
-		glRotatef(90,-1,0,0);
+		//glRotatef(90,-1,0,0);
 		glMultMatrixf(myRotationMatrix.v);
-		glRotatef(90,-1,0,0);
 		
 		glScalef(3,5,.5);
 		glColor3f(.75,.75,.75);
@@ -741,11 +734,6 @@ void drawScene(arMasterSlaveFramework& framework)
 		glutSolidSphere(.05,50,50);
 	glPopMatrix();
 	*/
-	
-	//draws data displays
-	for(int i = 0; i < myDataDisplays.size(); i++){
-		myDataDisplays[i].drawDataDisplay(framework);
-	}
 	
 	
 	//do cherenkov cones
@@ -1696,6 +1684,9 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("tt2r", &eventBegan, AR_DOUBLE, 1);
 	framework.addTransferField("b5", &b5, AR_INT, 1);
 	framework.addTransferField("doWrist", &doWristBoundTime, AR_INT, 1);
+	framework.addTransferField("rotMatrixTransfer", menuRotationMatrix.v, AR_FLOAT, 16);
+	framework.addTransferField("menuPosTransfer", menuPosition.v, AR_FLOAT, 3);
+
 
 
 	// Setup navigation, so we can drive around with the joystick
@@ -2088,11 +2079,12 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 
 
 		//update menuIndex (based on raycasting)
-		arVector3 lineOrigin(handPosX, handPosY, handPosZ);
-		arVector3 lineDirection(handDirX, handDirY, handDirZ);
+		arMatrix4 currentHand = ar_getNavMatrix() * fw.getMatrix(1);
+		arVector3 lineOrigin(currentHand[12], currentHand[13], currentHand[14]);
+		arVector3 lineDirection(currentHand[8], currentHand[9], currentHand[10]);
 		arVector3 pointOnPlane(menuRotationMatrix[12], menuRotationMatrix[13], menuRotationMatrix[14]);
 		arVector3 planeNormal(menuRotationMatrix[8],menuRotationMatrix[9], menuRotationMatrix[10]);
-		pointOnPlane = pointOnPlane - 3 * planeNormal;
+		pointOnPlane = pointOnPlane - menuDist * normalize(planeNormal);
 		planeNormal = normalize(planeNormal);
 		lineDirection = normalize(lineDirection);
 		
@@ -2108,7 +2100,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		if(yvalue > .5 || yvalue < -.5){
 			menuIndex = -100;
 		}else{
-			menuIndex = (int) (xvalue-.5);
+			menuIndex = (int) floor((xvalue+.5));
 		}
 		
 		
@@ -2135,7 +2127,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 			if(!doMenu && !isTouchingVertex){
 				doMenu = true;
 				menuPosition = arVector3(0,0,-menuDist);
-				menuRotationMatrix = fw.getMatrix(1) * ar_getNavInvMatrix();
+				menuRotationMatrix = ar_getNavMatrix() * fw.getMatrix(1);
 				lastButtonPress = clock();
 			}
 		}
@@ -2238,11 +2230,6 @@ void postExchange( arMasterSlaveFramework& fw ) {
 	}
 	modifiedCherenkovConeIndex = -1;
 	
-	if(b5){
-			menuPosition = arVector3(0,0,-menuDist);
-			menuRotationMatrix = fw.getMatrix(1) * ar_getNavInvMatrix();
-	}
-	
 				
 	//figure out wrist rotation, which is the angle between ( <0,1,0> + handDir ) and <handUp>
 	arVector3 upHolder = arVector3(0,1,0);
@@ -2264,6 +2251,12 @@ void display( arMasterSlaveFramework& fw ) {
 	currentDots = dotVectors[index];
 	//draws cylinder
 	drawScene(fw);
+	
+	
+	//draws data displays
+	for(int i = 0; i < myDataDisplays.size(); i++){
+		myDataDisplays[i].drawDataDisplay(fw);
+	}
 	
 	if(doMenu){
 		doInterface(fw);
