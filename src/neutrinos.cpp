@@ -148,21 +148,25 @@ public:
 //Global variables
 bool debug = false;  //enables some useful print statements
 //menu variables
-clock_t lastButtonPress;
-double buttonPressThreshold = .1;
+
+vector<string> logFile;
+
+double lastButtonPress;
+double buttonPressThreshold = .25;
 bool b0;
 bool b1;
 bool b2;
 bool b3;
 bool b4;
 bool b5;
+bool b5Reg;
 menu currentMenu;
 menu nextMenu;
 menu mainMenu;
 menu optionsMenu;
 menu visMenu;
 menu displaysMenu;
-menu timeMenu;
+menu controlsMenu;
 bool doHUD = false;  //outdated
 bool doMenu = false;  //whether or not the menu is currently displayed
 bool doMainMenu = true; 
@@ -237,14 +241,15 @@ int itemTouching = 0;  //0 corresponds to vertex, else subtract 1 and is index o
 arVector3 vertexOffset;
 bool doDataDisplay = true;
 vector<dataDisplay> myDataDisplays;
-bool addNewDisplay;
 bool doWristBoundTime = false;
 double wristRotation = 0;  //wrist rotation, in degrees
 double menuDist = 3;
 arVector3 menuPosition; //offset from rotation matrix
 arMatrix4 menuRotationMatrix;
+bool grabbingDisplay = false;
 //string bufferLine;  
 
+bool displayRanThisRound = false;
 
 
 //debug helper function
@@ -320,13 +325,10 @@ double abs(double in){
 void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates position (if necessary) and draws
 	//figure out if we're touching the displa
 	//figure out which item we're grabbing ... go for closest one
-	
-	
-	
-	
+
 	bool isTouching = false;
 	bool isInRange = true;
-		
+
 	arMatrix4 rotationMatrixHolder = ar_getNavMatrix() * fw.getMatrix(1);
 	//this is exact hand position / orientation
 	double dirX = rotationMatrixHolder[8];
@@ -339,19 +341,19 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	nextDisplayRotMat[12] -= 3*dirX;
 	nextDisplayRotMat[13] -= 3*dirY;
 	nextDisplayRotMat[14] -= 3*dirZ;
-	
+
 	arVector3 handPos = arVector3(rotationMatrixHolder[12], rotationMatrixHolder[13], rotationMatrixHolder[14]);
 	arVector3 displayCenter = arVector3(myRotationMatrix[12], myRotationMatrix[13], myRotationMatrix[14]);
 	arVector3 displayX = arVector3(myRotationMatrix[0], myRotationMatrix[1], myRotationMatrix[2]);
 	arVector3 displayY = arVector3(myRotationMatrix[4], myRotationMatrix[5], myRotationMatrix[6]);
 	arVector3 displayZ = arVector3(myRotationMatrix[8], myRotationMatrix[9], myRotationMatrix[10]);
-	
+
 	isInRange = dotProduct( dotProduct((handPos - (displayCenter + displayX * 1.5)), displayX) * displayX, dotProduct((handPos - (displayCenter - displayX * 1.5)), displayX) * displayX) < 0; 
 	isInRange = isInRange && dotProduct( dotProduct((handPos - (displayCenter + displayY * 2.5)), displayY) * displayY, dotProduct((handPos - (displayCenter - displayY * 2.5)), displayY) * displayY) < 0; 
 	isInRange = isInRange && dotProduct( dotProduct((handPos - (displayCenter + displayZ * 3.2)), displayZ) * displayZ, dotProduct((handPos - (displayCenter - displayZ * .5)), displayZ) * displayZ) < 0; 
 	//isInRange = magnitude(subtract(handPos, arVector3(myRotationMatrix[12], myRotationMatrix[13], myRotationMatrix[14]))) < 5;
-	
-	
+
+
 	if( !isVisible || (isInRange && (beingGrabbed == -1 || beingGrabbed == myIndex))){  //are we in range and are we not already grabbing one?  grab it
 		isTouching = true;
 		/*
@@ -361,9 +363,12 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 		}
 		*/
 		if(fw.getButton(5)){ //is grabbing
-			beingGrabbed = myIndex;
+			if(isVisible)
+				beingGrabbed = myIndex;
 			//update location based on hand movement
 			//myPos = add(handPos, offset);
+			if(isVisible)
+				grabbingDisplay = true;
 			myRotationMatrix = nextDisplayRotMat;
 		} else { //not grabbing anymore
 			beingGrabbed = -1;
@@ -382,15 +387,15 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 	} else{
 		isTouching = false;
 	}
-		
+
 	glPushMatrix();
-	
-		
+
+
 		glTranslatef(myPos[0], myPos[1], myPos[2]);
-		
+
 		//glRotatef(90,-1,0,0);
 		glMultMatrixf(myRotationMatrix.v);
-		
+
 		glScalef(3,5,.5);
 		glColor3f(.75,.75,.75);
 		glutSolidCube(1.0);
@@ -398,7 +403,7 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 		glutWireCube(1.01);
 		glScalef(.9,.9,1.2);
 		glutSolidCube(1.0);
-		
+
 		if(isTouching){
 			glPushMatrix();
 				glColor4f(0,1,0,.5);
@@ -412,10 +417,10 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 				glutWireCube(1.001);
 			glPopMatrix();
 		}	
-		
+
 		glTranslatef(-.4,.4,.52);
 		//now at upper left
-		
+
 		glColor3f(1,1,1);
 		//write text, line by line
 		glLineWidth(3.0);
@@ -1309,7 +1314,7 @@ void menuItem::drawSelf(bool highlighted){
 void menu::drawSelf(arMasterSlaveFramework& fw){
 	//figure out which one is selected
 	int selected = menuIndex;  //should directly index to myItems.size()
-	if(fw.getOnButton(5) && (clock() / (double) CLOCKS_PER_SEC - lastButtonPress / (double) CLOCKS_PER_SEC) > buttonPressThreshold){
+	if(b5){
 		bool found = false;
 		for(int i = 0; i < myItems.size(); i++){
 			if(myItems[i].index == selected){
@@ -1320,7 +1325,11 @@ void menu::drawSelf(arMasterSlaveFramework& fw){
 		}
 		if(found){
 			nextMenu = children[selected];
-			(*myItems[selected].onClick)();
+			if(!displayRanThisRound)
+			{
+				(*myItems[selected].onClick)();
+				displayRanThisRound = true;
+			}
 		} else { //we aren't selecting anything at the moment
 			nextMenu = mainMenu;
 		}
@@ -1336,39 +1345,6 @@ void menu::drawSelf(arMasterSlaveFramework& fw){
 }
 
 void toggleColorFunc(){
-	myDataDisplays.pop_back();
-	if(!doScaleByCharge){
-		dataDisplay colorKeyCharge;
-		colorKeyCharge.contents.push_back(textItem("Color Key Charge:", arVector3(1,1,1)));
-		float values []= {26.7, 23.3, 20.2, 17.3, 14.7, 12.2, 10, 8, 6.2, 4.7, 3.3, 2.2, 1.3, .7, .2};
-		int sections []= {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-		for(int i = 0; i < sizeof(values)/4; i++){
-			int section = sections[i];
-			char dest[50];
-			sprintf(dest, "%f MeV", values[i]);
-			colorKeyCharge.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
-		}
-		colorKeyCharge.myPos = arVector3(0,0,0);
-		colorKeyCharge.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-		colorKeyCharge.isVisible = myDataDisplays[0].isVisible;
-		myDataDisplays.push_back(colorKeyCharge);
-	} else{
-		dataDisplay colorKeyTime;
-		colorKeyTime.contents.push_back(textItem("Color Key Time:", arVector3(1,1,1)));
-		float values2 [] = {893, 909, 925, 941, 957, 973, 989, 1005, 1021, 1037, 1053, 1069, 1085, 1101, 1117};
-		int sections2 [] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
-		for(int i = 0; i < sizeof(values2)/4; i++){
-		int section = sections2[i];
-		char dest[50];
-		sprintf(dest, "%f ns", values2[i]);
-		colorKeyTime.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
-		}
-		colorKeyTime.myPos = arVector3(0,0,0);
-		colorKeyTime.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-		colorKeyTime.isVisible = myDataDisplays[0].isVisible;
-		myDataDisplays.push_back(colorKeyTime);
-	}
-	//switch global value
 	colorByCharge = !colorByCharge;
 }
 
@@ -1410,13 +1386,23 @@ void mainMenuFunc(){
 }
 
 void toggleColorKey(){
-	myDataDisplays[0].isVisible = !myDataDisplays[0].isVisible;
+	if(myDataDisplays.size() >= 2){
+		myDataDisplays[0].isVisible = !myDataDisplays[0].isVisible;
+		myDataDisplays[1].isVisible = !myDataDisplays[1].isVisible;
+	}
+}
+
+void toggleEventInfo(){
+	if(myDataDisplays.size() >= 3){
+		myDataDisplays[2].isVisible = !myDataDisplays[2].isVisible;
+	}
 }
 
 void toggleWristMotion(){
 	doWristBoundTime = !doWristBoundTime;
 	debugText("Did Toggle Wrist Motion \n");
 }
+
 
 void doInterface(arMasterSlaveFramework& framework){
 
@@ -1678,7 +1664,6 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("isGrabbingVertex",&isGrabbingVertex,AR_INT,1);
 	framework.addTransferField("itemTouching",&itemTouching ,AR_INT,1);
 	framework.addTransferField("starttransfer", &triggerDepressed, AR_INT, 1);
-	framework.addTransferField("addNewDisplayTransfer", &addNewDisplay, AR_INT, 1);
 	framework.addTransferField("doTimePlaybackTransfer", &doTimePlayback, AR_INT, 1);
 	framework.addTransferField("tt1r", &elapsedTime, AR_DOUBLE, 1);
 	framework.addTransferField("tt2r", &eventBegan, AR_DOUBLE, 1);
@@ -1686,7 +1671,8 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	framework.addTransferField("doWrist", &doWristBoundTime, AR_INT, 1);
 	framework.addTransferField("rotMatrixTransfer", menuRotationMatrix.v, AR_FLOAT, 16);
 	framework.addTransferField("menuPosTransfer", menuPosition.v, AR_FLOAT, 3);
-
+	framework.addTransferField("lastButtonPressxfer", &lastButtonPress, AR_DOUBLE, 1);
+	framework.addTransferField("Grabbingdisplayxfer", &grabbingDisplay, AR_INT, 1);
 
 
 	// Setup navigation, so we can drive around with the joystick
@@ -1709,6 +1695,20 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	
 	//initialize data displays
 	//two displays, one for color key, one for neutrino information
+	dataDisplay colorKeyCharge;
+	colorKeyCharge.contents.push_back(textItem("Color Key Charge:", arVector3(1,1,1)));
+	float values []= {26.7, 23.3, 20.2, 17.3, 14.7, 12.2, 10, 8, 6.2, 4.7, 3.3, 2.2, 1.3, .7, .2};
+	int sections []= {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1};
+	for(int i = 0; i < sizeof(values)/4; i++){
+		int section = sections[i];
+		char dest[50];
+		sprintf(dest, "%f MeV", values[i]);
+		colorKeyCharge.contents.push_back(textItem(dest, arVector3( red_values[section] / 255.0, blue_values[section] / 255.0, green_values[section] / 255.0)));
+	}
+	colorKeyCharge.myPos = arVector3(0,0,0);
+	colorKeyCharge.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+	colorKeyCharge.isVisible = false;
+	myDataDisplays.push_back(colorKeyCharge);
 	
 	dataDisplay colorKeyTime;
 	colorKeyTime.contents.push_back(textItem("Color Key Time:", arVector3(1,1,1)));
@@ -1725,11 +1725,15 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	colorKeyTime.isVisible = false;
 	myDataDisplays.push_back(colorKeyTime);
 	
+	//third display containing information on current event (will have to be updated every event increment)
+	dataDisplay eventInformation;
+	eventInformation.myPos = arVector3(0,0,0);
+	eventInformation.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
+	eventInformation.isVisible = false;
+	myDataDisplays.push_back(eventInformation);
+	
 	
 	//initialize menus
-	
-
-	
 	menuItem eventMinus;
 	eventMinus.index = -2;
 	eventMinus.numLines = 3;
@@ -1905,8 +1909,21 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	(toggleKey.onClick) = &toggleColorKey;
 	displaysMenu.myItems.push_back(toggleKey);
 	
+	menuItem toggleInfo;
+	toggleInfo.index = 1;
+	toggleInfo.numLines = 3;		
+	toggleInfo.content[0] = "Toggle";
+	toggleInfo.content[1] = "Event";
+	toggleInfo.content[2] = " Info";
+	toggleInfo.startOffSetX = 0;
+	toggleInfo.startOffSetY = 100;
+	toggleInfo.scale = 1.5;
+	(toggleInfo.onClick) = &toggleEventInfo;
+	displaysMenu.myItems.push_back(toggleInfo);
 	
-	//populate timeMenu
+	
+	
+	//populate controlMenu
 	goBack.index = -1;
 	goBack.numLines = 2;		
 	goBack.content[0] = "Main";
@@ -1915,7 +1932,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	goBack.startOffSetY = 100;
 	goBack.scale = 2;
 	(goBack.onClick) = &mainMenuFunc;
-	timeMenu.myItems.push_back(goBack);
+	controlsMenu.myItems.push_back(goBack);
 	
 	menuItem activateWrist;
 	activateWrist.index = 0;
@@ -1927,18 +1944,19 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	activateWrist.startOffSetY = 200;
 	activateWrist.scale = 1.5;
 	(activateWrist.onClick) = &toggleWristMotion;
-	timeMenu.myItems.push_back(activateWrist);
+	controlsMenu.myItems.push_back(activateWrist);
 	
-	timeMenu.children.push_back(mainMenu);
-	timeMenu.children.push_back(mainMenu);
+	
+	controlsMenu.children.push_back(mainMenu);
+	controlsMenu.children.push_back(mainMenu);
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(visMenu);
 	mainMenu.children.push_back(optionsMenu);
 	mainMenu.children.push_back(optionsMenu);
 	mainMenu.children.push_back(optionsMenu);
-	mainMenu.children.push_back(timeMenu);
-	mainMenu.children.push_back(timeMenu);
+	mainMenu.children.push_back(controlsMenu);
+	mainMenu.children.push_back(controlsMenu);
 	
 	
 	
@@ -1998,11 +2016,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		if(index == 0 || index == dotVectors.size()-1){
 			autoPlay = 0;
 		}
-
 		
-		
-		//initialize per-frame values
-		addNewDisplay = false;
 		
 		//button mapping for reference:
 		// 0 = yellow
@@ -2012,10 +2026,14 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		// 4 = joystick press
 		// 5 = back button (master)
 
-		//do button presses
-		
-		b5 = fw.getOnButton(5);
 
+		//do button presses
+		if(fw.getButton(5) && clock() / (double) CLOCKS_PER_SEC - lastButtonPress > buttonPressThreshold){
+			b5 = true;
+			lastButtonPress = clock() / (double) CLOCKS_PER_SEC;
+		} else {
+			b5 = false;
+		}
 
 		//figure out if we're touching the vertex
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
@@ -2106,34 +2124,40 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		
 		triggerDepressed = fw.getButton(5);
 
+		
 		if(!fw.getButton(5)){
 			isGrabbingVertex = false;
 		}
 		if(fw.getButton(5) && isTouchingVertex){
 			isGrabbingVertex = true;
 			doMenu = false;
-		}		
-		if(fw.getOnButton(5) && doMenu && !isGrabbingVertex){
+		}
+		if(b5 && doMenu && !isGrabbingVertex && !grabbingDisplay){
 			bool found = false;
 			for(int i = 0; i < currentMenu.myItems.size(); i++){
 				if(menuIndex == currentMenu.myItems[i].index){
 					found = true;
-					continue;
+					break;
 				}
 			}
 			doMenu = found;
 		}
-		else if(fw.getOnButton(5) && !isGrabbingVertex){  //this is the master control button.  It turns on the menu, and selects menu items
+		else if(b5 && !isGrabbingVertex && !grabbingDisplay){  //this is the master control button.  It turns on the menu, and selects menu items
 			if(!doMenu && !isTouchingVertex){
 				doMenu = true;
 				menuPosition = arVector3(0,0,-menuDist);
 				menuRotationMatrix = ar_getNavMatrix() * fw.getMatrix(1);
-				lastButtonPress = clock();
 			}
 		}
-		if(isGrabbingVertex && isTouchingVertex){
+		if(isGrabbingVertex && isTouchingVertex || grabbingDisplay){
 			doMenu = false;
 		}
+		
+		doMenu = doMenu && !grabbingDisplay;
+		
+		
+		grabbingDisplay = false;
+		
 		
 		debugText("ended preexchange");
 }
@@ -2154,14 +2178,22 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		}
 	}
 	
-	if(addNewDisplay){
-		dataDisplay testDataDisplay;
-		testDataDisplay.contents.push_back(textItem("Test string one"));
-		testDataDisplay.contents.push_back(textItem("Test string two"));
-		testDataDisplay.myPos = arVector3(0,0,0);
-		testDataDisplay.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
-		myDataDisplays.push_back(testDataDisplay);
-	}	
+		//do button presses
+		/*
+	cout << "Current time is " << clock() / (double) CLOCKS_PER_SEC << "\n";
+	cout << "Current b5 value is" << b5 << "\n";
+	cout << "Last button pres was " << lastButtonPress << "\n";
+	cout << "Button press threshold is " << buttonPressThreshold << "\n\n";
+*/
+
+
+
+	displayRanThisRound = false;
+
+	if(!doMenu){
+		currentMenu = mainMenu;
+	}
+	
 	//handle vertex motion
 		arMatrix4 myPosMatrix( ar_getNavInvMatrix() );
 	double navX = myPosMatrix[12];
@@ -2240,6 +2272,30 @@ void postExchange( arMasterSlaveFramework& fw ) {
 	else 
 		wristRotation = -angleHolder* 180.0 / PI;
 
+	
+	//set up contents of eventInformation data display (if it is visible)
+	if(myDataDisplays.size() >= 3 && myDataDisplays[2].isVisible){
+		myDataDisplays[2].contents.clear();
+		myDataDisplays[2].contents.push_back(textItem("Event Information:"));
+		myDataDisplays[2].contents.push_back(textItem(""));
+		myDataDisplays[2].contents.push_back(textItem("Event Type:"));
+		if(currentDots.particleName.size() > 0)
+			myDataDisplays[2].contents.push_back(textItem(currentDots.particleName[0], arVector3(1, 0, 0)));
+		myDataDisplays[2].contents.push_back(textItem(""));
+		myDataDisplays[2].contents.push_back(textItem("Vertex Position:"));
+		char buffer[100];
+		sprintf(buffer, "  <%.2f, %.2f, %.2f> ", currentDots.vertexPosition[0], currentDots.vertexPosition[1], currentDots.vertexPosition[2]);
+		myDataDisplays[2].contents.push_back(textItem(buffer, arVector3(1, 0, 0)));
+		myDataDisplays[2].contents.push_back(textItem(""));
+		myDataDisplays[2].contents.push_back(textItem("Vertex Direction:"));
+		if(currentDots.coneDirection.size() > 0){
+			char buffer[100];
+			sprintf(buffer, "  <%.2f, %.2f, %.2f> ", currentDots.coneDirection[0][0], currentDots.coneDirection[0][1], currentDots.coneDirection[0][2]);
+			myDataDisplays[2].contents.push_back(textItem(buffer, arVector3(1, 0, 0)));
+		}
+		
+	}
+		
 }
 
 void display( arMasterSlaveFramework& fw ) {
@@ -2257,7 +2313,6 @@ void display( arMasterSlaveFramework& fw ) {
 	for(int i = 0; i < myDataDisplays.size(); i++){
 		myDataDisplays[i].drawDataDisplay(fw);
 	}
-	
 	if(doMenu){
 		doInterface(fw);
 	}
@@ -2433,6 +2488,26 @@ void keypress( arMasterSlaveFramework& fw, arGUIKeyInfo* keyInfo ) {
 	cout << "Key state = " << stateString << endl;
 }
 
+
+void logStuffs(arMasterSlaveFramework& fw){
+	//export logfile
+		ofstream myfile;
+		myfile.open ("X:/Dive/szg_mingw/logs/logfile_super-KAVE.txt");
+		for(int i = 0; i < dotVectors.size(); i++){
+			myfile << "Event " << i << ": \n";
+			vector<arVector3> dirs;
+			for(int j = 0; j < dotVectors[i].coneDirection.size(); j++){
+				dirs.push_back(dotVectors[i].coneDirection[j]);
+			}
+			myfile << "Pos: <" << dotVectors[i].vertexPosition[0] << ", " << dotVectors[i].vertexPosition[1] << ", " << dotVectors[i].vertexPosition[2] << "> \n";
+			for(int j = 0; j < dirs.size(); j++){
+				myfile << "Dir with type " << dotVectors[i].particleType[j] << ": <" << dirs[j][0] << ", " << dirs[j][1] << ", " << dirs[j][2] << "> \n";
+			}
+			myfile << "\n";
+		}
+		myfile.close();
+}
+
 // This is how we have to catch reshape events now, still
 // dealing with the fallout from the GLUT->arGUI conversion.
 // Note that the behavior implemented below is the default.
@@ -2453,7 +2528,6 @@ void windowEvent( arMasterSlaveFramework& fw, arGUIWindowInfo* winInfo ) {
 }
 
 int main(int argc, char** argv) {
-	
 #ifndef ICECUBE
 	filename = "temp";
 	if(argc > 1){
@@ -2482,6 +2556,7 @@ int main(int argc, char** argv) {
 	framework.setKeyboardCallback( keypress );
 	framework.setWindowEventCallback( windowEvent );
 	framework.setEyeSpacing( 0.00001f );
+	framework.setExitCallback( logStuffs );
 	// also setExitCallback(), setUserMessageCallback()
 	// in demo/arMasterSlaveFramework.
 	
@@ -2502,6 +2577,6 @@ int main(int argc, char** argv) {
 #endif
 
 	// Never returns unless something goes wrong
-	return framework.start() ? 0 : 1;
+	framework.start();	
 }
 
