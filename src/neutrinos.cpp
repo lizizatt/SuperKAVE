@@ -121,7 +121,6 @@ public:
 	menuItem::menuItem(){
 	}
 	char * content[10];
-
 	int index;
 	int numLines;
 	int startOffSetX;
@@ -135,10 +134,14 @@ public:
 
 class menu{
 public:
+	int id;  //for identification purposes
 	menu * parent;
 	vector<menu> children;
 	vector<menuItem> myItems;  //all of my items, each knowing how to draw itself given an index (center is 0, numbers to sides are offsets)
 	menu::menu(){
+		static int numMenus = 0;
+		id = numMenus;
+		numMenus++;
 	}
 	void drawSelf(arMasterSlaveFramework& fw);  
 };
@@ -167,6 +170,7 @@ menu optionsMenu;
 menu visMenu;
 menu displaysMenu;
 menu controlsMenu;
+menu conesMenu;
 bool doHUD = false;  //outdated
 bool doMenu = false;  //whether or not the menu is currently displayed
 bool doMainMenu = true; 
@@ -248,6 +252,7 @@ arVector3 menuPosition; //offset from rotation matrix
 arMatrix4 menuRotationMatrix;
 bool grabbingDisplay = false;
 //string bufferLine;  
+vector<char*> needsReleasing;
 
 bool displayRanThisRound = false;
 
@@ -287,6 +292,7 @@ arMatrix4 subtract(arMatrix4 a, arMatrix4 b){
 			out[i*4+j] = a[i*4+j] - b[i*4+j];
 		}
 	}
+	return out;
 }
 
 #ifdef WINNEUTRINO
@@ -436,8 +442,6 @@ void dataDisplay::drawDataDisplay(arMasterSlaveFramework& fw){  //updates positi
 			glPopMatrix();
 			glTranslatef(0,-.05,0);
 		}
-		glColor3f(1,1,1);
-		glutSolidCube(.1);
 	glPopMatrix();
 }
 
@@ -1071,7 +1075,7 @@ void loadNextEvent(void) {
 					}
 					else{
 						char me[100];
-						printf(me,"%i",(int)currentDots.particleType[i]);
+						printf(me,"GEANT %i",(int)currentDots.particleType[i]);
 						text = me;
 					}
 					currentDots.particleName.push_back(text);
@@ -1314,20 +1318,21 @@ void menuItem::drawSelf(bool highlighted){
 void menu::drawSelf(arMasterSlaveFramework& fw){
 	//figure out which one is selected
 	int selected = menuIndex;  //should directly index to myItems.size()
+	int intHolder = 0;
 	if(b5){
 		bool found = false;
 		for(int i = 0; i < myItems.size(); i++){
 			if(myItems[i].index == selected){
-				selected = i;
+				intHolder = i;
 				found = true;
 				break;
 			}
 		}
 		if(found){
-			nextMenu = children[selected];
+			nextMenu = children[intHolder];
 			if(!displayRanThisRound)
 			{
-				(*myItems[selected].onClick)();
+				(*myItems[intHolder].onClick)();
 				displayRanThisRound = true;
 			}
 		} else { //we aren't selecting anything at the moment
@@ -1403,6 +1408,18 @@ void toggleWristMotion(){
 	debugText("Did Toggle Wrist Motion \n");
 }
 
+void toggleCherenkovCone(){
+	int holder = menuIndex + 1;
+	if(holder == -1)
+		return;
+	if(holder >= currentDots.doDisplay.size())
+		return;
+		
+		
+	debugText("did ToggleCherenkovCone \n");
+	currentDots.doDisplay[holder] = !currentDots.doDisplay[holder];
+	dotVectors[index].doDisplay[holder] = !dotVectors[index].doDisplay[holder];
+}
 
 void doInterface(arMasterSlaveFramework& framework){
 
@@ -1731,6 +1748,7 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	eventInformation.myRotationMatrix = arMatrix4(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1);
 	eventInformation.isVisible = false;
 	myDataDisplays.push_back(eventInformation);
+
 	
 	
 	//initialize menus
@@ -1756,16 +1774,16 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	optionsItem.onClick = &goToChild;
 	mainMenu.myItems.push_back(optionsItem);
 	
-	menuItem closeMenu;
-	closeMenu.index = 0;
-	closeMenu.numLines = 2;		
-	closeMenu.content[0] = "Exit";
-	closeMenu.content[1] = "Menu";
-	closeMenu.startOffSetX = 0;
-	closeMenu.startOffSetY = 100;
-	closeMenu.scale = 2;
-	(closeMenu.onClick) = &closeMenuFunc;
-	mainMenu.myItems.push_back(closeMenu);
+	menuItem gotoCones;
+	gotoCones.index = 0;
+	gotoCones.numLines = 2;		
+	gotoCones.content[0] = "Cherenkov";
+	gotoCones.content[1] = " Cones";
+	gotoCones.startOffSetX = -100;
+	gotoCones.startOffSetY = 50;
+	gotoCones.scale = 1.5;
+	gotoCones.onClick = &goToChild;
+	mainMenu.myItems.push_back(gotoCones);
 	
 	menuItem displaysItem;
 	displaysItem.index = 1;
@@ -1921,7 +1939,16 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	(toggleInfo.onClick) = &toggleEventInfo;
 	displaysMenu.myItems.push_back(toggleInfo);
 	
-	
+	//populate cones menu
+	goBack.index = -2;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	conesMenu.myItems.push_back(goBack);
 	
 	//populate controlMenu
 	goBack.index = -1;
@@ -1952,9 +1979,12 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(visMenu);
+	for(int i = 0; i < 25; i++){
+		conesMenu.children.push_back(mainMenu);
+	}
 	mainMenu.children.push_back(optionsMenu);
 	mainMenu.children.push_back(optionsMenu);
-	mainMenu.children.push_back(optionsMenu);
+	mainMenu.children.push_back(conesMenu);
 	mainMenu.children.push_back(controlsMenu);
 	mainMenu.children.push_back(controlsMenu);
 	
@@ -1995,8 +2025,6 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		debugText("started preExchange");
 
 		
-		menuIndex = menuIndex % (currentMenu).myItems.size();
-		
 		// Do stuff on master before data is transmitted to slaves.
 
 		// handle joystick-based navigation (drive around). The resulting
@@ -2028,7 +2056,7 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 
 
 		//do button presses
-		if(fw.getButton(5) && clock() / (double) CLOCKS_PER_SEC - lastButtonPress > buttonPressThreshold){
+		if(fw.getOnButton(5) && clock() / (double) CLOCKS_PER_SEC - lastButtonPress > buttonPressThreshold){
 			b5 = true;
 			lastButtonPress = clock() / (double) CLOCKS_PER_SEC;
 		} else {
@@ -2116,9 +2144,10 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		float xvalue = dotProduct(intersectionPoint-pointOnPlane, normalize(arVector3(menuRotationMatrix[0], menuRotationMatrix[1], menuRotationMatrix[2])));
 		
 		if(yvalue > .5 || yvalue < -.5){
-			menuIndex = -100;
+			menuIndex = 100;
 		}else{
 			menuIndex = (int) floor((xvalue+.5));
+			
 		}
 		
 		
@@ -2172,10 +2201,6 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		theEffector.updateState( fw.getInputState() );
 
 		// Unpack our transfer variables.
-		//everything happens automatically except for the computation based on modifiedCherenkovConeIndex
-		if(modifiedCherenkovConeIndex != -1 && modifiedCherenkovConeIndex < currentDots.doDisplay.size()){
-			dotVectors[index].doDisplay[modifiedCherenkovConeIndex] = !currentDots.doDisplay[modifiedCherenkovConeIndex];
-		}
 	}
 	
 		//do button presses
@@ -2186,7 +2211,10 @@ void postExchange( arMasterSlaveFramework& fw ) {
 	cout << "Button press threshold is " << buttonPressThreshold << "\n\n";
 */
 
-
+	for(int i = 0; i < needsReleasing.size(); i++){
+		delete [] needsReleasing[i];
+	}
+	needsReleasing.clear();
 
 	displayRanThisRound = false;
 
@@ -2278,24 +2306,94 @@ void postExchange( arMasterSlaveFramework& fw ) {
 		myDataDisplays[2].contents.clear();
 		myDataDisplays[2].contents.push_back(textItem("Event Information:"));
 		myDataDisplays[2].contents.push_back(textItem(""));
-		myDataDisplays[2].contents.push_back(textItem("Event Type:"));
-		if(currentDots.particleName.size() > 0)
-			myDataDisplays[2].contents.push_back(textItem(currentDots.particleName[0], arVector3(1, 0, 0)));
+		myDataDisplays[2].contents.push_back(textItem("Event Primary Type:"));
+		if(currentDots.particleName.size() > 0){
+			char buffer[100];
+			sprintf(buffer, "%s : %.2f MeV", currentDots.particleName[0].c_str(), currentDots.energy[0]);
+			myDataDisplays[2].contents.push_back(textItem(buffer, arVector3(1, 0, 0)));
+		}
 		myDataDisplays[2].contents.push_back(textItem(""));
-		myDataDisplays[2].contents.push_back(textItem("Vertex Position:"));
+		myDataDisplays[2].contents.push_back(textItem("Interacton Position:"));
 		char buffer[100];
 		sprintf(buffer, "  <%.2f, %.2f, %.2f> ", currentDots.vertexPosition[0], currentDots.vertexPosition[1], currentDots.vertexPosition[2]);
 		myDataDisplays[2].contents.push_back(textItem(buffer, arVector3(1, 0, 0)));
 		myDataDisplays[2].contents.push_back(textItem(""));
-		myDataDisplays[2].contents.push_back(textItem("Vertex Direction:"));
+		myDataDisplays[2].contents.push_back(textItem("Primary Particle Direction:"));
 		if(currentDots.coneDirection.size() > 0){
 			char buffer[100];
 			sprintf(buffer, "  <%.2f, %.2f, %.2f> ", currentDots.coneDirection[0][0], currentDots.coneDirection[0][1], currentDots.coneDirection[0][2]);
 			myDataDisplays[2].contents.push_back(textItem(buffer, arVector3(1, 0, 0)));
 		}
 		
-	}
+		myDataDisplays[2].contents.push_back(textItem(""));
+		myDataDisplays[2].contents.push_back(textItem("Other Final State Particles:"));
+		for(int i = 1; i < currentDots.particleName.size(); i++){
+			char buffer[100];
+			if(currentDots.doDisplay[i])
+				sprintf(buffer, " -%s Cone %i : %.1f MeV : On", currentDots.particleName[i].c_str(), i + 1, currentDots.energy[i]);
+			else
+				sprintf(buffer, " -%s Cone %i : %.1f MeV : Off", currentDots.particleName[i].c_str(), i + 1, currentDots.energy[i]);
+			myDataDisplays[2].contents.push_back(textItem( buffer));
+		}
 		
+		//for rest of cones just have one line for each
+		
+	}	
+	
+	//regenerate the contents of the conesMenu
+	conesMenu.myItems.clear();
+	menuItem goBack;
+	goBack.index = -2;
+	goBack.numLines = 2;		
+	goBack.content[0] = "Main";
+	goBack.content[1] = "Menu";
+	goBack.startOffSetX = 0;
+	goBack.startOffSetY = 100;
+	goBack.scale = 2;
+	(goBack.onClick) = &mainMenuFunc;
+	conesMenu.myItems.push_back(goBack);
+	
+	for(int i = 0; i < dotVectors[index].particleName.size(); i++){
+		char * line1 = new char[100];	
+		if(dotVectors[index].doDisplay[i])
+			sprintf(line1, "Cone %i : On", i+1);
+		else
+			sprintf(line1, "Cone %i : Off", i+1);
+		char * line2 = new char[100];
+		sprintf(line2, "%s", dotVectors[index].particleName[i].c_str());
+		char * line3 = new char[100];
+		sprintf(line3, "%.1f MeV", dotVectors[index].energy[i]);
+		//push into menu structure
+
+			
+		needsReleasing.push_back(line1);
+		needsReleasing.push_back(line2);
+		needsReleasing.push_back(line3);
+		
+		menuItem coneItem;
+		coneItem.index = i-1;
+		coneItem.numLines = 3;
+		coneItem.startOffSetX = -125;
+		coneItem.startOffSetY = 200;
+		coneItem.scale = 1;
+		coneItem.content[0] = line1;
+		coneItem.content[1] = line2;
+		coneItem.content[2] = line3;
+		coneItem.onClick = &toggleCherenkovCone;
+		conesMenu.myItems.push_back(coneItem);
+	}
+	mainMenu.children[2] = conesMenu;
+
+//and now just in case use the menu id system ot make sure currentMenu is the right version of anything we've dynamically modified
+	if(currentMenu.id == conesMenu.id){
+		currentMenu = conesMenu;
+	}
+	
+	/*
+	for(int i = 0; i < currentMenu.myItems.size(); i++){
+		cout << currentMenu.myItems[i].scale << "\n";
+	}//*/
+	
 }
 
 void display( arMasterSlaveFramework& fw ) {
