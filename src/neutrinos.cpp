@@ -3,8 +3,8 @@
 // see the file SZG_CREDITS for details
 //********************************************************
 
-//  -Ben Izatt
-// bji@berkeley.edu
+//  -Liz Izatt
+// liz@berkeley.edu
 
 // precompiled header include MUST appear as the first non-comment line
 #include "arPrecompiled.h"
@@ -25,9 +25,10 @@
 #include "arGlut.h"
 #include "arGraphicsHeader.h" //include gl.h
 
-#ifdef WINNEUTRINO
+#ifdef WIN32            //used to be WINNEUTRINO. DJZ 10/10/2013
 #include <time.h>
 #endif
+
 
 
 // The class containing all the relevant information about each dot
@@ -103,7 +104,7 @@ public:
 	arMatrix4 myRotationMatrix;  //location outward of screen
 	vector<textItem> contents;  //contents, to be drawn from top to bottom, line by line
 	void drawDataDisplay(arMasterSlaveFramework& fw);
-	dataDisplay::dataDisplay();
+	dataDisplay(); //used to be dataDisplay::dataDisplay(); -DJZ 10/10/2013
 };
 
 dataDisplay::dataDisplay(){
@@ -118,7 +119,7 @@ int dataDisplay::numberDisplays = 0;
 
 class menuItem{  //knows how to draw itself, and what to do if its clicked.
 public:
-	menuItem::menuItem(){
+	menuItem(){  //used to be menuItem::menuItem() -DJZ 10/10/2013
 	}
 	char * content[10];
 	int index;
@@ -138,7 +139,7 @@ public:
 	menu * parent;
 	vector<menu> children;
 	vector<menuItem> myItems;  //all of my items, each knowing how to draw itself given an index (center is 0, numbers to sides are offsets)
-	menu::menu(){
+	menu(){ //used menu::menu() -DJZ 10/10/2013
 		static int numMenus = 0;
 		id = numMenus;
 		numMenus++;
@@ -1362,6 +1363,13 @@ void toggleODFunc(){
 }
 
 void eventNumberDecrement(){
+	if(doTimeCompressed){
+		switch(autoPlay){
+			case 0:  autoPlay = -1;  return;
+			case -1:  return;
+			case 1:  autoPlay = 0; return;
+		}
+	}
 	if(index != 0){
 		index--;
 	}
@@ -1376,6 +1384,13 @@ void toggleCherenkovLines(){
 }
 
 void eventNumberIncrement(){
+	if(doTimeCompressed){
+		switch(autoPlay){
+			case 0:  autoPlay = 1;  return;
+			case -1:  autoPlay = 0;  return;
+			case 1:  return;
+		}
+	}
 	if(index != dotVectors.size() - 1){
 		index++;
 	}
@@ -1979,8 +1994,13 @@ bool start( arMasterSlaveFramework& framework, arSZGClient& /*cli*/ ) {
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(displaysMenu);
 	optionsMenu.children.push_back(visMenu);
+	optionsMenu.children.push_back(visMenu);
+	optionsMenu.children.push_back(visMenu);
+	optionsMenu.children.push_back(visMenu);
+	optionsMenu.children.push_back(visMenu);
 	for(int i = 0; i < 25; i++){
 		conesMenu.children.push_back(mainMenu);
+		visMenu.children.push_back(mainMenu);
 	}
 	mainMenu.children.push_back(optionsMenu);
 	mainMenu.children.push_back(optionsMenu);
@@ -2039,12 +2059,28 @@ void windowStartGL( arMasterSlaveFramework& fw, arGUIWindowInfo* ) {
 		
 		//update elapsed time
 		elapsedTime = clock()/(double)CLOCKS_PER_SEC - eventBegan;
+		
+		
 
 		//handle autoplay end-stopping (For supernova mode)
 		if(index == 0 || index == dotVectors.size()-1){
 			autoPlay = 0;
 		}
 		
+		
+		if(autoPlay == 1){
+			if(elapsedTime > currentDots.length){
+				index++;
+				eventBegan = currentTime;
+			}
+		}
+		
+		if(autoPlay == -1){
+			if(elapsedTime > currentDots.length){
+				index--;
+				eventBegan = currentTime;
+			}
+		}
 		
 		//button mapping for reference:
 		// 0 = yellow
